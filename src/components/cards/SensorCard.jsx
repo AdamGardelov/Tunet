@@ -389,6 +389,13 @@ const SensorCard = memo(
       return () => observer.disconnect();
     }, []);
 
+    // Latest state in a ref: the flat-line fallback reads it without
+    // re-fetching 24h of history on every entity update.
+    const stateRef = useRef(state);
+    useEffect(() => {
+      stateRef.current = state;
+    }, [state]);
+
     useEffect(() => {
       if (!conn || !displayEntity?.entity_id || !showGraph || !isVisible) {
         if (!isVisible && showGraph) {
@@ -400,6 +407,7 @@ const SensorCard = memo(
         return;
       }
 
+      let cancelled = false;
       const fetchHistory = async () => {
         try {
           const end = new Date();
@@ -410,6 +418,7 @@ const SensorCard = memo(
             end,
             minimal_response: true,
           });
+          if (cancelled) return;
 
           const processed = (data && Array.isArray(data) ? data : [])
             .map((d) => {
@@ -453,6 +462,7 @@ const SensorCard = memo(
             end,
             period: 'hour',
           });
+          if (cancelled) return;
 
           const statPoints = (stats && Array.isArray(stats) ? stats : [])
             .map((d) => ({
@@ -477,9 +487,9 @@ const SensorCard = memo(
             return;
           }
 
-          if (!isNaN(parseFloat(state))) {
+          if (!isNaN(parseFloat(stateRef.current))) {
             const now = new Date();
-            const currentValue = parseFloat(state);
+            const currentValue = parseFloat(stateRef.current);
             setHistory([
               { value: currentValue, time: new Date(now.getTime() - 60 * 60 * 1000) },
               { value: currentValue, time: now },
@@ -504,10 +514,11 @@ const SensorCard = memo(
       }
 
       return () => {
+        cancelled = true;
         if (idleId) window.cancelIdleCallback(idleId);
         if (timerId) clearTimeout(timerId);
       };
-    }, [conn, displayEntity?.entity_id, showGraph, state, isVisible]);
+    }, [conn, displayEntity?.entity_id, showGraph, isVisible]);
 
     // Early return AFTER all hooks to respect Rules of Hooks
     if (!entity) return null;

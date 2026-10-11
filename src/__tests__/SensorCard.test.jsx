@@ -48,6 +48,36 @@ const baseProps = (overrides = {}) => ({
 });
 
 describe('SensorCard', () => {
+  it('does not refetch 24h history when only the entity state changes', async () => {
+    getHistoryMock.mockResolvedValue([
+      { s: '100', lc: 1700000000 },
+      { s: '101', lc: 1700003600 },
+    ]);
+    const conn = {};
+    const baseEntity = {
+      entity_id: 'sensor.power',
+      state: '100',
+      attributes: { friendly_name: 'Power' },
+    };
+    const props = baseProps({
+      entity: baseEntity,
+      conn,
+      settings: { size: 'large' },
+    });
+
+    const { rerender } = render(<SensorCard {...props} />);
+
+    await waitFor(() => expect(getHistoryMock).toHaveBeenCalledTimes(1), { timeout: 2000 });
+
+    rerender(
+      <SensorCard {...props} entity={{ ...baseEntity, state: '105' }} conn={conn} />
+    );
+
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    expect(getHistoryMock).toHaveBeenCalledTimes(1);
+  });
+
+
   it('shows an informative script status instead of repeating the entity type', () => {
     const t = (key) =>
       ({
