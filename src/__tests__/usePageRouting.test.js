@@ -44,6 +44,19 @@ describe('usePageRouting', () => {
     expect(localStorage.getItem('tunet_active_page')).toBe('media');
   });
 
+  it('keeps the deep-linked page when it differs from localStorage', async () => {
+    localStorage.setItem('tunet_active_page', 'home');
+    routerState.params = { pageId: 'energia' };
+    routerState.location = { pathname: '/page/energia' };
+
+    const { result } = renderHook(() => usePageRouting());
+
+    await waitFor(() => {
+      expect(result.current.activePage).toBe('energia');
+    });
+    expect(routerState.navigate).not.toHaveBeenCalledWith('/page/home', { replace: true });
+  });
+
   it('setActivePage updates localStorage and navigates', () => {
     const { result } = renderHook(() => usePageRouting());
 
