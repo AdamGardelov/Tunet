@@ -499,6 +499,7 @@ const SensorCard = memo(
 
           setHistory([]);
         } catch (e) {
+          if (cancelled) return;
           console.error('Failed to fetch history', e);
           setHistory([]);
         }

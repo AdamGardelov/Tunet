@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 /**
@@ -11,6 +11,7 @@ export function usePageRouting() {
   const { pageId } = useParams();
 
   const [activePage, _setActivePage] = useState(() => {
+    if (pageId) return pageId;
     try {
       return localStorage.getItem('tunet_active_page') || 'home';
     } catch {
@@ -18,47 +19,32 @@ export function usePageRouting() {
     }
   });
 
-  const setActivePage = useCallback((page) => {
-    _setActivePage(page);
-    try {
-      localStorage.setItem('tunet_active_page', page);
-    } catch {}
-  }, []);
+  const setActivePage = useCallback(
+    (page) => {
+      _setActivePage(page);
+      try {
+        localStorage.setItem('tunet_active_page', page);
+      } catch {}
+      navigate(`/page/${page}`, { replace: true });
+    },
+    [navigate]
+  );
 
   useEffect(() => {
     if (!pageId) return;
-    _setActivePage((prev) => {
-      if (prev !== pageId) {
-        try {
-          localStorage.setItem('tunet_active_page', pageId);
-        } catch {}
-        return pageId;
-      }
-      return prev;
-    });
+    _setActivePage(pageId);
+    try {
+      localStorage.setItem('tunet_active_page', pageId);
+    } catch {}
   }, [pageId]);
 
-  const isInitialRender = useRef(true);
-
   useEffect(() => {
-    if (!activePage) return;
-    if (isInitialRender.current) {
-      isInitialRender.current = false;
-      // Only canonicalize a bare URL on first load; never fight an
-      // explicit /page/:id deep link (the param-to-state effect wins).
-      if (pageId) return;
-      const target = `/page/${activePage}`;
-      if (location.pathname !== target) {
-        navigate(target, { replace: true });
-      }
-      return;
-    }
+    if (!activePage || pageId) return;
     const target = `/page/${activePage}`;
     if (location.pathname !== target) {
       navigate(target, { replace: true });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- pathname/pageId are read, not drivers
-  }, [activePage, navigate]);
+  }, [activePage, pageId, location.pathname, navigate]);
 
   return { activePage, setActivePage };
 }

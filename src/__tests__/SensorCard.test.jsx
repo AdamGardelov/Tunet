@@ -69,14 +69,11 @@ describe('SensorCard', () => {
 
     await waitFor(() => expect(getHistoryMock).toHaveBeenCalledTimes(1), { timeout: 2000 });
 
-    rerender(
-      <SensorCard {...props} entity={{ ...baseEntity, state: '105' }} conn={conn} />
-    );
+    rerender(<SensorCard {...props} entity={{ ...baseEntity, state: '105' }} conn={conn} />);
 
     await new Promise((resolve) => setTimeout(resolve, 800));
     expect(getHistoryMock).toHaveBeenCalledTimes(1);
   });
-
 
   it('shows an informative script status instead of repeating the entity type', () => {
     const t = (key) =>
