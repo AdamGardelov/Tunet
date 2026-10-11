@@ -1,4 +1,9 @@
 import { test, expect } from './fixtures';
+import { readFileSync } from 'node:fs';
+
+const appVersion = JSON.parse(
+  readFileSync(new URL('../package.json', import.meta.url), 'utf8')
+).version;
 
 test.describe('Modal Interactions', () => {
   const enableEditMode = async (page) => {
@@ -84,6 +89,14 @@ test.describe('Modal Interactions', () => {
 
     // Modal shell is the required assertion for opening system settings.
     await expect(modal).toBeVisible();
+  });
+
+  test('shows the build version when the server health endpoint is unavailable', async ({
+    page,
+  }) => {
+    await page.route('**/api/health', (route) => route.fulfill({ status: 503, body: '{}' }));
+    const modal = await openSystemModal(page);
+    await expect(modal.getByText(`Running version: ${appVersion}`, { exact: true })).toBeVisible();
   });
 
   test('should expose mobile add and edit actions from the floating settings menu', async ({
