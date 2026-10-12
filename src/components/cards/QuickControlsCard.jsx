@@ -48,12 +48,12 @@ const QuickControlsCard = ({
     <section
       key={cardId}
       {...dragProps}
-      className={`group relative flex h-full flex-col rounded-3xl border font-sans ${isMobile ? 'p-3.5' : 'p-3'} ${editMode ? 'cursor-move' : ''}`}
+      className={`group relative flex h-full flex-col overflow-hidden rounded-3xl border font-sans ${isMobile ? 'px-4 py-3' : 'p-3'} ${editMode ? 'cursor-move' : ''}`}
       style={cardStyle}
       aria-label={settings.title || 'Snabbkontroller'}
     >
       {controls}
-      <p className="mb-2 px-1 text-[10px] font-bold tracking-[0.18em] text-[var(--text-secondary)] uppercase opacity-60">
+      <p className="mb-1 px-1 text-[10px] font-bold tracking-[0.18em] text-[var(--text-secondary)] uppercase opacity-60">
         {settings.title || 'Snabbkontroller'}
       </p>
       <div className={`grid min-h-0 flex-1 gap-2 ${singleControl ? 'grid-cols-1' : 'grid-cols-2'}`}>
@@ -78,24 +78,20 @@ const QuickControlsCard = ({
               type="button"
               disabled={unavailable || editMode}
               onClick={(event) => handleToggle(event, entityId)}
-              className={`touch-feedback flex h-full min-h-12 min-w-0 items-center gap-3 rounded-2xl border px-4 py-2 text-left transition-all active:scale-[0.98] ${
-                active
-                  ? 'border-[var(--accent-color)]/25 bg-[var(--accent-bg)]'
-                  : 'border-[var(--glass-border)] bg-[var(--glass-bg)]'
-              } ${unavailable ? 'opacity-55' : ''}`}
+              className={`touch-feedback flex min-h-0 min-w-0 flex-1 items-center gap-3 rounded-xl px-1 py-1 text-left transition-all active:scale-[0.98] ${active ? 'bg-[var(--accent-bg)]' : ''} ${unavailable ? 'opacity-55' : ''}`}
             >
               <span
-                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
                   active
                     ? 'bg-[var(--accent-bg)] text-[var(--accent-color)]'
                     : 'bg-[var(--glass-bg-hover)] text-[var(--text-muted)]'
                 }`}
               >
-                <Icon className="h-5 w-5 stroke-[1.7px]" />
+                <Icon className="h-[22px] w-[22px] stroke-[1.7px]" />
               </span>
               <span className="min-w-0 flex-1">
                 <span
-                  className={`block text-sm leading-tight font-bold text-[var(--text-primary)] ${singleControl ? 'whitespace-normal' : 'truncate'}`}
+                  className={`block text-[15px] leading-tight font-bold text-[var(--text-primary)] ${singleControl ? 'whitespace-normal' : 'truncate'}`}
                 >
                   {getCompactName(entityId, entity)}
                 </span>
@@ -103,6 +99,20 @@ const QuickControlsCard = ({
                   {stateLabel}
                 </span>
               </span>
+              {!unavailable && (
+                <span
+                  className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
+                    active ? 'bg-[var(--accent-color)]' : 'bg-[var(--glass-bg-hover)]'
+                  }`}
+                  aria-hidden="true"
+                >
+                  <span
+                    className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
+                      active ? 'translate-x-[18px]' : 'translate-x-0.5'
+                    }`}
+                  />
+                </span>
+              )}
             </button>
           );
         })}

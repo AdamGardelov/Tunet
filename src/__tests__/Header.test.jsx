@@ -17,6 +17,18 @@ const baseProps = {
 };
 
 describe('Header mobile alignment', () => {
+  it('allows the title to be left empty', () => {
+    render(
+      <Header
+        {...baseProps}
+        headerTitle=""
+        headerSettings={{ showTitle: true, showClock: true, showDate: false }}
+      />
+    );
+
+    expect(screen.queryByRole('heading')).not.toBeInTheDocument();
+  });
+
   it.each([
     ['left', 'items-start', 'text-left', 'justify-start'],
     ['center', 'items-center', 'text-center', 'justify-center'],

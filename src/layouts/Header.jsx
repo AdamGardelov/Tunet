@@ -113,6 +113,7 @@ export default function Header({
     ? headerSettings.mobileAlignment
     : 'center';
   const mobileAlignmentClasses = MOBILE_ALIGNMENT_CLASSES[mobileAlignment];
+  const showTitle = headerSettings.showTitle && Boolean(headerTitle?.trim());
 
   const dateStr = now.toLocaleDateString(locale, {
     weekday: 'long',
@@ -166,9 +167,9 @@ export default function Header({
           className={isMobile ? `battery-bar--align-${mobileAlignment}` : ''}
         >
           {/* Left: Title */}
-          {headerSettings.showTitle && (
+          {showTitle && (
             <h1 className="leading-none whitespace-nowrap select-none" style={titleStyle}>
-              {headerTitle || 'Tunet'}
+              {headerTitle}
             </h1>
           )}
 
@@ -244,9 +245,9 @@ export default function Header({
             isMobile ? `w-full ${mobileAlignmentClasses.title}` : ''
           }`}
         >
-          {headerSettings.showTitle && (
+          {showTitle && (
             <h1 className="leading-none select-none" style={titleStyle}>
-              {headerTitle || 'Tunet'}
+              {headerTitle}
             </h1>
           )}
         </div>

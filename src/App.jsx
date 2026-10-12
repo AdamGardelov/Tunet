@@ -160,7 +160,7 @@ export function AppContent({ showOnboarding, setShowOnboarding }) {
     return scheduleLikelyModalPrefetch();
   }, [entitiesLoaded]);
 
-  const resolvedHeaderTitle = headerTitle || t('page.home');
+  const resolvedHeaderTitle = headerTitle ?? t('page.home');
 
   // Modal state management
   const modalActions = useModalActions();
