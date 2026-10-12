@@ -1,8 +1,8 @@
-name: 'Tunet'
-description: 'A modern, responsive dashboard for Home Assistant'
-version: '1.23.0'
+name: 'Tunet Hardened'
+description: 'Hardened Tunet dashboard for Home Assistant'
+version: '1.23.0-adam.1'
 slug: 'tunet'
-url: 'https://github.com/oyvhov/Tunet'
+url: 'https://github.com/AdamGardelov/Tunet'
 init: false
 startup: application
 arch:
@@ -13,7 +13,7 @@ auth_api: true
 ingress: true
 ingress_port: 3002
 panel_icon: 'mdi:view-dashboard-variant'
-panel_title: 'Tunet'
+panel_title: 'Tunet Hardened'
 ports:
   3002/tcp: null
 ports_description:
