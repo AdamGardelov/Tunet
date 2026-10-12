@@ -71,7 +71,7 @@ describe('mobile grid controls', () => {
     expect(slider.parentElement).toHaveStyle({ touchAction: 'pan-y' });
   });
 
-  it('puts quick controls first and hides weather and calendar cards on mobile', () => {
+  it('puts quick controls first and hides weather, calendar, and media cards on mobile', () => {
     const props = {
       ...dashboardProps,
       page: {
@@ -83,6 +83,7 @@ describe('mobile grid controls', () => {
             'sensor.first',
             'calendar_card_family',
             'weather_temp_home',
+            'media_player.kok',
             'quick_controls_home',
           ],
         },
@@ -94,7 +95,8 @@ describe('mobile grid controls', () => {
           'sensor.first': { row: 1, col: 1, span: 1, colSpan: 1 },
           calendar_card_family: { row: 2, col: 1, span: 1, colSpan: 1 },
           weather_temp_home: { row: 3, col: 1, span: 1, colSpan: 1 },
-          quick_controls_home: { row: 4, col: 1, span: 1, colSpan: 1 },
+          'media_player.kok': { row: 4, col: 1, span: 1, colSpan: 1 },
+          quick_controls_home: { row: 5, col: 1, span: 1, colSpan: 1 },
         },
       },
       cards: {
@@ -112,5 +114,6 @@ describe('mobile grid controls', () => {
     ]);
     expect(screen.queryByText('calendar_card_family')).not.toBeInTheDocument();
     expect(screen.queryByText('weather_temp_home')).not.toBeInTheDocument();
+    expect(screen.queryByText('media_player.kok')).not.toBeInTheDocument();
   });
 });

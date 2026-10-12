@@ -9,7 +9,13 @@ const BatteryPage = lazy(() => import('../components/pages/BatteryPage'));
 const RoomExplorerPage = lazy(() => import('../components/pages/RoomExplorerPage'));
 
 const pageFallback = <div className="page-transition min-h-[40vh]" aria-hidden="true" />;
-const MOBILE_HIDDEN_CARD_PREFIXES = ['calendar_card_', 'weather_temp_'];
+const MOBILE_HIDDEN_CARD_PREFIXES = [
+  'calendar_card_',
+  'weather_temp_',
+  'media_player.',
+  'media_group_',
+  'sonos_group_',
+];
 
 export const isCardHiddenOnMobile = (cardId) =>
   MOBILE_HIDDEN_CARD_PREFIXES.some((prefix) => cardId.startsWith(prefix));
