@@ -22,6 +22,8 @@ export { default as StatusPill } from './cards/StatusPill';
 export { default as TodoCard } from './cards/TodoCard';
 export { default as VacuumCard } from './cards/VacuumCard';
 export { default as MowerCard } from './cards/MowerCard';
+export { default as MedicationCard } from './cards/MedicationCard';
+export { default as QuickControlsCard } from './cards/QuickControlsCard';
 export { default as WeatherTempCard } from './cards/WeatherTempCard';
 
 // ── Charts ───────────────────────────────────────────────────────────────

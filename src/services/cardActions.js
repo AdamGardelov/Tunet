@@ -301,6 +301,32 @@ export const handleAddSelected = (ctx) => {
       return;
     }
 
+    case 'quick_controls': {
+      if (selectedEntities.length === 0) return;
+      const cardId = `quick_controls_${Date.now()}`;
+      commitSingleCard(cardId, {
+        entityIds: selectedEntities,
+        title: 'Snabbkontroller',
+        size: 'small',
+        colSpan: 'full',
+      });
+      setSelectedEntities([]);
+      return;
+    }
+
+    case 'medication': {
+      if (selectedEntities.length === 0) return;
+      const cardId = `medication_card_${Date.now()}`;
+      commitSingleCard(cardId, {
+        entityIds: selectedEntities,
+        title: 'Sparvens inhalator',
+        size: 'small',
+        colSpan: 'full',
+      });
+      setSelectedEntities([]);
+      return;
+    }
+
     case 'sensor': {
       if (selectedEntities.length === 0) return;
       const newSettings = { ...cardSettings };

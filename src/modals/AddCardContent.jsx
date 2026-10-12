@@ -9,6 +9,7 @@ import {
   Coins,
   Fan,
   Gamepad2,
+  Heart,
   Home,
   Lightbulb,
   ListChecks,
@@ -22,6 +23,7 @@ import {
   Shield,
   Sparkles,
   Thermometer,
+  ToggleRight,
   Tv,
   X,
   Zap,
@@ -366,6 +368,22 @@ function AddCardContent({
       if (addCardType === 'media') return id.startsWith('media_player.');
       if (addCardType === 'sonos')
         return id.startsWith('media_player.') && isSonosMediaEntity(entities[id]);
+      if (addCardType === 'quick_controls') {
+        return (
+          id.startsWith('light.') ||
+          id.startsWith('climate.') ||
+          id.startsWith('switch.') ||
+          id.startsWith('input_boolean.')
+        );
+      }
+      if (addCardType === 'medication') {
+        return (
+          id.startsWith('input_boolean.') ||
+          id.startsWith('switch.') ||
+          id.startsWith('input_number.') ||
+          id.startsWith('sensor.')
+        );
+      }
       if (addCardType === 'sensor') {
         return (
           id.startsWith('sensor.') ||
@@ -935,6 +953,8 @@ function AddCardContent({
     'sonos',
     'toggle',
     'entity',
+    'quick_controls',
+    'medication',
   ].includes(addCardType);
   const usesMultiSelectWithCalendar = usesEntityMultiSelect || addCardType === 'calendar';
 
@@ -1143,12 +1163,36 @@ function AddCardContent({
                     isActive={addCardType === 'spacer'}
                     onSelect={setAddCardType}
                   />
+                  <TypeButton
+                    type="quick_controls"
+                    icon={ToggleRight}
+                    label="Snabbkontroller"
+                    isActive={addCardType === 'quick_controls'}
+                    onSelect={setAddCardType}
+                  />
+                  <TypeButton
+                    type="medication"
+                    icon={Heart}
+                    label="Medicin"
+                    isActive={addCardType === 'medication'}
+                    onSelect={setAddCardType}
+                  />
                 </div>
                 {addCardType === 'sensor' && (
                   <p className="mt-2 ml-4 text-[11px] text-[var(--text-secondary)] opacity-75">
                     {t('addCard.sensorIncludes') !== 'addCard.sensorIncludes'
                       ? t('addCard.sensorIncludes')
                       : 'Includes binary sensors, sensors, switches, automations, scripts and more.'}
+                  </p>
+                )}
+                {addCardType === 'quick_controls' && (
+                  <p className="mt-2 ml-4 text-[11px] text-[var(--text-secondary)] opacity-75">
+                    Välj de enheter som ska visas som direkta snabbknappar.
+                  </p>
+                )}
+                {addCardType === 'medication' && (
+                  <p className="mt-2 ml-4 text-[11px] text-[var(--text-secondary)] opacity-75">
+                    Välj dosräknaren samt hjälparna för morgon och kväll.
                   </p>
                 )}
               </div>

@@ -36,6 +36,8 @@ const REMOVABLE_PREFIXES = [
   'alarm_card_',
   'spacer_card_',
   'fan.',
+  'quick_controls_',
+  'medication_card_',
 ];
 
 /** Prefixes for "special" composite cards that don't map 1:1 to an entity. */
@@ -58,6 +60,8 @@ const SPECIAL_CARD_PREFIXES = [
   'camera_card_',
   'alarm_card_',
   'spacer_card_',
+  'quick_controls_',
+  'medication_card_',
 ];
 
 /**

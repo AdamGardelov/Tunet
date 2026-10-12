@@ -1,0 +1,107 @@
+import { memo, useCallback, useMemo } from 'react';
+import { Check, Heart } from '../../icons';
+
+const findEntity = (entityIds, pattern, fallbackDomains, entities, used = new Set()) =>
+  entityIds.find((id) => !used.has(id) && pattern.test(id)) ||
+  entityIds.find(
+    (id) => !used.has(id) && fallbackDomains.includes(id.split('.')[0]) && entities[id]
+  );
+
+const MedicationCard = ({
+  cardId,
+  settings,
+  entities,
+  callService,
+  dragProps,
+  controls,
+  cardStyle,
+  editMode,
+}) => {
+  const mapping = useMemo(() => {
+    const entityIds = Array.isArray(settings.entityIds) ? settings.entityIds : [];
+    const used = new Set();
+    const doseId =
+      settings.doseEntityId ||
+      findEntity(entityIds, /dos|dose|inhal/i, ['input_number', 'sensor'], entities, used);
+    if (doseId) used.add(doseId);
+    const morningId =
+      settings.morningEntityId ||
+      findEntity(entityIds, /morgon|morning/i, ['input_boolean', 'switch'], entities, used);
+    if (morningId) used.add(morningId);
+    const eveningId =
+      settings.eveningEntityId ||
+      findEntity(entityIds, /kv[aä]ll|evening/i, ['input_boolean', 'switch'], entities, used);
+    return { doseId, morningId, eveningId };
+  }, [
+    entities,
+    settings.entityIds,
+    settings.doseEntityId,
+    settings.eveningEntityId,
+    settings.morningEntityId,
+  ]);
+
+  const doses = Number.parseFloat(entities[mapping.doseId]?.state);
+  const hasDoseValue = Number.isFinite(doses);
+  const days = hasDoseValue ? Math.ceil(doses / 2) : null;
+
+  const toggleDose = useCallback(
+    (event, entityId) => {
+      event.stopPropagation();
+      if (editMode || !entityId) return;
+      const domain = entityId.split('.')[0];
+      if (!['input_boolean', 'switch'].includes(domain)) return;
+      callService(domain, 'toggle', { entity_id: entityId });
+    },
+    [callService, editMode]
+  );
+
+  const DoseButton = ({ entityId, label }) => {
+    const done = entities[entityId]?.state === 'on';
+    const unavailable =
+      !entityId || !entities[entityId] || entities[entityId].state === 'unavailable';
+    return (
+      <button
+        type="button"
+        disabled={editMode || unavailable}
+        onClick={(event) => toggleDose(event, entityId)}
+        className={`touch-feedback flex min-w-0 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold transition-all active:scale-[0.97] ${
+          done
+            ? 'border-emerald-400/30 bg-emerald-400/12 text-emerald-300'
+            : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)]'
+        } ${unavailable ? 'opacity-45' : ''}`}
+      >
+        <span className="truncate">{label}</span>
+        {done && <Check className="h-4 w-4 shrink-0" />}
+      </button>
+    );
+  };
+
+  return (
+    <section
+      key={cardId}
+      {...dragProps}
+      className={`group relative flex h-full items-center gap-3 overflow-hidden rounded-3xl border px-4 py-3 font-sans ${editMode ? 'cursor-move' : ''}`}
+      style={cardStyle}
+      aria-label={settings.title || 'Sparvens inhalator'}
+    >
+      {controls}
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-400/12 text-emerald-300">
+        <Heart className="h-6 w-6 stroke-[1.7px]" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-bold text-[var(--text-primary)]">
+          {settings.title || 'Sparvens inhalator'}
+        </p>
+        <p className="mt-1 truncate text-[10px] font-bold tracking-wide text-[var(--text-secondary)] uppercase">
+          {hasDoseValue ? `${doses} doser kvar · ca ${days} dagar` : 'Dosantal saknas'}
+        </p>
+      </div>
+      <div className="grid min-w-[190px] grid-cols-2 gap-2 max-sm:min-w-[160px]">
+        <DoseButton entityId={mapping.morningId} label="Morgon" />
+        <DoseButton entityId={mapping.eveningId} label="Kväll" />
+      </div>
+    </section>
+  );
+};
+
+export default memo(MedicationCard);
