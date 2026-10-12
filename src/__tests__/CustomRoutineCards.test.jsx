@@ -44,6 +44,28 @@ describe('custom routine cards', () => {
     });
   });
 
+  it('uses the full quick-control width when only one entity is configured', () => {
+    const { container } = render(
+      <QuickControlsCard
+        cardId="quick_controls_1"
+        settings={{ entityIds: ['light.emma'] }}
+        entities={{
+          'light.emma': { state: 'off', attributes: { friendly_name: 'Emma sänglampa' } },
+        }}
+        callService={vi.fn()}
+        dragProps={{}}
+        controls={null}
+        cardStyle={{}}
+        editMode={false}
+        isMobile
+        t={t}
+      />
+    );
+
+    expect(container.querySelector('.grid')).toHaveClass('grid-cols-1');
+    expect(screen.getByText('Emma sänglampa')).toHaveClass('whitespace-normal');
+  });
+
   it('shows remaining doses and registers morning and evening separately', () => {
     const callService = vi.fn();
     render(

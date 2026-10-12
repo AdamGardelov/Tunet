@@ -9,7 +9,7 @@ export function renderQuickControlsCard(
   settingsKey,
   ctx
 ) {
-  const { entities, editMode, cardSettings, callService, t } = ctx;
+  const { entities, editMode, cardSettings, callService, isMobile, t } = ctx;
   const settings = getSettings(cardSettings, settingsKey, cardId);
   return (
     <QuickControlsCard
@@ -21,6 +21,7 @@ export function renderQuickControlsCard(
       controls={getControls(cardId)}
       cardStyle={cardStyle}
       editMode={editMode}
+      isMobile={isMobile}
       t={t}
     />
   );

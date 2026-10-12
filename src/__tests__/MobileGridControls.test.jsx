@@ -70,4 +70,47 @@ describe('mobile grid controls', () => {
     expect(slider).toHaveStyle({ touchAction: 'pan-y' });
     expect(slider.parentElement).toHaveStyle({ touchAction: 'pan-y' });
   });
+
+  it('puts quick controls first and hides weather and calendar cards on mobile', () => {
+    const props = {
+      ...dashboardProps,
+      page: {
+        ...dashboardProps.page,
+        pagesConfig: {
+          pages: ['home'],
+          header: [],
+          home: [
+            'sensor.first',
+            'calendar_card_family',
+            'weather_temp_home',
+            'quick_controls_home',
+          ],
+        },
+      },
+      grid: {
+        ...dashboardProps.grid,
+        gridColCount: 1,
+        gridLayout: {
+          'sensor.first': { row: 1, col: 1, span: 1, colSpan: 1 },
+          calendar_card_family: { row: 2, col: 1, span: 1, colSpan: 1 },
+          weather_temp_home: { row: 3, col: 1, span: 1, colSpan: 1 },
+          quick_controls_home: { row: 4, col: 1, span: 1, colSpan: 1 },
+        },
+      },
+      cards: {
+        ...dashboardProps.cards,
+        renderCard: (id) => <div>{id}</div>,
+      },
+    };
+
+    const { container } = render(<DashboardGrid {...props} />);
+    const cards = [...container.querySelectorAll('[data-dashboard-card]')];
+
+    expect(cards.map((card) => card.dataset.dashboardCard)).toEqual([
+      'quick_controls_home',
+      'sensor.first',
+    ]);
+    expect(screen.queryByText('calendar_card_family')).not.toBeInTheDocument();
+    expect(screen.queryByText('weather_temp_home')).not.toBeInTheDocument();
+  });
 });

@@ -20,9 +20,11 @@ const QuickControlsCard = ({
   controls,
   cardStyle,
   editMode,
+  isMobile,
   t,
 }) => {
   const entityIds = Array.isArray(settings.entityIds) ? settings.entityIds : [];
+  const singleControl = entityIds.length === 1;
 
   const handleToggle = useCallback(
     (event, entityId) => {
@@ -46,7 +48,7 @@ const QuickControlsCard = ({
     <section
       key={cardId}
       {...dragProps}
-      className={`group relative flex h-full flex-col rounded-3xl border p-3 font-sans ${editMode ? 'cursor-move' : ''}`}
+      className={`group relative flex h-full flex-col rounded-3xl border font-sans ${isMobile ? 'p-3.5' : 'p-3'} ${editMode ? 'cursor-move' : ''}`}
       style={cardStyle}
       aria-label={settings.title || 'Snabbkontroller'}
     >
@@ -54,7 +56,7 @@ const QuickControlsCard = ({
       <p className="mb-2 px-1 text-[10px] font-bold tracking-[0.18em] text-[var(--text-secondary)] uppercase opacity-60">
         {settings.title || 'Snabbkontroller'}
       </p>
-      <div className="grid min-h-0 flex-1 grid-cols-2 gap-2">
+      <div className={`grid min-h-0 flex-1 gap-2 ${singleControl ? 'grid-cols-1' : 'grid-cols-2'}`}>
         {entityIds.map((entityId) => {
           const entity = entities[entityId];
           const domain = entityId.split('.')[0];
@@ -76,7 +78,7 @@ const QuickControlsCard = ({
               type="button"
               disabled={unavailable || editMode}
               onClick={(event) => handleToggle(event, entityId)}
-              className={`touch-feedback flex min-w-0 items-center gap-3 rounded-2xl border px-3 text-left transition-all active:scale-[0.98] ${
+              className={`touch-feedback flex h-full min-h-12 min-w-0 items-center gap-3 rounded-2xl border px-4 py-2 text-left transition-all active:scale-[0.98] ${
                 active
                   ? 'border-[var(--accent-color)]/25 bg-[var(--accent-bg)]'
                   : 'border-[var(--glass-border)] bg-[var(--glass-bg)]'
@@ -91,8 +93,10 @@ const QuickControlsCard = ({
               >
                 <Icon className="h-5 w-5 stroke-[1.7px]" />
               </span>
-              <span className="min-w-0">
-                <span className="block truncate text-sm font-bold text-[var(--text-primary)]">
+              <span className="min-w-0 flex-1">
+                <span
+                  className={`block text-sm leading-tight font-bold text-[var(--text-primary)] ${singleControl ? 'whitespace-normal' : 'truncate'}`}
+                >
                   {getCompactName(entityId, entity)}
                 </span>
                 <span className="mt-0.5 block truncate text-[10px] font-bold tracking-wide text-[var(--text-secondary)] uppercase">

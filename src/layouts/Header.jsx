@@ -88,7 +88,6 @@ export default function Header({
   const lsMobile = letterSpacingMobile[headerSettings?.letterSpacing || 'normal'] || '0.2em';
   const fontStyleVal = headerSettings?.fontStyle || 'normal';
   const clockFormat = headerSettings?.clockFormat || '24h';
-  const showClockOnMobile = headerSettings?.showClockOnMobile ?? true;
   const is12h = clockFormat === '12h';
   const clockScale = headerSettings?.clockScale ?? 1.0;
   const dateScale = headerSettings?.dateScale ?? 1.0;
@@ -101,7 +100,7 @@ export default function Header({
 
   const timeStr = now.toLocaleTimeString(locale, timeOptions);
   const headingFontSize = `calc(${
-    isMobile ? 'clamp(2.75rem, 14vw, 3.75rem)' : 'clamp(3rem, 5vw, 3.75rem)'
+    isMobile ? 'clamp(2rem, 9vw, 2.5rem)' : 'clamp(3rem, 5vw, 3.75rem)'
   } * ${headerScale})`;
   const clockFontSize = `calc(${
     isMobile ? 'clamp(2.4rem, 12vw, 3.25rem)' : 'clamp(3rem, 5vw, 3.75rem)'
@@ -115,7 +114,11 @@ export default function Header({
     : 'center';
   const mobileAlignmentClasses = MOBILE_ALIGNMENT_CLASSES[mobileAlignment];
 
-  const dateStr = now.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' });
+  const dateStr = now.toLocaleDateString(locale, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
 
   const titleStyle = {
     color: 'var(--text-muted)',
@@ -133,13 +136,13 @@ export default function Header({
     fontFamily: resolvedFontFamily,
   };
 
-  const showClock = headerSettings.showClock && (!isMobile || showClockOnMobile);
+  const showClock = headerSettings.showClock && !isMobile;
 
   // ── Battery layout ──
   if (isBattery) {
     return (
       <header
-        className="relative pt-4 font-sans md:pt-0"
+        className="relative pt-2 font-sans md:pt-0"
         style={{ marginBottom: `${headerBottom}px` }}
       >
         {editMode && !headerSettings.showTitle && setShowHeaderEditModal && (
@@ -164,7 +167,7 @@ export default function Header({
         >
           {/* Left: Title */}
           {headerSettings.showTitle && (
-            <h1 className="leading-none select-none whitespace-nowrap" style={titleStyle}>
+            <h1 className="leading-none whitespace-nowrap select-none" style={titleStyle}>
               {headerTitle || 'Tunet'}
             </h1>
           )}
@@ -185,7 +188,7 @@ export default function Header({
           {/* Right: Clock */}
           {showClock && (
             <h2
-              className="leading-none font-light tracking-[0.1em] select-none whitespace-nowrap"
+              className="leading-none font-light tracking-[0.1em] whitespace-nowrap select-none"
               style={clockStyle}
             >
               {timeStr}
@@ -214,7 +217,7 @@ export default function Header({
   // ── Classic layout (default) ──
   return (
     <header
-      className="relative pt-4 font-sans md:pt-0"
+      className="relative pt-2 font-sans md:pt-0"
       style={{ marginBottom: `${headerBottom}px` }}
     >
       {editMode && !headerSettings.showTitle && setShowHeaderEditModal && (
@@ -233,7 +236,7 @@ export default function Header({
 
       <div
         className={`flex items-start justify-between leading-none ${
-          isMobile ? `flex-col gap-4 ${mobileAlignmentClasses.container}` : 'gap-10'
+          isMobile ? `flex-col gap-2 ${mobileAlignmentClasses.container}` : 'gap-10'
         }`}
       >
         <div
@@ -249,19 +252,7 @@ export default function Header({
         </div>
 
         {headerSettings.showClock && !isMobile && (
-          <h2
-            className="leading-none font-light tracking-[0.1em] select-none"
-            style={clockStyle}
-          >
-            {timeStr}
-          </h2>
-        )}
-
-        {headerSettings.showClock && isMobile && showClockOnMobile && (
-          <h2
-            className="leading-none font-light tracking-[0.08em] select-none"
-            style={clockStyle}
-          >
+          <h2 className="leading-none font-light tracking-[0.1em] select-none" style={clockStyle}>
             {timeStr}
           </h2>
         )}
@@ -281,7 +272,7 @@ export default function Header({
 
       <div
         className={`flex w-full flex-col ${
-          isMobile ? 'gap-4 pt-4' : 'gap-6 pt-6 md:gap-3 md:pt-3'
+          isMobile ? 'gap-3 pt-3' : 'gap-6 pt-6 md:gap-3 md:pt-3'
         }`}
       >
         {children}

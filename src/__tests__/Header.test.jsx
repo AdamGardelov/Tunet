@@ -38,6 +38,7 @@ describe('Header mobile alignment', () => {
     const title = screen.getByRole('heading', { name: 'My home' });
     expect(title.parentElement).toHaveClass(justifyClass);
     expect(title.parentElement.parentElement).toHaveClass(itemsClass, textClass);
+    expect(screen.queryByText('10:30')).not.toBeInTheDocument();
     expect(container.querySelector('header')).toBeInTheDocument();
   });
 

@@ -9,9 +9,34 @@ const BatteryPage = lazy(() => import('../components/pages/BatteryPage'));
 const RoomExplorerPage = lazy(() => import('../components/pages/RoomExplorerPage'));
 
 const pageFallback = <div className="page-transition min-h-[40vh]" aria-hidden="true" />;
+const MOBILE_HIDDEN_CARD_PREFIXES = ['calendar_card_', 'weather_temp_'];
+
+export const isCardHiddenOnMobile = (cardId) =>
+  MOBILE_HIDDEN_CARD_PREFIXES.some((prefix) => cardId.startsWith(prefix));
+
+export const sortCardPlacements = (items, isMobile) =>
+  [...items].sort((a, b) => {
+    if (isMobile) {
+      const aQuickControls = a.id.startsWith('quick_controls_');
+      const bQuickControls = b.id.startsWith('quick_controls_');
+      if (aQuickControls !== bQuickControls) return aQuickControls ? -1 : 1;
+    }
+    if (a.placement.row !== b.placement.row) return a.placement.row - b.placement.row;
+    return a.placement.col - b.placement.col;
+  });
 
 export default function DashboardGrid({ page, media, grid, cards, actions, t }) {
-  const { activePage, pagesConfig, pageSettings, editMode, isMediaPage, isSonosPage, isLightsPage, isBatteryPage, isRoomExplorerPage } = page;
+  const {
+    activePage,
+    pagesConfig,
+    pageSettings,
+    editMode,
+    isMediaPage,
+    isSonosPage,
+    isLightsPage,
+    isBatteryPage,
+    isRoomExplorerPage,
+  } = page;
   const {
     entities,
     conn,
@@ -23,7 +48,8 @@ export default function DashboardGrid({ page, media, grid, cards, actions, t }) 
     callService,
     savePageSetting,
   } = media;
-  const { gridLayout, isMobile, gridGapV, gridGapH, gridColCount, isCompactCards, cardScale } = grid;
+  const { gridLayout, isMobile, gridGapV, gridGapH, gridColCount, isCompactCards, cardScale } =
+    grid;
   const { cardSettings, getCardSettingsKey, hiddenCards, isCardHiddenByLogic, renderCard } = cards;
   const { setShowAddCardModal, setConfigTab, setShowConfigModal } = actions;
 
@@ -132,8 +158,13 @@ export default function DashboardGrid({ page, media, grid, cards, actions, t }) 
     );
   }
 
-  const hasVisiblePlacement =
-    (pagesConfig[activePage] || []).filter((id) => gridLayout[id]).length > 0;
+  const placedCards = sortCardPlacements(
+    (pagesConfig[activePage] || [])
+      .map((id) => ({ id, placement: gridLayout[id] }))
+      .filter(({ id, placement }) => placement && !(isMobile && isCardHiddenOnMobile(id))),
+    isMobile
+  );
+  const hasVisiblePlacement = placedCards.length > 0;
   const cardIndexMap = new Map((pagesConfig[activePage] || []).map((id, index) => [id, index]));
   const scaleFactor = (cardScale || 100) / 100;
   const needsScale = scaleFactor !== 1;
@@ -194,87 +225,84 @@ export default function DashboardGrid({ page, media, grid, cards, actions, t }) 
         gridTemplateColumns: `repeat(${gridColCount}, minmax(0, 1fr))`,
       }}
     >
-      {(pagesConfig[activePage] || [])
-        .map((id) => ({ id, placement: gridLayout[id] }))
-        .filter(({ placement }) => placement)
-        .sort((a, b) => {
-          if (a.placement.row !== b.placement.row) return a.placement.row - b.placement.row;
-          return a.placement.col - b.placement.col;
-        })
-        .map(({ id }) => {
-          const index = cardIndexMap.get(id) ?? -1;
-          const placement = gridLayout[id];
-          const isCalendarCard = id.startsWith('calendar_card_');
-          const isTodoCard = id.startsWith('todo_card_');
-          const isLargeCard = isCalendarCard || isTodoCard;
-          const sizeSetting = isLargeCard
-            ? cardSettings[getCardSettingsKey(id)]?.size || cardSettings[id]?.size
-            : null;
-          const forcedSpan = isLargeCard
-            ? sizeSetting === 'small'
-              ? 1
-              : sizeSetting === 'medium'
-                ? 2
-                : 4
-            : placement?.span;
-          const settingsKey = getCardSettingsKey(id);
-          const settings = cardSettings[settingsKey] || cardSettings[id] || {};
-          const heading = cardSettings[settingsKey]?.heading;
-          const colSpan = placement?.colSpan || 1;
-          const isSpacerCard = id.startsWith('spacer_card_');
+      {placedCards.map(({ id }) => {
+        const index = cardIndexMap.get(id) ?? -1;
+        const placement = gridLayout[id];
+        const isCalendarCard = id.startsWith('calendar_card_');
+        const isTodoCard = id.startsWith('todo_card_');
+        const isLargeCard = isCalendarCard || isTodoCard;
+        const sizeSetting = isLargeCard
+          ? cardSettings[getCardSettingsKey(id)]?.size || cardSettings[id]?.size
+          : null;
+        const forcedSpan = isLargeCard
+          ? sizeSetting === 'small'
+            ? 1
+            : sizeSetting === 'medium'
+              ? 2
+              : 4
+          : placement?.span;
+        const settingsKey = getCardSettingsKey(id);
+        const settings = cardSettings[settingsKey] || cardSettings[id] || {};
+        const heading = cardSettings[settingsKey]?.heading;
+        const colSpan = placement?.colSpan || 1;
+        const isSpacerCard = id.startsWith('spacer_card_');
 
-          if (!editMode && (hiddenCards.includes(id) || isCardHiddenByLogic(id))) return null;
+        if (!editMode && (hiddenCards.includes(id) || isCardHiddenByLogic(id))) return null;
 
-          const cardContent = renderCard(id, index);
-          if (!cardContent) return null;
+        const cardContent = renderCard(id, index);
+        if (!cardContent) return null;
 
-          const gapPx = gridGapV;
-          const baseRowPx = isMobile ? 82 : 100;
-          const rowPx = baseRowPx * scaleFactor;
-          let cardHeight;
-          if (
-            id.startsWith('spacer_card_') &&
-            Number.isFinite(Number(settings.heightPx)) &&
-            Number(settings.heightPx) > 0
-          ) {
-            cardHeight = Math.max(40, Math.min(420, Number(settings.heightPx) * scaleFactor));
-          } else if (isLargeCard && sizeSetting !== 'small' && sizeSetting !== 'medium') {
-            cardHeight = 4 * rowPx + 3 * gapPx;
-          } else {
-            cardHeight = forcedSpan * rowPx + Math.max(0, forcedSpan - 1) * gapPx;
-          }
+        const gapPx = gridGapV;
+        const baseRowPx = isMobile ? 82 : 100;
+        const rowPx = baseRowPx * scaleFactor;
+        let cardHeight;
+        if (
+          id.startsWith('spacer_card_') &&
+          Number.isFinite(Number(settings.heightPx)) &&
+          Number(settings.heightPx) > 0
+        ) {
+          cardHeight = Math.max(40, Math.min(420, Number(settings.heightPx) * scaleFactor));
+        } else if (isLargeCard && sizeSetting !== 'small' && sizeSetting !== 'medium') {
+          cardHeight = 4 * rowPx + 3 * gapPx;
+        } else {
+          cardHeight = forcedSpan * rowPx + Math.max(0, forcedSpan - 1) * gapPx;
+        }
 
-          return (
-            <div
-              key={id}
-              data-dashboard-card={id}
-              className={`relative ${isCompactCards || isMobile ? 'card-compact' : ''}`}
-              style={{
-                gridRowStart: placement.row,
-                gridColumnStart: placement.col,
-                gridRowEnd: `span ${forcedSpan}`,
-                gridColumnEnd: colSpan > 1 ? `span ${colSpan}` : undefined,
-                height: `${cardHeight}px`,
-              }}
-            >
-              {heading && !isSpacerCard && (
-                <div className="absolute -top-4 left-2 text-[10px] font-bold tracking-[0.2em] text-[var(--text-secondary)] uppercase">
-                  {heading}
-                </div>
-              )}
-              <div
-                className="h-full overflow-hidden"
-                style={needsScale ? {
-                  fontSize: `${scaleFactor}em`,
-                } : undefined}
-              >
-                <CardErrorBoundary cardId={id} t={t}>
-                  {cardContent}
-                </CardErrorBoundary>
+        return (
+          <div
+            key={id}
+            data-dashboard-card={id}
+            className={`relative ${isCompactCards || isMobile ? 'card-compact' : ''}`}
+            style={{
+              gridRowStart: isMobile ? undefined : placement.row,
+              gridColumnStart: isMobile ? undefined : placement.col,
+              gridRowEnd: `span ${forcedSpan}`,
+              gridColumnEnd: colSpan > 1 ? `span ${colSpan}` : undefined,
+              height: `${cardHeight}px`,
+            }}
+          >
+            {heading && !isSpacerCard && (
+              <div className="absolute -top-4 left-2 text-[10px] font-bold tracking-[0.2em] text-[var(--text-secondary)] uppercase">
+                {heading}
               </div>
+            )}
+            <div
+              className="h-full overflow-hidden"
+              style={
+                needsScale
+                  ? {
+                      fontSize: `${scaleFactor}em`,
+                    }
+                  : undefined
+              }
+            >
+              <CardErrorBoundary cardId={id} t={t}>
+                {cardContent}
+              </CardErrorBoundary>
             </div>
-          );
-        })}
+          </div>
+        );
+      })}
     </div>
   );
 }
