@@ -1,6 +1,6 @@
 name: 'Tunet Hardened'
 description: 'Hardened Tunet dashboard for Home Assistant'
-version: '1.23.0-adam.2'
+version: '1.23.0-adam.3'
 slug: 'tunet'
 url: 'https://github.com/AdamGardelov/Tunet'
 init: false
@@ -13,7 +13,7 @@ auth_api: true
 ingress: true
 ingress_port: 3002
 panel_icon: 'mdi:view-dashboard-variant'
-panel_title: 'Tunet Hardened'
+panel_title: 'Tunet'
 ports:
   3002/tcp: null
 ports_description:
