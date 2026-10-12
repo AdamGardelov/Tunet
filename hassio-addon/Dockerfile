@@ -1,27 +1,22 @@
 ARG BUILD_VERSION
-# ── Stage 1: Build from source ────────────────────────────────────────
+
+# Build only the reviewed source revision from our fork.
+# Update this commit deliberately after reviewing upstream changes.
 FROM node:26-alpine AS builder
-ARG BUILD_VERSION
-RUN apk add --no-cache curl tar python3 make g++ \
+RUN apk add --no-cache git python3 make g++ \
  && set -eux \
- && REF="${BUILD_VERSION:-}" \
- && URL="" \
- && if [ -n "$REF" ]; then URL="https://codeload.github.com/oyvhov/Tunet/tar.gz/refs/tags/v${REF}"; fi \
- && if [ -n "$URL" ] && ! curl -fsSL "$URL" -o /tmp/tunet.tar.gz; then \
-			URL="https://codeload.github.com/oyvhov/Tunet/tar.gz/refs/tags/${REF}"; \
-		fi \
- && if [ -n "$URL" ] && ! curl -fsSL "$URL" -o /tmp/tunet.tar.gz; then \
-			URL="https://codeload.github.com/oyvhov/Tunet/tar.gz/refs/heads/main"; \
-		fi \
- && if [ -z "$URL" ]; then URL="https://codeload.github.com/oyvhov/Tunet/tar.gz/refs/heads/main"; fi \
- && if [ ! -f /tmp/tunet.tar.gz ]; then curl -fsSL "$URL" -o /tmp/tunet.tar.gz; fi \
- && mkdir -p /src \
- && tar -xzf /tmp/tunet.tar.gz --strip-components=1 -C /src \
+ && SOURCE_COMMIT="7046c65e6bf026a926073731f2936bb1ebb5ace6" \
+ && git init /src \
+ && git -C /src remote add origin https://github.com/AdamGardelov/Tunet.git \
+ && git -C /src fetch --depth=1 origin "${SOURCE_COMMIT}" \
+ && git -C /src checkout --detach FETCH_HEAD \
+ && test "$(git -C /src rev-parse HEAD)" = "${SOURCE_COMMIT}" \
+ && rm -rf /src/.git \
  && cd /src \
  && npm ci \
- && npm run build
+ && SKIP_POSTBUILD=1 npm run build
 
-# ── Stage 2: Production image ────────────────────────────────────────
+# Production image
 FROM ghcr.io/hassio-addons/base:21.0.0
 ARG BUILD_VERSION
 ARG BUILD_ARCH
@@ -34,17 +29,14 @@ RUN apk add --no-cache nodejs npm python3 make g++
 
 WORKDIR /app
 
-# Copy only what's needed for production
 COPY --from=builder /src/dist ./dist
 COPY --from=builder /src/server ./server
 COPY --from=builder /src/package.json .
 COPY --from=builder /src/package-lock.json .
 
-# Install production dependencies only
 RUN npm ci --omit=dev \
  && apk del python3 make g++
 
-# Copy run script from build context (hassio-addon/)
 COPY run.sh /run.sh
 RUN chmod a+x /run.sh
 
