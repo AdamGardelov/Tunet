@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.23.0-adam.24
+
+- Simplified the mobile lights view to show only the useful physical lights in each room.
+- Hidden duplicate Hue zones, room groups, disconnected mushroom lights, and the camera floodlight.
+- Added an optional Hall detail toggle and regression tests for all curated rooms.
+
 ## 1.23.0-adam.23
 
 - Added a responsive vacuum view with a live map, room selection, and cleaning controls.
