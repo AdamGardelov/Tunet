@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0-adam.35
+
+- Replaced the bedside-light switches with the same round power controls used in the Lights page.
+- Keeps off controls muted and makes active lights clearly accented.
+
 ## 1.23.0-adam.34
 
 - Shows the last commanded Tapo camera preset as selected across synced dashboards.
