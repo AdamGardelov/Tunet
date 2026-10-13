@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0-adam.30
+
+- Centered the mobile page tabs to match the person cards.
+- Kept horizontal scrolling when the tabs no longer fit on screen.
+
 ## 1.23.0-adam.29
 
 - Centered the person cards at the top of the mobile dashboard.
