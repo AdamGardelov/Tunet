@@ -112,6 +112,30 @@ describe('custom routine cards', () => {
     });
   });
 
+  it('uses one shared leading icon when a row contains only lights', () => {
+    render(
+      <QuickControlsCard
+        cardId="quick_controls_1"
+        settings={{ entityIds: ['light.adam', 'light.emma'] }}
+        entities={{
+          'light.adam': { state: 'on', attributes: { friendly_name: 'Adam sänglampa' } },
+          'light.emma': { state: 'off', attributes: { friendly_name: 'Emma sänglampa' } },
+        }}
+        callService={vi.fn()}
+        dragProps={{}}
+        controls={null}
+        cardStyle={{}}
+        editMode={false}
+        t={t}
+      />
+    );
+
+    expect(screen.getByTestId('quick-controls-shared-light-icon')).toBeInTheDocument();
+    expect(screen.queryByTestId('quick-control-entity-icon-light.adam')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('quick-control-entity-icon-light.emma')).not.toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Snabbkontroller' })).toHaveClass('px-5', 'py-3');
+  });
+
   it('shows remaining doses and decrements them when a dose is registered', async () => {
     const callService = vi.fn().mockResolvedValue(undefined);
     render(

@@ -24,11 +24,12 @@ const QuickControlsCard = ({
   controls,
   cardStyle,
   editMode,
-  isMobile,
   t,
 }) => {
   const entityIds = Array.isArray(settings.entityIds) ? settings.entityIds : [];
   const singleControl = entityIds.length === 1;
+  const sharedLightIcon =
+    entityIds.length > 1 && entityIds.every((entityId) => entityId.startsWith('light.'));
   const configuredTitle = typeof settings.title === 'string' ? settings.title.trim() : '';
   const title =
     configuredTitle.toLocaleLowerCase('sv-SE') === 'snabbkontroller' ? '' : configuredTitle;
@@ -54,7 +55,7 @@ const QuickControlsCard = ({
     [callService, editMode, entities, runAction]
   );
 
-  const renderControl = (entityId, standalone = false) => {
+  const renderControl = (entityId, standalone = false, showEntityIcon = true) => {
     const entity = entities[entityId];
     const domain = entityId.split('.')[0];
     const unavailable = !entity || ['unavailable', 'unknown'].includes(entity.state);
@@ -81,9 +82,14 @@ const QuickControlsCard = ({
         aria-pressed={unavailable ? undefined : active}
         className={`touch-feedback flex min-h-0 min-w-0 flex-1 items-center gap-3 text-left transition-all duration-200 active:scale-[0.96] ${standalone ? 'w-full' : 'rounded-xl py-1'} ${unavailable ? 'opacity-55' : ''} ${actionStatus === 'success' ? 'text-[var(--status-success-fg)]' : actionStatus === 'error' ? 'text-[var(--status-error-fg)]' : ''}`}
       >
-        <span className={compactIconTile}>
-          <Icon className="h-[22px] w-[22px] stroke-[1.7px]" />
-        </span>
+        {showEntityIcon && (
+          <span
+            className={compactIconTile}
+            data-testid={`quick-control-entity-icon-${entityId}`}
+          >
+            <Icon className="h-[22px] w-[22px] stroke-[1.7px]" />
+          </span>
+        )}
         <span className="min-w-0 flex-1">
           <span
             className={`block text-[15px] leading-tight font-bold text-[var(--text-primary)] ${standalone ? 'whitespace-normal' : 'truncate'}`}
@@ -141,7 +147,7 @@ const QuickControlsCard = ({
     <section
       key={cardId}
       {...dragProps}
-      className={`group relative flex h-full flex-col overflow-hidden rounded-3xl border font-sans ${isMobile ? 'px-5 py-3' : 'p-3'} ${editMode ? 'cursor-move' : ''}`}
+      className={`group relative flex h-full flex-col overflow-hidden rounded-3xl border px-5 py-3 font-sans ${editMode ? 'cursor-move' : ''}`}
       style={cardStyle}
       aria-label={title || 'Snabbkontroller'}
     >
@@ -151,8 +157,15 @@ const QuickControlsCard = ({
           {title}
         </p>
       )}
-      <div className="grid min-h-0 flex-1 grid-cols-2 gap-2">
-        {entityIds.map((entityId) => renderControl(entityId))}
+      <div className={`flex min-h-0 flex-1 items-center ${sharedLightIcon ? 'gap-3' : ''}`}>
+        {sharedLightIcon && (
+          <span className={compactIconTile} data-testid="quick-controls-shared-light-icon">
+            <Lightbulb className="h-[22px] w-[22px] stroke-[1.7px]" />
+          </span>
+        )}
+        <div className="grid min-w-0 flex-1 grid-cols-2 gap-2">
+          {entityIds.map((entityId) => renderControl(entityId, false, !sharedLightIcon))}
+        </div>
       </div>
     </section>
   );
