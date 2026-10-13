@@ -136,7 +136,7 @@ export default function LightModal({
       titleId={modalTitleId}
       overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6"
       overlayStyle={{ backdropFilter: 'blur(20px)', backgroundColor: 'rgba(0,0,0,0.3)' }}
-      panelClassName={`w-full border ${showRightPanel ? 'max-w-5xl' : 'max-w-xl'} flex flex-col overflow-hidden rounded-3xl md:rounded-[3rem] ${showRightPanel ? 'lg:grid lg:grid-cols-5' : ''} popup-anim relative max-h-[calc(100dvh-1rem)] shadow-2xl sm:max-h-[90vh] backdrop-blur-xl md:min-h-[550px]`}
+      panelClassName={`w-full border ${showRightPanel ? 'max-w-5xl' : 'max-w-xl'} flex touch-pan-y flex-col overflow-x-hidden overflow-y-auto overscroll-contain rounded-3xl md:rounded-[3rem] ${showRightPanel ? 'lg:grid lg:grid-cols-5' : ''} popup-anim relative max-h-[calc(100dvh-1rem)] shadow-2xl sm:max-h-[90vh] backdrop-blur-xl md:min-h-[550px] lg:overflow-hidden`}
       panelStyle={{
         background: 'linear-gradient(135deg, var(--card-bg) 0%, var(--modal-bg) 100%)',
         borderColor: 'var(--glass-border)',
@@ -275,8 +275,8 @@ export default function LightModal({
 
           {/* RIGHT PANEL: Controls (2 cols) */}
           {showRightPanel && (
-            <div className="flex h-full flex-col lg:col-span-2">
-              <div className="custom-scrollbar flex-1 space-y-4 overflow-y-auto p-4 md:space-y-8 md:p-8 lg:pt-16">
+            <div className="flex min-h-0 flex-col lg:col-span-2 lg:h-full">
+              <div className="custom-scrollbar flex-1 space-y-4 overflow-y-visible p-4 md:space-y-8 md:p-8 lg:overflow-y-auto lg:pt-16">
                 {/* Dynamic Control Area - Simplified */}
                 {isDimmable && (
                   <div className="flex min-h-[100px] flex-col justify-center md:min-h-[140px]">

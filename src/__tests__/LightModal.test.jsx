@@ -45,6 +45,17 @@ const renderModal = (callService = vi.fn()) => {
 };
 
 describe('LightModal power controls', () => {
+  it('allows the full modal to scroll vertically on mobile', () => {
+    renderModal();
+
+    expect(screen.getByRole('dialog', { name: 'Kitchen' })).toHaveClass(
+      'touch-pan-y',
+      'overflow-y-auto',
+      'overscroll-contain',
+      'lg:overflow-hidden'
+    );
+  });
+
   it('keeps the main light toggle and exposes room lights as clear switches', () => {
     const callService = renderModal();
 
