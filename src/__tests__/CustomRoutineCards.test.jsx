@@ -46,8 +46,8 @@ describe('custom routine cards', () => {
       'text-[var(--text-muted)]'
     );
     expect(screen.getByTestId('quick-control-power-climate.ac')).toHaveClass(
-      'bg-[var(--accent-color)]',
-      'text-white'
+      'bg-[var(--accent-bg)]',
+      'text-[var(--accent-color)]'
     );
 
     fireEvent.click(screen.getByRole('button', { name: /Emma sänglampa/i }));
@@ -85,6 +85,33 @@ describe('custom routine cards', () => {
     expect(screen.getByText('Emma sänglampa')).toHaveClass('whitespace-normal');
   });
 
+  it('uses the active light color for a calm lamp-style power control', () => {
+    render(
+      <QuickControlsCard
+        cardId="quick_controls_1"
+        settings={{ entityIds: ['light.adam'] }}
+        entities={{
+          'light.adam': {
+            state: 'on',
+            attributes: { friendly_name: 'Adam sänglampa', color_temp_kelvin: 2700 },
+          },
+        }}
+        callService={vi.fn()}
+        dragProps={{}}
+        controls={null}
+        cardStyle={{}}
+        editMode={false}
+        t={t}
+      />
+    );
+
+    expect(screen.getByTestId('quick-control-power-light.adam')).toHaveStyle({
+      backgroundColor: 'rgba(255, 166, 60, 0.22)',
+      borderColor: 'rgba(255, 166, 60, 0.28)',
+      color: 'rgb(255, 166, 60)',
+    });
+  });
+
   it('shows remaining doses and decrements them when a dose is registered', async () => {
     const callService = vi.fn().mockResolvedValue(undefined);
     render(
@@ -113,14 +140,15 @@ describe('custom routine cards', () => {
     expect(screen.getByText('ca 19 dagar kvar')).toBeInTheDocument();
     expect(screen.getByText('38 doser')).toBeInTheDocument();
     expect(screen.queryByText(/2\/dag/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Sparvens inhalator' })).toHaveClass('gap-3', 'px-5');
     expect(screen.getByRole('button', { name: /Morgon/i })).toHaveClass(
       'rounded-2xl',
       'bg-[var(--glass-bg)]'
     );
     expect(screen.getByRole('button', { name: /Kväll/i })).toHaveClass(
       'rounded-2xl',
-      'bg-[var(--status-success-fg)]',
-      'text-white'
+      'bg-[var(--status-success-bg)]',
+      'text-[var(--status-success-fg)]'
     );
     fireEvent.click(screen.getByRole('button', { name: /Morgon/i }));
     expect(callService).toHaveBeenNthCalledWith(1, 'input_number', 'set_value', {
@@ -266,8 +294,8 @@ describe('custom routine cards', () => {
     );
     expect(screen.getByRole('button', { name: 'Våran säng' })).toHaveClass(
       'rounded-2xl',
-      'bg-[var(--accent-color)]',
-      'text-white'
+      'bg-[var(--accent-bg)]',
+      'text-[var(--accent-color)]'
     );
     expect(screen.getByRole('button', { name: 'Walters säng' })).toHaveClass(
       'rounded-2xl',

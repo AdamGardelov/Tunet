@@ -15,6 +15,7 @@ import {
 import { getIconComponent } from '../../icons';
 import M3Slider from '../ui/M3Slider';
 import { getAreas } from '../../services/haClient';
+import { getLightColor } from '../../utils/lightColor';
 
 const SLIDER_DEBOUNCE_MS = 200;
 const DEFAULT_COLLAPSED_LIGHT_AREAS = ['Hall'];
@@ -35,66 +36,6 @@ const SORT_OPTIONS = [
   { key: 'area', icon: '⌂' },
   { key: 'unavailable', icon: '⚠' },
 ];
-
-/**
- * Get an RGB string for the visual glow of a light entity.
- * Returns e.g. "255, 180, 80" or null if off.
- */
-function getLightColor(entity) {
-  if (entity.state !== 'on') return null;
-  const a = entity.attributes || {};
-  if (a.rgb_color) {
-    const [r, g, b] = a.rgb_color;
-    return `${r}, ${g}, ${b}`;
-  }
-  if (a.hs_color) {
-    const [h, s] = a.hs_color;
-    return hsToRgbString(h, s);
-  }
-  if (a.color_temp_kelvin) {
-    const k = a.color_temp_kelvin;
-    if (k <= 2700) return '255, 166, 60';
-    if (k <= 3500) return '255, 195, 110';
-    if (k <= 4500) return '255, 220, 170';
-    return '210, 225, 255';
-  }
-  return '255, 183, 77'; // default warm amber
-}
-
-/** Convert HS to "r, g, b" string (HA uses hue 0-360, sat 0-100). */
-function hsToRgbString(h, s) {
-  const sat = s / 100;
-  const c = sat;
-  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
-  const m = 1 - c;
-  let r, g, b;
-  if (h < 60) {
-    r = c;
-    g = x;
-    b = 0;
-  } else if (h < 120) {
-    r = x;
-    g = c;
-    b = 0;
-  } else if (h < 180) {
-    r = 0;
-    g = c;
-    b = x;
-  } else if (h < 240) {
-    r = 0;
-    g = x;
-    b = c;
-  } else if (h < 300) {
-    r = x;
-    g = 0;
-    b = c;
-  } else {
-    r = c;
-    g = 0;
-    b = x;
-  }
-  return `${Math.round((r + m) * 255)}, ${Math.round((g + m) * 255)}, ${Math.round((b + m) * 255)}`;
-}
 
 // ── Individual Light Tile ────────────────────────────────────────────────
 

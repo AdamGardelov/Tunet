@@ -3,6 +3,7 @@ import { AirVent, Lightbulb, Power } from '../../icons';
 import useActionFeedback from '../../hooks/useActionFeedback';
 import ActionFeedbackIndicator from '../ui/ActionFeedbackIndicator';
 import { compactControlTone, compactIconTile } from '../ui/compactControlStyles';
+import { getLightColor } from '../../utils/lightColor';
 
 const toggleDomains = new Set(['light', 'switch', 'input_boolean', 'fan']);
 
@@ -60,6 +61,7 @@ const QuickControlsCard = ({
     const active = !unavailable && entity.state !== 'off';
     const actionStatus = getStatus(entityId);
     const pending = actionStatus === 'pending';
+    const lightColor = domain === 'light' ? getLightColor(entity) : null;
     const Icon = domain === 'climate' ? AirVent : domain === 'light' ? Lightbulb : Power;
     const temperature = entity?.attributes?.current_temperature;
     const stateLabel = unavailable
@@ -99,7 +101,16 @@ const QuickControlsCard = ({
         ) : !unavailable ? (
           <span
             data-testid={`quick-control-power-${entityId}`}
-            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-all duration-300 ${active ? compactControlTone.active : compactControlTone.idle}`}
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-all duration-300 ${active ? (lightColor ? 'shadow-sm' : compactControlTone.active) : compactControlTone.idle}`}
+            style={
+              active && lightColor
+                ? {
+                    backgroundColor: `rgba(${lightColor}, 0.22)`,
+                    borderColor: `rgba(${lightColor}, 0.28)`,
+                    color: `rgb(${lightColor})`,
+                  }
+                : undefined
+            }
             aria-hidden="true"
           >
             <Power className="h-4 w-4" />

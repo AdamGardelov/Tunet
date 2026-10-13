@@ -1,9 +1,10 @@
 export const compactControlTone = {
   idle:
     'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-muted)] hover:bg-[var(--glass-bg-hover)]',
-  active: 'border-transparent bg-[var(--accent-color)] text-white shadow-lg shadow-black/20',
+  active:
+    'border-[var(--glass-border)] bg-[var(--accent-bg)] text-[var(--accent-color)]',
   success:
-    'border-transparent bg-[var(--status-success-fg)] text-white shadow-lg shadow-black/20',
+    'border-[var(--status-success-border)] bg-[var(--status-success-bg)] text-[var(--status-success-fg)]',
   error:
     'border-[var(--status-error-border)] bg-[var(--status-error-bg)] text-[var(--status-error-fg)]',
 };
