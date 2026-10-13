@@ -55,7 +55,12 @@ const QuickControlsCard = ({
     [callService, editMode, entities, runAction]
   );
 
-  const renderControl = (entityId, standalone = false, showEntityIcon = true) => {
+  const renderControl = (
+    entityId,
+    standalone = false,
+    showEntityIcon = true,
+    useFullTile = false
+  ) => {
     const entity = entities[entityId];
     const domain = entityId.split('.')[0];
     const unavailable = !entity || ['unavailable', 'unknown'].includes(entity.state);
@@ -72,6 +77,22 @@ const QuickControlsCard = ({
         : active
           ? t('common.on')
           : t('common.off');
+    const tileFeedbackTone =
+      actionStatus === 'success'
+        ? compactControlTone.success
+        : actionStatus === 'error'
+          ? compactControlTone.error
+          : active
+            ? 'border-transparent text-[var(--text-primary)] shadow-sm'
+            : compactControlTone.idle;
+    const tileStyle =
+      useFullTile && active && actionStatus === 'idle' && lightColor
+        ? {
+            backgroundColor: `rgba(${lightColor}, 0.18)`,
+            borderColor: `rgba(${lightColor}, 0.32)`,
+            boxShadow: `inset 0 0 0 1px rgba(${lightColor}, 0.05)`,
+          }
+        : undefined;
 
     return (
       <button
@@ -80,7 +101,13 @@ const QuickControlsCard = ({
         disabled={unavailable || editMode || pending}
         onClick={(event) => handleToggle(event, entityId)}
         aria-pressed={unavailable ? undefined : active}
-        className={`touch-feedback flex min-h-0 min-w-0 flex-1 items-center gap-3 text-left transition-all duration-200 active:scale-[0.96] ${standalone ? 'w-full' : 'rounded-xl py-1'} ${unavailable ? 'opacity-55' : ''} ${actionStatus === 'success' ? 'text-[var(--status-success-fg)]' : actionStatus === 'error' ? 'text-[var(--status-error-fg)]' : ''}`}
+        data-testid={useFullTile ? `quick-control-tile-${entityId}` : undefined}
+        className={`touch-feedback flex min-h-0 min-w-0 flex-1 items-center transition-all duration-200 active:scale-[0.96] ${
+          useFullTile
+            ? `relative h-14 justify-center gap-1 rounded-2xl border px-2 text-center ${tileFeedbackTone}`
+            : `${standalone ? 'w-full' : 'rounded-xl py-1'} gap-3 text-left`
+        } ${unavailable ? 'opacity-55' : ''} ${!useFullTile && actionStatus === 'success' ? 'text-[var(--status-success-fg)]' : !useFullTile && actionStatus === 'error' ? 'text-[var(--status-error-fg)]' : ''}`}
+        style={tileStyle}
       >
         {showEntityIcon && (
           <span
@@ -90,21 +117,24 @@ const QuickControlsCard = ({
             <Icon className="h-[22px] w-[22px] stroke-[1.7px]" />
           </span>
         )}
-        <span className="min-w-0 flex-1">
+        <span className={`min-w-0 ${useFullTile ? '' : 'flex-1'}`}>
           <span
-            className={`block text-[15px] leading-tight font-bold text-[var(--text-primary)] ${standalone ? 'whitespace-normal' : 'truncate'}`}
+            className={`block leading-tight font-bold text-[var(--text-primary)] ${useFullTile ? 'text-[13px] whitespace-normal' : `text-[15px] ${standalone ? 'whitespace-normal' : 'truncate'}`}`}
           >
             {getCompactName(entityId, entity)}
           </span>
-          <span className="mt-0.5 block truncate text-[10px] font-bold tracking-wide text-[var(--text-secondary)] uppercase">
-            {stateLabel}
+          <span className="mt-0.5 flex min-h-4 items-center justify-center gap-1 text-[10px] font-bold tracking-wide text-[var(--text-secondary)] uppercase">
+            <span className="truncate">{stateLabel}</span>
+            {useFullTile && !unavailable && actionStatus !== 'idle' && (
+              <ActionFeedbackIndicator status={actionStatus} className="h-3.5 w-3.5" />
+            )}
           </span>
         </span>
-        {!unavailable && actionStatus !== 'idle' ? (
+        {!useFullTile && !unavailable && actionStatus !== 'idle' ? (
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--glass-bg-hover)]">
             <ActionFeedbackIndicator status={actionStatus} className="h-4 w-4" />
           </span>
-        ) : !unavailable ? (
+        ) : !useFullTile && !unavailable ? (
           <span
             data-testid={`quick-control-power-${entityId}`}
             className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-all duration-300 ${active ? (lightColor ? 'shadow-sm' : compactControlTone.active) : compactControlTone.idle}`}
@@ -164,7 +194,9 @@ const QuickControlsCard = ({
           </span>
         )}
         <div className="grid min-w-0 flex-1 grid-cols-2 gap-2">
-          {entityIds.map((entityId) => renderControl(entityId, false, !sharedLightIcon))}
+          {entityIds.map((entityId) =>
+            renderControl(entityId, false, !sharedLightIcon, sharedLightIcon)
+          )}
         </div>
       </div>
     </section>

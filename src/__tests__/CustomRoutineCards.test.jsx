@@ -133,6 +133,31 @@ describe('custom routine cards', () => {
     expect(screen.getByTestId('quick-controls-shared-light-icon')).toBeInTheDocument();
     expect(screen.queryByTestId('quick-control-entity-icon-light.adam')).not.toBeInTheDocument();
     expect(screen.queryByTestId('quick-control-entity-icon-light.emma')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('quick-control-power-light.adam')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('quick-control-power-light.emma')).not.toBeInTheDocument();
+    expect(screen.getByTestId('quick-control-tile-light.adam')).toHaveClass(
+      'h-14',
+      'rounded-2xl',
+      'border'
+    );
+    expect(screen.getByTestId('quick-control-tile-light.adam')).toHaveStyle({
+      backgroundColor: 'rgba(255, 183, 77, 0.18)',
+      borderColor: 'rgba(255, 183, 77, 0.32)',
+    });
+    expect(screen.getByTestId('quick-control-tile-light.emma')).toHaveClass(
+      'bg-[var(--glass-bg)]',
+      'text-[var(--text-muted)]'
+    );
+    expect(screen.getByTestId('quick-control-tile-light.adam')).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+    expect(screen.getByTestId('quick-control-tile-light.emma')).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    );
+    expect(screen.getAllByText('På')).toHaveLength(1);
+    expect(screen.getAllByText('Av')).toHaveLength(1);
     expect(screen.getByRole('region', { name: 'Snabbkontroller' })).toHaveClass('px-5', 'py-3');
   });
 
