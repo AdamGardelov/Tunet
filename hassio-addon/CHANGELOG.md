@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.23.0-adam.14
+
+- Added shared dashboard profiles that stay synchronized across phones and tablets.
+- Kept Home Assistant credentials local to each device while sharing only dashboard settings.
+- Moved the profile database to Home Assistant's persistent add-on data directory.
+
 ## 1.23.0
 
 ### Added
