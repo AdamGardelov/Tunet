@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0-adam.34
+
+- Shows the last commanded Tapo camera preset as selected across synced dashboards.
+- Updates the shared Home Assistant camera-position helper after a preset succeeds.
+
 ## 1.23.0-adam.33
 
 - Restored curated rooms such as Kitchen when an old collapsed-room setting is present.
