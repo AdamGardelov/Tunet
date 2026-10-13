@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0-adam.26
+
+- Added a live-stream shortcut before the three Tapo camera presets.
+- Replaced the generic camera symbol with a surveillance-camera icon.
+
 ## 1.23.0-adam.25
 
 - Added an optional warm-to-cool white control for compatible physical lights.
