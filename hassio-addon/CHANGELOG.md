@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0-adam.46
+
+- Fits the minimalist medication summary and both dose controls inside the existing compact mobile card height.
+- Prevents the morning and evening actions from being clipped on narrow screens.
+
 ## 1.23.0-adam.45
 
 - Removes the redundant visible medication heading.
