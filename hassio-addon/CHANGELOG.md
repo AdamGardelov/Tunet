@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.23.0-adam.44
+
+- Rebuilds the medication card with a quiet summary row and two equal, fully tappable dose controls.
+- Keeps remaining days and exact doses readable without competing with the actions.
+- Adds immediate sending, success, and failure feedback when a dose is changed.
+
 ## 1.23.0-adam.43
 
 - Ensures the correct native Rolldown build dependency is installed on both Home Assistant Green and x86-64 hosts.
