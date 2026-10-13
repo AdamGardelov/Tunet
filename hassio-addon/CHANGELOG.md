@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.23.0-adam.22
+
+- Reordered the household camera presets to Walter, shared bed, and stroller.
+
 ## 1.23.0-adam.21
 
 - Added reusable action feedback to compact dashboard controls.
