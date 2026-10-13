@@ -1,5 +1,7 @@
 import { memo, useCallback, useMemo } from 'react';
 import { Cat, Check } from '../../icons';
+import useActionFeedback from '../../hooks/useActionFeedback';
+import ActionFeedbackIndicator from '../ui/ActionFeedbackIndicator';
 import { compactControlTone, compactIconTile } from '../ui/compactControlStyles';
 
 const findEntity = (entityIds, pattern, fallbackDomains, entities, used = new Set()) =>
@@ -44,58 +46,68 @@ const MedicationCard = ({
   const doses = Number.parseFloat(entities[mapping.doseId]?.state);
   const hasDoseValue = Number.isFinite(doses);
   const days = hasDoseValue ? Math.ceil(doses / 2) : null;
+  const { getStatus, runAction } = useActionFeedback();
 
   const toggleDose = useCallback(
-    async (event, entityId) => {
+    (event, entityId) => {
       event.stopPropagation();
       if (editMode || !entityId) return;
       const domain = entityId.split('.')[0];
       if (!['input_boolean', 'switch'].includes(domain)) return;
 
-      const wasDone = entities[entityId]?.state === 'on';
-      if (hasDoseValue && mapping.doseId?.startsWith('input_number.')) {
-        const doseEntity = entities[mapping.doseId];
-        const minimum = Number.parseFloat(doseEntity?.attributes?.min);
-        const maximum = Number.parseFloat(doseEntity?.attributes?.max);
-        let nextDoses = doses + (wasDone ? 1 : -1);
-        if (Number.isFinite(minimum)) nextDoses = Math.max(minimum, nextDoses);
-        else nextDoses = Math.max(0, nextDoses);
-        if (Number.isFinite(maximum)) nextDoses = Math.min(maximum, nextDoses);
+      runAction(entityId, async () => {
+        const wasDone = entities[entityId]?.state === 'on';
+        if (hasDoseValue && mapping.doseId?.startsWith('input_number.')) {
+          const doseEntity = entities[mapping.doseId];
+          const minimum = Number.parseFloat(doseEntity?.attributes?.min);
+          const maximum = Number.parseFloat(doseEntity?.attributes?.max);
+          let nextDoses = doses + (wasDone ? 1 : -1);
+          if (Number.isFinite(minimum)) nextDoses = Math.max(minimum, nextDoses);
+          else nextDoses = Math.max(0, nextDoses);
+          if (Number.isFinite(maximum)) nextDoses = Math.min(maximum, nextDoses);
 
-        await callService('input_number', 'set_value', {
-          entity_id: mapping.doseId,
-          value: nextDoses,
-        });
-      }
+          await callService('input_number', 'set_value', {
+            entity_id: mapping.doseId,
+            value: nextDoses,
+          });
+        }
 
-      await callService(domain, 'toggle', { entity_id: entityId });
+        await callService(domain, 'toggle', { entity_id: entityId });
+      });
     },
-    [callService, doses, editMode, entities, hasDoseValue, mapping.doseId]
+    [callService, doses, editMode, entities, hasDoseValue, mapping.doseId, runAction]
   );
 
   const DoseButton = ({ entityId, label }) => {
     const done = entities[entityId]?.state === 'on';
+    const actionStatus = getStatus(entityId);
+    const pending = actionStatus === 'pending';
     const unavailable =
       !entityId || !entities[entityId] || entities[entityId].state === 'unavailable';
+    const tone =
+      actionStatus === 'error'
+        ? compactControlTone.error
+        : actionStatus === 'success' || done
+          ? compactControlTone.success
+          : compactControlTone.idle;
     return (
       <button
         type="button"
         role="checkbox"
-        disabled={editMode || unavailable}
+        disabled={editMode || unavailable || pending}
         onClick={(event) => toggleDose(event, entityId)}
         aria-checked={unavailable ? undefined : done}
         aria-label={`${label} ${done ? 'tagen' : 'inte tagen'}`}
-        className={`touch-feedback flex h-11 min-w-0 items-center justify-end gap-1.5 rounded-xl text-[10px] font-bold text-[var(--text-secondary)] transition-all active:scale-[0.97] ${unavailable ? 'opacity-45' : ''}`}
+        data-testid={`medication-dose-control-${entityId}`}
+        className={`touch-feedback relative flex h-11 min-w-0 items-center justify-center rounded-2xl border px-3 text-[13px] font-bold transition-all duration-200 active:scale-[0.97] ${tone} ${unavailable ? 'opacity-45' : ''}`}
       >
         <span className="truncate">{label}</span>
-        <span
-          data-testid={`medication-dose-check-${entityId}`}
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-all duration-300 ${
-            done ? compactControlTone.success : compactControlTone.idle
-          }`}
-          aria-hidden="true"
-        >
-          {done && <Check className="h-4 w-4 shrink-0" />}
+        <span className="absolute right-3 flex items-center justify-center">
+          {actionStatus === 'idle' ? (
+            done && <Check aria-hidden="true" className="h-4 w-4 shrink-0" />
+          ) : (
+            <ActionFeedbackIndicator status={actionStatus} className="h-4 w-4" />
+          )}
         </span>
       </button>
     );
@@ -105,35 +117,31 @@ const MedicationCard = ({
     <section
       key={cardId}
       {...dragProps}
-      className={`group relative flex h-full items-center gap-3 overflow-hidden rounded-3xl border px-5 py-3 font-sans ${editMode ? 'cursor-move' : ''}`}
+      className={`group relative flex h-full flex-col gap-2.5 overflow-hidden rounded-3xl border px-5 py-3 font-sans ${editMode ? 'cursor-move' : ''}`}
       style={cardStyle}
       aria-label={settings.title || 'Sparvens inhalator'}
     >
       {controls}
-      <span className={compactIconTile}>
-        <Cat className="h-6 w-6 stroke-[1.7px]" />
-      </span>
-      <div className="min-w-0 flex-1 overflow-hidden">
-        <p className="line-clamp-2 text-sm leading-tight font-bold text-[var(--text-primary)]">
-          {settings.title || 'Sparvens inhalator'}
-        </p>
-        {hasDoseValue ? (
-          <div className="mt-1.5 min-w-0 leading-none">
-            <p className="truncate text-[11px] font-extrabold text-[var(--text-primary)]">
-              ca {days} dagar kvar
-            </p>
-            <p className="mt-1 truncate text-[9px] font-bold tracking-wide text-[var(--text-secondary)] uppercase">
-              {doses} doser
-            </p>
-          </div>
-        ) : (
-          <p className="mt-1 text-[10px] font-bold tracking-wide text-[var(--text-secondary)] uppercase">
-            Dosantal saknas
+      <div className="flex w-full min-w-0 items-center gap-3">
+        <span className={compactIconTile}>
+          <Cat className="h-6 w-6 stroke-[1.7px]" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm leading-tight font-bold text-[var(--text-primary)]">
+            {settings.title || 'Sparvens inhalator'}
+          </p>
+          <p className="mt-1 truncate text-[10px] font-bold tracking-wide text-[var(--text-secondary)] uppercase">
+            {hasDoseValue ? `${doses} doser` : 'Dosantal saknas'}
+          </p>
+        </div>
+        {hasDoseValue && (
+          <p className="shrink-0 text-right text-[12px] font-extrabold text-[var(--text-primary)]">
+            {doses % 2 === 0 ? days : `ca ${days}`} dagar kvar
           </p>
         )}
       </div>
       <div
-        className="grid min-w-[190px] grid-cols-2 gap-2 max-sm:min-w-[164px]"
+        className="grid w-full grid-cols-2 gap-2"
         data-testid="medication-dose-actions"
       >
         <DoseButton entityId={mapping.morningId} label="Morgon" />

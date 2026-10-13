@@ -186,25 +186,33 @@ describe('custom routine cards', () => {
       />
     );
 
-    expect(screen.getByText('ca 19 dagar kvar')).toBeInTheDocument();
+    expect(screen.getByText('19 dagar kvar')).toBeInTheDocument();
     expect(screen.getByText('38 doser')).toBeInTheDocument();
     expect(screen.queryByText(/2\/dag/i)).not.toBeInTheDocument();
-    expect(screen.getByRole('region', { name: 'Sparvens inhalator' })).toHaveClass('gap-3', 'px-5');
-    expect(screen.getByTestId('medication-dose-actions')).toHaveClass('max-sm:min-w-[164px]');
+    expect(screen.getByRole('region', { name: 'Sparvens inhalator' })).toHaveClass(
+      'flex-col',
+      'gap-2.5',
+      'px-5'
+    );
+    expect(screen.getByTestId('medication-dose-actions')).toHaveClass(
+      'w-full',
+      'grid-cols-2',
+      'gap-2'
+    );
     expect(screen.getByRole('checkbox', { name: 'Morgon inte tagen' })).toHaveAttribute(
       'aria-checked',
       'false'
     );
-    expect(screen.getByTestId('medication-dose-check-input_boolean.sparven_morgon')).toHaveClass(
-      'rounded-full',
+    expect(screen.getByTestId('medication-dose-control-input_boolean.sparven_morgon')).toHaveClass(
+      'rounded-2xl',
       'bg-[var(--glass-bg)]'
     );
     expect(screen.getByRole('checkbox', { name: 'Kväll tagen' })).toHaveAttribute(
       'aria-checked',
       'true'
     );
-    expect(screen.getByTestId('medication-dose-check-input_boolean.sparven_kvall')).toHaveClass(
-      'rounded-full',
+    expect(screen.getByTestId('medication-dose-control-input_boolean.sparven_kvall')).toHaveClass(
+      'rounded-2xl',
       'bg-[var(--status-success-bg)]',
       'text-[var(--status-success-fg)]'
     );
