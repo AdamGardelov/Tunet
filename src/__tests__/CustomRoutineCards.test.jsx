@@ -98,7 +98,8 @@ describe('custom routine cards', () => {
     );
 
     expect(screen.getByText('ca 19 dagar kvar')).toBeInTheDocument();
-    expect(screen.getByText('38 doser · 2/dag')).toBeInTheDocument();
+    expect(screen.getByText('38 doser')).toBeInTheDocument();
+    expect(screen.queryByText(/2\/dag/i)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Morgon/i }));
     expect(callService).toHaveBeenNthCalledWith(1, 'input_number', 'set_value', {
       entity_id: 'input_number.sparven_doser',
@@ -131,7 +132,7 @@ describe('custom routine cards', () => {
     );
 
     expect(screen.getByText('ca 19 dagar kvar')).toBeInTheDocument();
-    expect(screen.getByText('37 doser · 2/dag')).toBeInTheDocument();
+    expect(screen.getByText('37 doser')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Morgon/i }));
     expect(callService).toHaveBeenNthCalledWith(1, 'input_number', 'set_value', {
       entity_id: 'input_number.sparven_doser',

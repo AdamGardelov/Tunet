@@ -97,7 +97,7 @@ const MedicationCard = ({
     <section
       key={cardId}
       {...dragProps}
-      className={`group relative flex h-full items-center gap-3 overflow-hidden rounded-3xl border px-5 py-3 font-sans ${editMode ? 'cursor-move' : ''}`}
+      className={`group relative flex h-full items-center gap-2.5 overflow-hidden rounded-3xl border px-4 py-3 font-sans ${editMode ? 'cursor-move' : ''}`}
       style={cardStyle}
       aria-label={settings.title || 'Sparvens inhalator'}
     >
@@ -105,18 +105,18 @@ const MedicationCard = ({
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-400/12 text-emerald-300">
         <Cat className="h-6 w-6 stroke-[1.7px]" />
       </span>
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 overflow-hidden">
         <p className="line-clamp-2 text-sm leading-tight font-bold text-[var(--text-primary)]">
           {settings.title || 'Sparvens inhalator'}
         </p>
         {hasDoseValue ? (
-          <div className="mt-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5 leading-none">
-            <span className="shrink-0 text-xs font-extrabold text-emerald-300">
+          <div className="mt-1.5 min-w-0 leading-none">
+            <p className="truncate text-[11px] font-extrabold text-emerald-300">
               ca {days} dagar kvar
-            </span>
-            <span className="shrink-0 text-[9px] font-bold tracking-wide text-[var(--text-secondary)] uppercase">
-              {doses} doser · 2/dag
-            </span>
+            </p>
+            <p className="mt-1 truncate text-[9px] font-bold tracking-wide text-[var(--text-secondary)] uppercase">
+              {doses} doser
+            </p>
           </div>
         ) : (
           <p className="mt-1 text-[10px] font-bold tracking-wide text-[var(--text-secondary)] uppercase">
