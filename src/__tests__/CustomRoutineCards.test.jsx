@@ -46,7 +46,8 @@ describe('custom routine cards', () => {
       'text-[var(--text-muted)]'
     );
     expect(screen.getByTestId('quick-control-power-climate.ac')).toHaveClass(
-      'text-[var(--accent-color)]'
+      'bg-[var(--accent-color)]',
+      'text-white'
     );
 
     fireEvent.click(screen.getByRole('button', { name: /Emma sänglampa/i }));

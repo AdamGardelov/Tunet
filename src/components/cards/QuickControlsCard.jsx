@@ -102,7 +102,7 @@ const QuickControlsCard = ({
             data-testid={`quick-control-power-${entityId}`}
             className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
               active
-                ? 'bg-[var(--accent-bg)] text-[var(--accent-color)]'
+                ? 'bg-[var(--accent-color)] text-white shadow-lg shadow-black/20'
                 : 'bg-[var(--glass-bg)] text-[var(--text-muted)]'
             }`}
             aria-hidden="true"
