@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.23.0-adam.25
+
+- Added an optional warm-to-cool white control for compatible physical lights.
+- Kept warmth controls hidden until requested to preserve a clean mobile view.
+- Explicitly disabled warmth controls for the fixed-temperature kitchen window lamp.
+
 ## 1.23.0-adam.24
 
 - Simplified the mobile lights view to show only the useful physical lights in each room.
