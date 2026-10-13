@@ -106,12 +106,23 @@ const MedicationCard = ({
         <Cat className="h-6 w-6 stroke-[1.7px]" />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-bold text-[var(--text-primary)]">
+        <p className="line-clamp-2 text-sm leading-tight font-bold text-[var(--text-primary)]">
           {settings.title || 'Sparvens inhalator'}
         </p>
-        <p className="mt-1 truncate text-[10px] font-bold tracking-wide text-[var(--text-secondary)] uppercase">
-          {hasDoseValue ? `${doses} doser kvar · ca ${days} dagar` : 'Dosantal saknas'}
-        </p>
+        {hasDoseValue ? (
+          <div className="mt-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5 leading-none">
+            <span className="shrink-0 text-xs font-extrabold text-emerald-300">
+              ca {days} dagar kvar
+            </span>
+            <span className="shrink-0 text-[9px] font-bold tracking-wide text-[var(--text-secondary)] uppercase">
+              {doses} doser · 2/dag
+            </span>
+          </div>
+        ) : (
+          <p className="mt-1 text-[10px] font-bold tracking-wide text-[var(--text-secondary)] uppercase">
+            Dosantal saknas
+          </p>
+        )}
       </div>
       <div className="grid min-w-[190px] grid-cols-2 gap-2 max-sm:min-w-[160px]">
         <DoseButton entityId={mapping.morningId} label="Morgon" />
