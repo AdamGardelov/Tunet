@@ -37,6 +37,7 @@ const CARD_SPAN_RULES = [
   { prefix: 'spacer_card_', category: 'dualSize' },
   { prefix: 'quick_controls_', category: 'dualSize' },
   { prefix: 'medication_card_', category: 'dualSize' },
+  { prefix: 'camera_presets_', category: 'dualSize' },
 ];
 
 export const getCardGridSpan = (

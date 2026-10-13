@@ -327,6 +327,19 @@ export const handleAddSelected = (ctx) => {
       return;
     }
 
+    case 'camera_presets': {
+      if (selectedEntities.length === 0) return;
+      const cardId = `camera_presets_${Date.now()}`;
+      commitSingleCard(cardId, {
+        entityId: selectedEntities[0],
+        title: 'Kamerapositioner',
+        size: 'small',
+        colSpan: 'full',
+      });
+      setSelectedEntities([]);
+      return;
+    }
+
     case 'sensor': {
       if (selectedEntities.length === 0) return;
       const newSettings = { ...cardSettings };

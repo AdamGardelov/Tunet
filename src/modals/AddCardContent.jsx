@@ -384,6 +384,9 @@ function AddCardContent({
           id.startsWith('sensor.')
         );
       }
+      if (addCardType === 'camera_presets') {
+        return id.startsWith('select.');
+      }
       if (addCardType === 'sensor') {
         return (
           id.startsWith('sensor.') ||
@@ -955,6 +958,7 @@ function AddCardContent({
     'entity',
     'quick_controls',
     'medication',
+    'camera_presets',
   ].includes(addCardType);
   const usesMultiSelectWithCalendar = usesEntityMultiSelect || addCardType === 'calendar';
 
@@ -1177,6 +1181,13 @@ function AddCardContent({
                     isActive={addCardType === 'medication'}
                     onSelect={setAddCardType}
                   />
+                  <TypeButton
+                    type="camera_presets"
+                    icon={Camera}
+                    label="Kamerapositioner"
+                    isActive={addCardType === 'camera_presets'}
+                    onSelect={setAddCardType}
+                  />
                 </div>
                 {addCardType === 'sensor' && (
                   <p className="mt-2 ml-4 text-[11px] text-[var(--text-secondary)] opacity-75">
@@ -1193,6 +1204,12 @@ function AddCardContent({
                 {addCardType === 'medication' && (
                   <p className="mt-2 ml-4 text-[11px] text-[var(--text-secondary)] opacity-75">
                     Välj dosräknaren samt hjälparna för morgon och kväll.
+                  </p>
+                )}
+                {addCardType === 'camera_presets' && (
+                  <p className="mt-2 ml-4 text-[11px] text-[var(--text-secondary)] opacity-75">
+                    Välj kamerans preset-väljare. De två första positionerna visas som kompakta
+                    snabbknappar.
                   </p>
                 )}
               </div>

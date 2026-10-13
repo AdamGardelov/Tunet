@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import MedicationCard from '../components/cards/MedicationCard';
 import QuickControlsCard from '../components/cards/QuickControlsCard';
+import CameraPresetCard from '../components/cards/CameraPresetCard';
 
 const t = (key) =>
   ({
@@ -130,5 +131,33 @@ describe('custom routine cards', () => {
       value: 38,
     });
     await vi.waitFor(() => expect(callService).toHaveBeenCalledTimes(2));
+  });
+
+  it('shows two camera presets on one row and selects the tapped position', () => {
+    const callService = vi.fn();
+    const { container } = render(
+      <CameraPresetCard
+        cardId="camera_presets_1"
+        settings={{ entityId: 'select.walles_kamera_move_to_preset' }}
+        entities={{
+          'select.walles_kamera_move_to_preset': {
+            state: 'Våran säng',
+            attributes: { options: ['Våran säng', 'Walters säng'] },
+          },
+        }}
+        callService={callService}
+        dragProps={{}}
+        controls={null}
+        cardStyle={{}}
+        editMode={false}
+      />
+    );
+
+    expect(container.querySelector('.grid')).toHaveClass('grid-cols-2');
+    fireEvent.click(screen.getByRole('button', { name: /Walters säng/i }));
+    expect(callService).toHaveBeenCalledWith('select', 'select_option', {
+      entity_id: 'select.walles_kamera_move_to_preset',
+      option: 'Walters säng',
+    });
   });
 });

@@ -87,6 +87,7 @@ describe('mobile grid controls', () => {
             'media_player.kok',
             'medication_card_sparven',
             'quick_controls_home',
+            'camera_presets_walles',
           ],
         },
       },
@@ -101,6 +102,7 @@ describe('mobile grid controls', () => {
           'media_player.kok': { row: 5, col: 1, span: 1, colSpan: 1 },
           medication_card_sparven: { row: 6, col: 1, span: 1, colSpan: 1 },
           quick_controls_home: { row: 7, col: 1, span: 1, colSpan: 1 },
+          camera_presets_walles: { row: 8, col: 1, span: 1, colSpan: 1 },
         },
       },
       cards: {
@@ -113,6 +115,7 @@ describe('mobile grid controls', () => {
     const cards = [...container.querySelectorAll('[data-dashboard-card]')];
 
     expect(cards.map((card) => card.dataset.dashboardCard)).toEqual([
+      'camera_presets_walles',
       'quick_controls_home',
       'medication_card_sparven',
       'sensor.first',

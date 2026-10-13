@@ -27,6 +27,7 @@ import {
   renderSpacerCard,
   renderQuickControlsCard,
   renderMedicationCard,
+  renderCameraPresetCard,
 } from './cards';
 
 /**
@@ -61,6 +62,7 @@ export const CARD_REGISTRY = [
   { prefix: 'spacer_card_', renderer: renderSpacerCard },
   { prefix: 'quick_controls_', renderer: renderQuickControlsCard },
   { prefix: 'medication_card_', renderer: renderMedicationCard },
+  { prefix: 'camera_presets_', renderer: renderCameraPresetCard },
 ];
 
 export function dispatchCardRender(cardId, dragProps, getControls, cardStyle, settingsKey, ctx) {

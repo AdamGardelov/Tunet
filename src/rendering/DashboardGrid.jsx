@@ -24,10 +24,11 @@ export const sortCardPlacements = (items, isMobile) =>
   [...items].sort((a, b) => {
     if (isMobile) {
       const mobilePriority = (id) => {
-        if (id.startsWith('quick_controls_')) return 0;
-        if (id.startsWith('medication_card_')) return 1;
-        if (id.startsWith('vacuum.')) return 3;
-        return 2;
+        if (id.startsWith('camera_presets_')) return 0;
+        if (id.startsWith('quick_controls_')) return 1;
+        if (id.startsWith('medication_card_')) return 2;
+        if (id.startsWith('vacuum.')) return 4;
+        return 3;
       };
       const priorityDifference = mobilePriority(a.id) - mobilePriority(b.id);
       if (priorityDifference !== 0) return priorityDifference;

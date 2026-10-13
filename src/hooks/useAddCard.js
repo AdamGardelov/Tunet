@@ -136,6 +136,7 @@ export function useAddCard({
     if (addCardType === 'car') return t('addCard.available.cars');
     if (addCardType === 'toggle') return t('addCard.available.toggles');
     if (addCardType === 'sensor') return t('addCard.available.sensors');
+    if (addCardType === 'camera_presets') return 'Tillgängliga kameraväljare';
     if (addCardType === 'entity') return t('addCard.available.entities');
     return t('addCard.available.lights');
   };
@@ -172,9 +173,11 @@ export function useAddCard({
                                   ? 'addCard.item.toggles'
                                   : addCardType === 'sensor'
                                     ? 'addCard.item.sensors'
-                                    : addCardType === 'entity'
+                                    : addCardType === 'camera_presets'
                                       ? 'addCard.item.entities'
-                                      : 'addCard.item.lights';
+                                      : addCardType === 'entity'
+                                        ? 'addCard.item.entities'
+                                        : 'addCard.item.lights';
 
     return t('addCard.noneLeft').replace('{item}', t(itemKey));
   };
