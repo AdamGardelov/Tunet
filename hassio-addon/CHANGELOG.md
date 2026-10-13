@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0-adam.33
+
+- Restored curated rooms such as Kitchen when an old collapsed-room setting is present.
+- Removed the misleading visibility button from rooms that only show selected physical lights.
+
 ## 1.23.0-adam.32
 
 - Kept Sparven's remaining-day text clear of the dose buttons on narrow phones.
