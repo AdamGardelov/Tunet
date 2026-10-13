@@ -37,6 +37,18 @@ describe('custom routine cards', () => {
       />
     );
 
+    expect(screen.getByRole('button', { name: /Emma sänglampa/i })).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    );
+    expect(screen.getByRole('button', { name: /AC/i })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTestId('quick-control-power-light.emma')).toHaveClass(
+      'text-[var(--text-muted)]'
+    );
+    expect(screen.getByTestId('quick-control-power-climate.ac')).toHaveClass(
+      'text-[var(--accent-color)]'
+    );
+
     fireEvent.click(screen.getByRole('button', { name: /Emma sänglampa/i }));
     fireEvent.click(screen.getByRole('button', { name: /AC/i }));
 

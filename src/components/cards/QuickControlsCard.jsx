@@ -75,6 +75,7 @@ const QuickControlsCard = ({
         type="button"
         disabled={unavailable || editMode || pending}
         onClick={(event) => handleToggle(event, entityId)}
+        aria-pressed={unavailable ? undefined : active}
         className={`touch-feedback flex min-h-0 min-w-0 flex-1 items-center gap-3 text-left transition-all duration-200 active:scale-[0.96] ${standalone ? 'w-full' : 'rounded-xl py-1'} ${unavailable ? 'opacity-55' : ''} ${actionStatus === 'success' ? 'text-[var(--status-success-fg)]' : actionStatus === 'error' ? 'text-[var(--status-error-fg)]' : ''}`}
       >
         <span
@@ -93,21 +94,20 @@ const QuickControlsCard = ({
           </span>
         </span>
         {!unavailable && actionStatus !== 'idle' ? (
-          <span className="flex h-7 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--glass-bg-hover)]">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--glass-bg-hover)]">
             <ActionFeedbackIndicator status={actionStatus} className="h-4 w-4" />
           </span>
         ) : !unavailable ? (
           <span
-            className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
-              active ? 'bg-[var(--accent-color)]' : 'bg-[var(--glass-bg-hover)]'
+            data-testid={`quick-control-power-${entityId}`}
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
+              active
+                ? 'bg-[var(--accent-bg)] text-[var(--accent-color)]'
+                : 'bg-[var(--glass-bg)] text-[var(--text-muted)]'
             }`}
             aria-hidden="true"
           >
-            <span
-              className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
-                active ? 'translate-x-[18px]' : 'translate-x-0.5'
-              }`}
-            />
+            <Power className="h-4 w-4" />
           </span>
         ) : null}
       </button>
