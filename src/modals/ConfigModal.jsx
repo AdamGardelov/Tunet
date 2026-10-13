@@ -704,7 +704,6 @@ export default function ConfigModal({
                         </button>
                         <button
                           onClick={async () => {
-                            if (!globalThis.confirm(t('profiles.confirmOverwrite'))) return;
                             try {
                               await overwriteProfile(profile.id, profile.name);
                             } catch {}
