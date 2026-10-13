@@ -1,5 +1,5 @@
 import { memo, useCallback, useMemo } from 'react';
-import { Check, Heart } from '../../icons';
+import { Cat, Check } from '../../icons';
 
 const findEntity = (entityIds, pattern, fallbackDomains, entities, used = new Set()) =>
   entityIds.find((id) => !used.has(id) && pattern.test(id)) ||
@@ -97,13 +97,13 @@ const MedicationCard = ({
     <section
       key={cardId}
       {...dragProps}
-      className={`group relative flex h-full items-center gap-3 overflow-hidden rounded-3xl border px-4 py-3 font-sans ${editMode ? 'cursor-move' : ''}`}
+      className={`group relative flex h-full items-center gap-3 overflow-hidden rounded-3xl border px-5 py-3 font-sans ${editMode ? 'cursor-move' : ''}`}
       style={cardStyle}
       aria-label={settings.title || 'Sparvens inhalator'}
     >
       {controls}
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-400/12 text-emerald-300">
-        <Heart className="h-6 w-6 stroke-[1.7px]" />
+        <Cat className="h-6 w-6 stroke-[1.7px]" />
       </span>
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-bold text-[var(--text-primary)]">

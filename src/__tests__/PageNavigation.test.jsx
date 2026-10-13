@@ -85,4 +85,37 @@ describe('PageNavigation', () => {
     expect(button).toHaveClass('min-h-11', 'min-w-11', 'px-3', 'py-2.5');
     expect(screen.getByTestId('mock-icon')).toHaveClass('h-5', 'w-5', 'sm:h-4', 'sm:w-4');
   });
+
+  it('places the Stugan page last in the navigation', () => {
+    mockUsePages.mockReturnValue({
+      pagesConfig: { pages: ['home', 'stugan', 'lights', 'dammsugare'] },
+      persistConfig: vi.fn(),
+      pageSettings: { stugan: { label: 'Stugan' } },
+      headerSettings: { showPagePillLabelsOnMobile: true },
+    });
+    mockUseModalActions.mockReturnValue({ setShowAddPageModal: vi.fn() });
+
+    render(
+      <PageNavigation
+        pages={[
+          { id: 'home', label: 'Hem', icon: MockIcon },
+          { id: 'stugan', label: 'Stugan', icon: MockIcon },
+          { id: 'lights', label: 'Lampor', icon: MockIcon },
+          { id: 'dammsugare', label: 'Dammsugare', icon: MockIcon },
+        ]}
+        activePage="home"
+        setActivePage={vi.fn()}
+        editMode={false}
+        setEditingPage={vi.fn()}
+        t={(key) => key}
+      />
+    );
+
+    expect(screen.getAllByRole('button').map((button) => button.getAttribute('aria-label'))).toEqual([
+      'Hem',
+      'Lampor',
+      'Dammsugare',
+      'Stugan',
+    ]);
+  });
 });

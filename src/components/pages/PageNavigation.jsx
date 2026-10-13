@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Plus, Edit2, ChevronDown } from '../../icons';
 import { getIconComponent } from '../../icons';
 import { useModalActions, usePages } from '../../contexts';
@@ -178,6 +178,16 @@ export default function PageNavigation({
   const [showManager, setShowManager] = useState(false);
   const pageOrder = pagesConfig?.pages || [];
   const isSinglePage = pages.length === 1;
+  const navigationPages = useMemo(() => {
+    const cottagePages = pages.filter((page) => {
+      const label = pageSettings[page.id]?.label || page.label || page.id;
+      return page.id === 'stugan' || String(label).toLocaleLowerCase('sv-SE') === 'stugan';
+    });
+    return [
+      ...pages.filter((page) => !cottagePages.some(({ id }) => id === page.id)),
+      ...cottagePages,
+    ];
+  }, [pageSettings, pages]);
 
   const toggleManager = useCallback(() => setShowManager((v) => !v), []);
   const closeManager = useCallback(() => setShowManager(false), []);
@@ -203,7 +213,7 @@ export default function PageNavigation({
     <div className="flex min-w-0 flex-1 items-center gap-2">
       {/* Scrollable page pills */}
       <div className="scrollbar-hide flex min-w-0 flex-1 items-center gap-4 overflow-x-auto pb-2">
-        {pages.map((page) => {
+        {navigationPages.map((page) => {
           const settings = pageSettings[page.id] || {};
           const label = settings.label || page.label;
           const isHidden = settings.hidden;

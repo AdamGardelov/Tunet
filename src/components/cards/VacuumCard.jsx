@@ -114,7 +114,7 @@ const VacuumCard = ({
           e.stopPropagation();
           if (!editMode) onOpen();
         }}
-        className={`glass-texture touch-feedback group relative flex h-full overflow-hidden rounded-3xl border font-sans transition-all duration-500 ${useStackedSmallControls ? 'items-center justify-between gap-3 p-3' : isMobile ? 'items-center justify-between gap-2 p-3 pl-4' : 'items-center justify-between gap-4 p-4 pl-5'} ${!editMode ? 'cursor-pointer active:scale-[0.98]' : 'cursor-move'} ${isUnavailable ? 'opacity-70' : ''}`}
+        className={`glass-texture touch-feedback group relative flex h-full overflow-hidden rounded-3xl border font-sans transition-all duration-500 ${useStackedSmallControls ? 'items-center justify-between gap-3 px-5 py-3' : isMobile ? 'items-center justify-between gap-2 px-5 py-3' : 'items-center justify-between gap-4 p-4 pl-5'} ${!editMode ? 'cursor-pointer active:scale-[0.98]' : 'cursor-move'} ${isUnavailable ? 'opacity-70' : ''}`}
         style={{
           ...cardStyle,
           backgroundColor: isErrorState
@@ -135,7 +135,7 @@ const VacuumCard = ({
         {controls}
         <div className={`flex min-w-0 ${useStackedSmallControls ? 'flex-1 items-center gap-3' : isMobile ? 'flex-1 items-center gap-3' : 'flex-1 items-center gap-4'}`}>
           <div
-            className={`flex flex-shrink-0 items-center justify-center transition-all group-hover:scale-110 ${state === 'cleaning' ? 'animate-pulse bg-[var(--accent-bg)] text-[var(--accent-color)]' : 'bg-[var(--glass-bg)] text-[var(--text-secondary)]'} ${useStackedSmallControls ? 'h-10 w-10 rounded-xl' : isMobile ? 'h-10 w-10 rounded-xl' : 'h-12 w-12 rounded-2xl'}`}
+            className={`flex flex-shrink-0 items-center justify-center transition-all group-hover:scale-110 ${state === 'cleaning' ? 'animate-pulse bg-[var(--accent-bg)] text-[var(--accent-color)]' : 'bg-[var(--glass-bg)] text-[var(--text-secondary)]'} ${useStackedSmallControls ? 'h-11 w-11 rounded-2xl' : isMobile ? 'h-11 w-11 rounded-2xl' : 'h-12 w-12 rounded-2xl'}`}
           >
             <Icon className={`${useStackedSmallControls ? 'h-[18px] w-[18px]' : isMobile ? 'h-5 w-5' : 'h-6 w-6'} stroke-[1.5px]`} />
           </div>

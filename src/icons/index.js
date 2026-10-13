@@ -90,6 +90,7 @@ export {
   Calendar,
   Activity,
   Heart,
+  Cat,
   Star,
   AlertTriangle,
   Warehouse,

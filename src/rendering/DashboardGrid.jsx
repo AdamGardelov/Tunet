@@ -7,6 +7,7 @@ const MediaPage = lazy(() => import('../components/pages/MediaPage'));
 const LightsPage = lazy(() => import('../components/pages/LightsPage'));
 const BatteryPage = lazy(() => import('../components/pages/BatteryPage'));
 const RoomExplorerPage = lazy(() => import('../components/pages/RoomExplorerPage'));
+const VacuumPage = lazy(() => import('../components/pages/VacuumPage'));
 
 const pageFallback = <div className="page-transition min-h-[40vh]" aria-hidden="true" />;
 const MOBILE_HIDDEN_CARD_PREFIXES = [
@@ -168,6 +169,25 @@ export default function DashboardGrid({ page, media, grid, cards, actions, t }) 
         </Suspense>
       </div>
     );
+  }
+
+  if (activePage === 'dammsugare' && !editMode) {
+    const vacuumId = (pagesConfig[activePage] || []).find((id) => id.startsWith('vacuum.'));
+    if (vacuumId) {
+      return (
+        <div key={activePage} className="page-transition">
+          <Suspense fallback={pageFallback}>
+            <VacuumPage
+              vacuumId={vacuumId}
+              entities={entities}
+              conn={conn}
+              callService={callService}
+              getEntityImageUrl={getEntityImageUrl}
+            />
+          </Suspense>
+        </div>
+      );
+    }
   }
 
   const placedCards = sortCardPlacements(

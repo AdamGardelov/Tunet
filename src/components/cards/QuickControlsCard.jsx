@@ -75,10 +75,10 @@ const QuickControlsCard = ({
         type="button"
         disabled={unavailable || editMode || pending}
         onClick={(event) => handleToggle(event, entityId)}
-        className={`touch-feedback flex min-h-0 min-w-0 flex-1 items-center gap-3 text-left transition-all duration-200 active:scale-[0.96] ${standalone ? 'w-full' : 'rounded-xl px-1 py-1'} ${unavailable ? 'opacity-55' : ''} ${actionStatus === 'success' ? 'text-[var(--status-success-fg)]' : actionStatus === 'error' ? 'text-[var(--status-error-fg)]' : ''}`}
+        className={`touch-feedback flex min-h-0 min-w-0 flex-1 items-center gap-3 text-left transition-all duration-200 active:scale-[0.96] ${standalone ? 'w-full' : 'rounded-xl py-1'} ${unavailable ? 'opacity-55' : ''} ${actionStatus === 'success' ? 'text-[var(--status-success-fg)]' : actionStatus === 'error' ? 'text-[var(--status-error-fg)]' : ''}`}
       >
         <span
-          className={`flex shrink-0 items-center justify-center bg-[var(--glass-bg-hover)] ${standalone ? 'h-11 w-11 rounded-2xl' : 'h-10 w-10 rounded-xl'} ${active ? 'text-[var(--accent-color)]' : 'text-[var(--text-muted)]'}`}
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--glass-bg-hover)] ${active ? 'text-[var(--accent-color)]' : 'text-[var(--text-muted)]'}`}
         >
           <Icon className="h-[22px] w-[22px] stroke-[1.7px]" />
         </span>
@@ -121,7 +121,7 @@ const QuickControlsCard = ({
       <section
         key={cardId}
         {...dragProps}
-        className={`group relative flex h-full items-center overflow-hidden rounded-3xl border px-4 py-3 font-sans ${editMode ? 'cursor-move' : ''}`}
+        className={`group relative flex h-full items-center overflow-hidden rounded-3xl border px-5 py-3 font-sans ${editMode ? 'cursor-move' : ''}`}
         style={cardStyle}
         aria-label={getCompactName(entityId, entity)}
       >
@@ -135,7 +135,7 @@ const QuickControlsCard = ({
     <section
       key={cardId}
       {...dragProps}
-      className={`group relative flex h-full flex-col overflow-hidden rounded-3xl border font-sans ${isMobile ? 'px-4 py-3' : 'p-3'} ${editMode ? 'cursor-move' : ''}`}
+      className={`group relative flex h-full flex-col overflow-hidden rounded-3xl border font-sans ${isMobile ? 'px-5 py-3' : 'p-3'} ${editMode ? 'cursor-move' : ''}`}
       style={cardStyle}
       aria-label={title || 'Snabbkontroller'}
     >
