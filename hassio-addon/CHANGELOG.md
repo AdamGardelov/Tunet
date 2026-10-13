@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.23.0-adam.43
+
+- Ensures the correct native Rolldown build dependency is installed on both Home Assistant Green and x86-64 hosts.
+
 ## 1.23.0-adam.42
 
 - Makes each bedside light a large, fully tappable control instead of using a separate power circle.
