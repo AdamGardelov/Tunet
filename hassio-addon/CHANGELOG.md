@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0-adam.41
+
+- Preserves room for the full medication-days status on narrow mobile screens.
+- Keeps the checkbox touch targets at their accessible size while tightening only unused spacing.
+
 ## 1.23.0-adam.40
 
 - Replaces medication pills with compact circular checkbox controls.
