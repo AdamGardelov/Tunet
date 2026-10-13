@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0-adam.27
+
+- Added mixed Media pages with Sonos speakers and TV players together.
+- Kept player selection and playback, volume, power, and grouping controls.
+
 ## 1.23.0-adam.26
 
 - Added a live-stream shortcut before the three Tapo camera presets.
