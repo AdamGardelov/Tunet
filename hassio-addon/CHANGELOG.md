@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.23.0-adam.19
+
+- Corrected the reviewed-source pin so the camera preset and grouped bedside-light fixes are included in the installed image.
+
 ## 1.23.0-adam.18
 
 - Fixed Tapo camera preset buttons being disabled while their momentary selector rests in the normal `unknown` state.
