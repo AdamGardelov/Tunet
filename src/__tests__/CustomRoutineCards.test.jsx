@@ -271,4 +271,28 @@ describe('custom routine cards', () => {
     expect(screen.getAllByRole('button')).toHaveLength(4);
     expect(screen.queryByText('Preset 1', { selector: ':not(.sr-only)' })).not.toBeInTheDocument();
   });
+
+  it('places Walters bed before the shared bed in the default Tapo option order', () => {
+    render(
+      <CameraPresetCard
+        cardId="camera_presets_1"
+        settings={{ entityId: 'select.camera_preset' }}
+        entities={{
+          'select.camera_preset': {
+            state: 'unknown',
+            attributes: { options: ['Våran säng', 'Walters säng', 'Vagn'] },
+          },
+        }}
+        callService={vi.fn()}
+        dragProps={{}}
+        controls={null}
+        cardStyle={{}}
+        editMode={false}
+      />
+    );
+
+    expect(
+      screen.getAllByRole('button').map((button) => button.getAttribute('aria-label'))
+    ).toEqual(['Walters säng', 'Våran säng', 'Vagn']);
+  });
 });

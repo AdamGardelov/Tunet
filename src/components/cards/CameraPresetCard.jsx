@@ -24,6 +24,20 @@ const gridColumns = {
   4: 'grid-cols-4',
 };
 
+const getHouseholdPresetRank = (option) => {
+  const name = String(option).toLowerCase();
+  if (/walter/.test(name)) return 0;
+  if (/våran säng|our bed/.test(name)) return 1;
+  if (/vagn|stroller|pram/.test(name)) return 2;
+  return 3;
+};
+
+const orderDefaultPresets = (options) =>
+  options
+    .map((option, index) => ({ option, index, rank: getHouseholdPresetRank(option) }))
+    .sort((a, b) => a.rank - b.rank || a.index - b.index)
+    .map(({ option }) => option);
+
 const getPresetIcon = (option, index) => {
   const name = String(option).toLowerCase();
   if (/walter|barn|baby|child/.test(name)) return Baby;
@@ -51,7 +65,9 @@ const CameraPresetCard = ({
     ? entity.attributes.options
     : [];
   const configuredOptions = Array.isArray(settings.options) ? settings.options : [];
-  const options = (configuredOptions.length > 0 ? configuredOptions : availableOptions).slice(0, 4);
+  const options = (
+    configuredOptions.length > 0 ? configuredOptions : orderDefaultPresets(availableOptions)
+  ).slice(0, 4);
   // Tapo's momentary "Move to Preset" select deliberately rests in `unknown`.
   // Its options and select_option service still work, so only a genuinely
   // unavailable/missing entity should disable these buttons.
