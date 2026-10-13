@@ -4,6 +4,7 @@ cd /app
 export NODE_ENV=production
 export PORT=3002
 export TUNET_TRUST_SUPERVISOR_INGRESS=1
+export DATA_DIR=/data
 
 if bashio::config.has_value 'data_encryption_mode'; then
 	export TUNET_ENCRYPTION_MODE="$(bashio::config 'data_encryption_mode')"

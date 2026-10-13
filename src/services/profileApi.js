@@ -48,7 +48,9 @@ async function request(
 
     const body = await res.json().catch(() => ({}));
     if (res.status === 401) {
-      throw notifyHomeAssistantApiUnauthorized(body.error || 'Home Assistant authentication failed');
+      throw notifyHomeAssistantApiUnauthorized(
+        body.error || 'Home Assistant authentication failed'
+      );
     }
     const error = /** @type {any} */ (new Error(body.error || `API error ${res.status}`));
     error.status = res.status;
@@ -69,10 +71,10 @@ export function fetchProfile(id, _haUserId) {
   return request(`/profiles/${id}`, {});
 }
 
-export function createProfile({ ha_user_id, name, device_label, data }) {
+export function createProfile({ ha_user_id, name, device_label, data, shared = false }) {
   return request('/profiles', {
     method: 'POST',
-    body: JSON.stringify({ ha_user_id, name, device_label, data }),
+    body: JSON.stringify({ ha_user_id, name, device_label, data, shared }),
   });
 }
 

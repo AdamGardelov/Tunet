@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   fetchProfiles as apiFetchProfiles,
+  fetchProfile as apiFetchProfile,
   createProfile as apiCreateProfile,
   updateProfile as apiUpdateProfile,
   deleteProfile as apiDeleteProfile,
@@ -31,7 +32,8 @@ function normalizePagesConfig(candidate, fallback) {
   }
 
   const detectedPages = Object.keys(next).filter(
-    (key) => Array.isArray(next[key]) && !['header', 'settings', 'automations'].includes(key)
+    (key) =>
+      Array.isArray(next[key]) && !['header', 'pages', 'settings', 'automations'].includes(key)
   );
 
   if (!Array.isArray(next.pages) || next.pages.length === 0) {
@@ -105,8 +107,20 @@ export function useProfiles({ haUser, contextSetters, prefetchProfiles = true })
   const [error, setError] = useState(null);
   const [loadSummary, setLoadSummary] = useState(null);
   const [backendAvailable, setBackendAvailable] = useState(true);
+  const [activeProfileId, setActiveProfileId] = useState(() => {
+    try {
+      return localStorage.getItem('tunet_active_profile_id') || '';
+    } catch {
+      return '';
+    }
+  });
+  const [profileSyncStatus, setProfileSyncStatus] = useState('idle');
   const contextSettersRef = useRef(contextSetters);
   contextSettersRef.current = contextSetters;
+  const activeProfileIdRef = useRef(activeProfileId);
+  const profileSyncInFlightRef = useRef(false);
+  const lastProfileHashRef = useRef('');
+  const lastProfileUpdatedAtRef = useRef('');
   const autoSync = useSettingsSync({
     haUserId: haUser?.id,
     contextSettersRef,
@@ -131,6 +145,21 @@ export function useProfiles({ haUser, contextSetters, prefetchProfiles = true })
     refreshProfiles();
   }, [refreshProfiles, prefetchProfiles]);
 
+  const persistActiveProfileId = useCallback((profileId) => {
+    const normalized = typeof profileId === 'string' ? profileId.trim() : '';
+    activeProfileIdRef.current = normalized;
+    setActiveProfileId(normalized);
+    try {
+      if (normalized) {
+        localStorage.setItem('tunet_active_profile_id', normalized);
+      } else {
+        localStorage.removeItem('tunet_active_profile_id');
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }, []);
+
   // ── Save current dashboard as a new profile ──
   const saveProfile = useCallback(
     async (name, deviceLabel = '') => {
@@ -146,6 +175,7 @@ export function useProfiles({ haUser, contextSetters, prefetchProfiles = true })
           ha_user_id: haUser.id,
           name,
           device_label: deviceLabel || null,
+          shared: true,
           data: snapshot,
         });
         setProfiles((prev) => [profile, ...prev]);
@@ -221,6 +251,105 @@ export function useProfiles({ haUser, contextSetters, prefetchProfiles = true })
       setLoadSummary(notes.join(' '));
     }
   }, []);
+
+  const followProfile = useCallback(
+    (profile) => {
+      if (!profile?.id || !profile?.data || typeof profile.data !== 'object') {
+        setError('Profile data is missing or invalid.');
+        return;
+      }
+
+      loadProfile(profile);
+      const serialized = JSON.stringify(profile.data);
+      lastProfileHashRef.current = serialized;
+      lastProfileUpdatedAtRef.current = profile.updated_at || '';
+      persistActiveProfileId(profile.id);
+      setProfileSyncStatus('synced');
+    },
+    [loadProfile, persistActiveProfileId]
+  );
+
+  const stopFollowingProfile = useCallback(() => {
+    persistActiveProfileId('');
+    lastProfileHashRef.current = '';
+    lastProfileUpdatedAtRef.current = '';
+    setProfileSyncStatus('idle');
+  }, [persistActiveProfileId]);
+
+  const syncActiveProfile = useCallback(async () => {
+    const profileId = activeProfileIdRef.current;
+    if (!prefetchProfiles || !haUser?.id || !profileId || profileSyncInFlightRef.current) return;
+
+    profileSyncInFlightRef.current = true;
+    setProfileSyncStatus('syncing');
+    try {
+      const remote = await apiFetchProfile(profileId, haUser.id);
+      if (!remote?.data || typeof remote.data !== 'object') {
+        throw new Error('Profile data is missing or invalid.');
+      }
+
+      const remoteSerialized = JSON.stringify(remote.data);
+      const remoteUpdatedAt = remote.updated_at || '';
+      const localSnapshot = collectSnapshot();
+      const localSerialized = isValidSnapshot(localSnapshot) ? JSON.stringify(localSnapshot) : '';
+      const hasBaseline = Boolean(lastProfileHashRef.current);
+      const remoteChanged =
+        hasBaseline &&
+        remoteSerialized !== lastProfileHashRef.current &&
+        remoteUpdatedAt !== lastProfileUpdatedAtRef.current;
+
+      if (!hasBaseline || remoteChanged) {
+        applySnapshot(remote.data, contextSettersRef.current);
+        lastProfileHashRef.current = remoteSerialized;
+        lastProfileUpdatedAtRef.current = remoteUpdatedAt;
+      } else if (
+        localSerialized &&
+        localSerialized !== lastProfileHashRef.current &&
+        remote.ha_user_id !== haUser.id
+      ) {
+        applySnapshot(remote.data, contextSettersRef.current);
+      } else if (localSerialized && localSerialized !== lastProfileHashRef.current) {
+        const updated = await apiUpdateProfile(profileId, {
+          ha_user_id: haUser.id,
+          data: localSnapshot,
+        });
+        const updatedSerialized = JSON.stringify(updated.data || localSnapshot);
+        lastProfileHashRef.current = updatedSerialized;
+        lastProfileUpdatedAtRef.current = updated.updated_at || new Date().toISOString();
+        setProfiles((prev) =>
+          prev.map((profile) => (profile.id === profileId ? updated : profile))
+        );
+      }
+
+      setBackendAvailable(true);
+      setProfileSyncStatus('synced');
+      setError(null);
+    } catch (err) {
+      setProfileSyncStatus('error');
+      setError(err.message);
+      if (Number(err?.status) === 404) stopFollowingProfile();
+    } finally {
+      profileSyncInFlightRef.current = false;
+    }
+  }, [haUser?.id, prefetchProfiles, stopFollowingProfile]);
+
+  useEffect(() => {
+    activeProfileIdRef.current = activeProfileId;
+  }, [activeProfileId]);
+
+  useEffect(() => {
+    if (!prefetchProfiles || !haUser?.id || !activeProfileId) return undefined;
+
+    syncActiveProfile();
+    const intervalId = globalThis.setInterval(syncActiveProfile, 4000);
+    const handleEditDone = () => syncActiveProfile();
+    globalThis.window?.addEventListener('tunet:edit-done', handleEditDone);
+
+    return () => {
+      globalThis.clearInterval(intervalId);
+      globalThis.window?.removeEventListener('tunet:edit-done', handleEditDone);
+    };
+  }, [activeProfileId, haUser?.id, prefetchProfiles, syncActiveProfile]);
 
   const importDashboard = useCallback((snapshotCandidate) => {
     setError(null);
@@ -305,6 +434,7 @@ export function useProfiles({ haUser, contextSetters, prefetchProfiles = true })
       try {
         await apiDeleteProfile(profileId, haUser.id);
         setProfiles((prev) => prev.filter((p) => p.id !== profileId));
+        if (profileId === activeProfileIdRef.current) stopFollowingProfile();
       } catch (err) {
         setError(err.message);
         throw err;
@@ -312,7 +442,7 @@ export function useProfiles({ haUser, contextSetters, prefetchProfiles = true })
         setLoading(false);
       }
     },
-    [haUser?.id]
+    [haUser?.id, stopFollowingProfile]
   );
 
   // ── Start blank (reset dashboard layout) ──
@@ -352,6 +482,10 @@ export function useProfiles({ haUser, contextSetters, prefetchProfiles = true })
     overwriteProfile,
     editProfile,
     loadProfile,
+    activeProfileId,
+    profileSyncStatus,
+    followProfile,
+    stopFollowingProfile,
     importDashboard,
     exportDashboard,
     removeProfile,

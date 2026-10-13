@@ -56,7 +56,7 @@ const warnEncryptionWriteFailure = (context) => {
   console.warn(`[profiles] Failed to produce encrypted payload in ${context}.`);
 };
 
-// List profiles for a HA user
+// List profiles owned by the HA user plus household-shared profiles.
 router.get('/', (req, res) => {
   const requestUserId = ensureRequestUser(req, res);
   if (!requestUserId) return;
@@ -71,7 +71,7 @@ router.get('/', (req, res) => {
 
   const profiles = db
     .prepare(
-      'SELECT id, ha_user_id, name, device_label, data, data_enc, created_at, updated_at FROM profiles WHERE ha_user_id = ? ORDER BY updated_at DESC'
+      'SELECT id, ha_user_id, name, device_label, shared, data, data_enc, created_at, updated_at FROM profiles WHERE ha_user_id = ? OR shared = 1 ORDER BY updated_at DESC'
     )
     .all(ha_user_id);
 
@@ -81,6 +81,7 @@ router.get('/', (req, res) => {
     ha_user_id: p.ha_user_id,
     name: p.name,
     device_label: p.device_label,
+    shared: Boolean(p.shared),
     data: parseStoredProfileData(p, `profiles/list:${ha_user_id}:${p.id}`),
     created_at: p.created_at,
     updated_at: p.updated_at,
@@ -96,7 +97,7 @@ router.get('/:id', (req, res) => {
 
   const profile = db
     .prepare(
-      'SELECT id, ha_user_id, name, device_label, data, data_enc, created_at, updated_at FROM profiles WHERE id = ? AND ha_user_id = ?'
+      'SELECT id, ha_user_id, name, device_label, shared, data, data_enc, created_at, updated_at FROM profiles WHERE id = ? AND (ha_user_id = ? OR shared = 1)'
     )
     .get(req.params.id, requestUserId);
 
@@ -109,6 +110,7 @@ router.get('/:id', (req, res) => {
     ha_user_id: profile.ha_user_id,
     name: profile.name,
     device_label: profile.device_label,
+    shared: Boolean(profile.shared),
     data: parseStoredProfileData(profile, `profiles/get:${requestUserId}:${req.params.id}`),
     created_at: profile.created_at,
     updated_at: profile.updated_at,
@@ -120,7 +122,7 @@ router.post('/', (req, res) => {
   const requestUserId = ensureRequestUser(req, res);
   if (!requestUserId) return;
 
-  const { ha_user_id, name, device_label, data } = req.body;
+  const { ha_user_id, name, device_label, data, shared } = req.body;
 
   if (!ha_user_id || !name || !data) {
     return res.status(400).json({ error: 'ha_user_id, name, and data are required' });
@@ -142,12 +144,29 @@ router.post('/', (req, res) => {
   const plainPayload = shouldPersistPlaintextData() ? payload : getEncryptedOnlyPlaintextStub();
 
   db.prepare(
-    'INSERT INTO profiles (id, ha_user_id, name, device_label, data, data_enc, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-  ).run(id, ha_user_id, name, device_label || null, plainPayload, encryptedPayload, now, now);
+    'INSERT INTO profiles (id, ha_user_id, name, device_label, shared, data, data_enc, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+  ).run(
+    id,
+    ha_user_id,
+    name,
+    device_label || null,
+    shared ? 1 : 0,
+    plainPayload,
+    encryptedPayload,
+    now,
+    now
+  );
 
-  res
-    .status(201)
-    .json({ id, ha_user_id, name, device_label, data, created_at: now, updated_at: now });
+  res.status(201).json({
+    id,
+    ha_user_id,
+    name,
+    device_label,
+    shared: Boolean(shared),
+    data,
+    created_at: now,
+    updated_at: now,
+  });
 });
 
 // Update a profile
@@ -203,7 +222,7 @@ router.put('/:id', (req, res) => {
 
   const updated = db
     .prepare(
-      'SELECT id, ha_user_id, name, device_label, data, data_enc, created_at, updated_at FROM profiles WHERE id = ? AND ha_user_id = ?'
+      'SELECT id, ha_user_id, name, device_label, shared, data, data_enc, created_at, updated_at FROM profiles WHERE id = ? AND ha_user_id = ?'
     )
     .get(req.params.id, requestUserId);
 
@@ -212,6 +231,7 @@ router.put('/:id', (req, res) => {
     ha_user_id: updated.ha_user_id,
     name: updated.name,
     device_label: updated.device_label,
+    shared: Boolean(updated.shared),
     data: parseStoredProfileData(updated, `profiles/update:${requestUserId}:${req.params.id}`),
     created_at: updated.created_at,
     updated_at: updated.updated_at,

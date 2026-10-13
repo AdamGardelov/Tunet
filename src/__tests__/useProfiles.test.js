@@ -4,6 +4,7 @@ import { useProfiles } from '../hooks/useProfiles';
 
 vi.mock('../services/profileApi', () => ({
   fetchProfiles: vi.fn(),
+  fetchProfile: vi.fn(),
   createProfile: vi.fn(),
   updateProfile: vi.fn(),
   deleteProfile: vi.fn(),
@@ -33,14 +34,16 @@ vi.mock('../services/snapshot', () => ({
   isValidSnapshot: vi.fn(),
 }));
 
-import { fetchProfiles, createProfile, updateProfile } from '../services/profileApi';
-import { collectSnapshot, isValidSnapshot } from '../services/snapshot';
+import { fetchProfiles, fetchProfile, createProfile, updateProfile } from '../services/profileApi';
+import { collectSnapshot, applySnapshot, isValidSnapshot } from '../services/snapshot';
 import { useSettingsSync } from '../hooks/useSettingsSync';
 
 describe('useProfiles', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
     fetchProfiles.mockResolvedValue([]);
+    fetchProfile.mockResolvedValue(null);
     collectSnapshot.mockReturnValue({ version: 1, layout: {}, appearance: {} });
     isValidSnapshot.mockReturnValue(true);
   });
@@ -78,6 +81,7 @@ describe('useProfiles', () => {
       ha_user_id: 'user-1',
       name: 'Home',
       device_label: 'Tablet',
+      shared: true,
       data: { version: 1, layout: {}, appearance: {} },
     });
     expect(result.current.profiles[0]).toEqual(savedProfile);
@@ -152,5 +156,82 @@ describe('useProfiles', () => {
       name: 'Renamed',
       device_label: 'Wall Tablet',
     });
+  });
+
+  it('follows a shared profile and stores the selection locally', async () => {
+    const profile = {
+      id: 'mobile-profile',
+      ha_user_id: 'user-1',
+      name: 'Mobil',
+      updated_at: '2026-10-13T08:00:00.000Z',
+      data: {
+        version: 1,
+        layout: { pagesConfig: { pages: ['home'], header: [], home: ['light.bed'] } },
+        appearance: {},
+      },
+    };
+    fetchProfiles.mockResolvedValue([profile]);
+
+    const { result } = renderHook(() =>
+      useProfiles({
+        haUser: { id: 'user-1' },
+        contextSetters: {},
+        prefetchProfiles: false,
+      })
+    );
+
+    act(() => result.current.followProfile(profile));
+
+    expect(applySnapshot).toHaveBeenCalledWith(
+      expect.objectContaining({ version: 1, appearance: {} }),
+      {}
+    );
+    expect(result.current.activeProfileId).toBe('mobile-profile');
+    expect(localStorage.getItem('tunet_active_profile_id')).toBe('mobile-profile');
+
+    act(() => result.current.stopFollowingProfile());
+
+    expect(result.current.activeProfileId).toBe('');
+    expect(localStorage.getItem('tunet_active_profile_id')).toBeNull();
+  });
+
+  it('publishes dashboard edits to the followed profile', async () => {
+    const initialSnapshot = { version: 1, layout: {}, appearance: {} };
+    const changedSnapshot = {
+      version: 1,
+      layout: { pagesConfig: { pages: ['home'], header: [], home: ['camera.presets'] } },
+      appearance: {},
+    };
+    const profile = {
+      id: 'mobile-profile',
+      ha_user_id: 'user-1',
+      name: 'Mobil',
+      updated_at: '2026-10-13T08:00:00.000Z',
+      data: initialSnapshot,
+    };
+    localStorage.setItem('tunet_active_profile_id', profile.id);
+    fetchProfiles.mockResolvedValue([profile]);
+    fetchProfile.mockResolvedValue(profile);
+    updateProfile.mockResolvedValue({
+      ...profile,
+      updated_at: '2026-10-13T08:01:00.000Z',
+      data: changedSnapshot,
+    });
+
+    const { result } = renderHook(() =>
+      useProfiles({ haUser: { id: 'user-1' }, contextSetters: {} })
+    );
+
+    await waitFor(() => expect(result.current.profileSyncStatus).toBe('synced'));
+    collectSnapshot.mockReturnValue(changedSnapshot);
+
+    act(() => globalThis.window.dispatchEvent(new Event('tunet:edit-done')));
+
+    await waitFor(() =>
+      expect(updateProfile).toHaveBeenCalledWith('mobile-profile', {
+        ha_user_id: 'user-1',
+        data: changedSnapshot,
+      })
+    );
   });
 });

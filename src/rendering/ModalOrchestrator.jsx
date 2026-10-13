@@ -150,7 +150,7 @@ export default function ModalOrchestrator({
   const profilesHook = useProfiles({
     haUser,
     contextSetters: profileContextSetters,
-    prefetchProfiles: modals.showConfigModal,
+    prefetchProfiles: true,
   });
 
   const profilesProps = {

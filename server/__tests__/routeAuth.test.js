@@ -12,6 +12,7 @@ const createTestDb = () => {
       ha_user_id TEXT NOT NULL,
       name TEXT NOT NULL,
       device_label TEXT,
+      shared INTEGER NOT NULL DEFAULT 0,
       data TEXT NOT NULL,
       data_enc TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -139,13 +140,7 @@ describe('settings route auth', () => {
         `INSERT INTO current_settings (ha_user_id, device_id, data, data_enc, revision, updated_at)
          VALUES (?, ?, ?, ?, 1, ?)`
       )
-      .run(
-        'user-1',
-        'device-1',
-        JSON.stringify({ version: 1 }),
-        null,
-        '2026-03-08T12:00:00.000Z'
-      );
+      .run('user-1', 'device-1', JSON.stringify({ version: 1 }), null, '2026-03-08T12:00:00.000Z');
 
     const response = await harness.request('/publish', {
       method: 'POST',
@@ -175,13 +170,27 @@ describe('settings route auth', () => {
         `INSERT INTO current_settings (ha_user_id, device_id, data, data_enc, revision, updated_at)
          VALUES (?, ?, ?, ?, ?, ?)`
       )
-      .run('user-1', 'device-2', JSON.stringify({ version: 0 }), null, 1, '2026-03-08T12:00:00.000Z');
+      .run(
+        'user-1',
+        'device-2',
+        JSON.stringify({ version: 0 }),
+        null,
+        1,
+        '2026-03-08T12:00:00.000Z'
+      );
     harness.database
       .prepare(
         `INSERT INTO current_settings (ha_user_id, device_id, data, data_enc, revision, updated_at)
          VALUES (?, ?, ?, ?, ?, ?)`
       )
-      .run('user-1', 'device-3', JSON.stringify({ version: 0 }), null, 1, '2026-03-08T12:00:00.000Z');
+      .run(
+        'user-1',
+        'device-3',
+        JSON.stringify({ version: 0 }),
+        null,
+        1,
+        '2026-03-08T12:00:00.000Z'
+      );
 
     const response = await harness.request('/publish', {
       method: 'POST',
@@ -225,13 +234,27 @@ describe('settings route auth', () => {
         `INSERT INTO current_settings (ha_user_id, device_id, data, data_enc, revision, updated_at)
          VALUES (?, ?, ?, ?, ?, ?)`
       )
-      .run('user-1', 'device-2', JSON.stringify({ version: 0 }), null, 1, '2026-03-08T12:00:00.000Z');
+      .run(
+        'user-1',
+        'device-2',
+        JSON.stringify({ version: 0 }),
+        null,
+        1,
+        '2026-03-08T12:00:00.000Z'
+      );
     harness.database
       .prepare(
         `INSERT INTO current_settings (ha_user_id, device_id, data, data_enc, revision, updated_at)
          VALUES (?, ?, ?, ?, ?, ?)`
       )
-      .run('user-1', 'device-3', JSON.stringify({ version: -1 }), null, 1, '2026-03-08T12:00:00.000Z');
+      .run(
+        'user-1',
+        'device-3',
+        JSON.stringify({ version: -1 }),
+        null,
+        1,
+        '2026-03-08T12:00:00.000Z'
+      );
 
     harness.database.exec(`
       CREATE TRIGGER abort_publish_history
@@ -309,6 +332,28 @@ describe('profiles route auth', () => {
 
     expect(response.status).toBe(403);
     await expect(response.json()).resolves.toEqual({ error: 'Forbidden: user mismatch' });
+  });
+
+  it('allows another authenticated household user to read a shared profile', async () => {
+    const harness = await startRouterHarness('../routes/profiles.js', '/api/profiles');
+    const snapshot = JSON.stringify({ version: 1, layout: {}, appearance: {} });
+    harness.database
+      .prepare(
+        `INSERT INTO profiles (id, ha_user_id, name, shared, data, created_at, updated_at)
+         VALUES (?, ?, ?, 1, ?, datetime('now'), datetime('now'))`
+      )
+      .run('mobile-profile', 'user-1', 'Mobil', snapshot);
+
+    const response = await harness.request('/mobile-profile', {
+      headers: { 'x-test-user-id': 'user-2' },
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      id: 'mobile-profile',
+      ha_user_id: 'user-1',
+      shared: true,
+    });
   });
 
   it('preserves stored profile data during metadata-only updates', async () => {

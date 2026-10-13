@@ -506,6 +506,10 @@ export default function ConfigModal({
       saveProfile,
       editProfile,
       loadProfile,
+      activeProfileId,
+      profileSyncStatus,
+      followProfile,
+      stopFollowingProfile,
       removeProfile,
       importDashboard,
       exportDashboard,
@@ -608,6 +612,14 @@ export default function ConfigModal({
 
           {loadSummary && <p className="text-xs font-bold text-amber-300">{loadSummary}</p>}
 
+          {activeProfileId && (
+            <p className="rounded-xl border border-[var(--status-success-border)] bg-[var(--status-success-bg)] px-3 py-2 text-xs font-bold text-[var(--status-success-fg)]">
+              {profileSyncStatus === 'syncing'
+                ? t('profiles.followSyncing')
+                : t('profiles.followActive')}
+            </p>
+          )}
+
           {/* Profile list */}
           {profileList.length === 0 ? (
             <p className="text-sm text-[var(--text-secondary)]">{t('profiles.noProfiles')}</p>
@@ -688,6 +700,22 @@ export default function ConfigModal({
                           className="rounded-lg border border-[var(--status-success-border)] bg-[var(--status-success-bg)] px-3 py-1.5 text-xs font-bold text-[var(--status-success-fg)] transition-all hover:opacity-90"
                         >
                           {t('profiles.load')}
+                        </button>
+                        <button
+                          onClick={() =>
+                            activeProfileId === profile.id
+                              ? stopFollowingProfile()
+                              : followProfile(profile)
+                          }
+                          className={`rounded-lg border px-3 py-1.5 text-xs font-bold transition-all hover:opacity-90 ${
+                            activeProfileId === profile.id
+                              ? 'border-[var(--status-success-border)] bg-[var(--status-success-bg)] text-[var(--status-success-fg)]'
+                              : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-primary)]'
+                          }`}
+                        >
+                          {activeProfileId === profile.id
+                            ? t('profiles.following')
+                            : t('profiles.follow')}
                         </button>
                         <button
                           onClick={() => {
@@ -2339,10 +2367,14 @@ const profilesShape = PropTypes.shape({
   loading: PropTypes.bool,
   error: PropTypes.string,
   loadSummary: PropTypes.string,
+  activeProfileId: PropTypes.string,
+  profileSyncStatus: PropTypes.string,
   backendAvailable: PropTypes.bool,
   saveProfile: PropTypes.func,
   editProfile: PropTypes.func,
   loadProfile: PropTypes.func,
+  followProfile: PropTypes.func,
+  stopFollowingProfile: PropTypes.func,
   removeProfile: PropTypes.func,
   importDashboard: PropTypes.func,
   exportDashboard: PropTypes.func,
