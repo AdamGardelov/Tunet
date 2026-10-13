@@ -286,4 +286,82 @@ describe('LightsPage', () => {
       expect(screen.queryByText('Kontor', { selector: 'p' })).not.toBeInTheDocument();
     });
   });
+
+  it('reveals an optional warmth control for compatible lights', async () => {
+    getAreas.mockResolvedValue([{ area_id: 'test_room', name: 'Testrum' }]);
+    const callService = vi.fn();
+
+    render(
+      <LightsPage
+        entities={{
+          'light.test': {
+            entity_id: 'light.test',
+            state: 'on',
+            attributes: {
+              friendly_name: 'Testlampa',
+              area_id: 'test_room',
+              brightness: 180,
+              color_temp_kelvin: 2700,
+              min_color_temp_kelvin: 2200,
+              max_color_temp_kelvin: 6500,
+              supported_color_modes: ['color_temp'],
+            },
+          },
+        }}
+        callService={callService}
+        conn={{}}
+        pageSettings={{ lights: { lightsSort: 'area' } }}
+        pageId="lights"
+        savePageSetting={vi.fn()}
+        t={(key) => ({ 'light.warmth': 'Värme' })[key] || key}
+      />
+    );
+
+    await screen.findByRole('heading', { name: 'Testrum' });
+    const warmthButton = screen.getByRole('button', { name: 'Värme Testlampa' });
+    expect(screen.queryByRole('slider', { name: 'Värme Testlampa' })).not.toBeInTheDocument();
+
+    fireEvent.click(warmthButton);
+    fireEvent.change(screen.getByRole('slider', { name: 'Värme Testlampa' }), {
+      target: { value: '3200' },
+    });
+
+    await waitFor(() =>
+      expect(callService).toHaveBeenCalledWith('light', 'turn_on', {
+        entity_id: 'light.test',
+        color_temp_kelvin: 3200,
+      })
+    );
+  });
+
+  it('never offers warmth for the kitchen window lamp', async () => {
+    getAreas.mockResolvedValue([{ area_id: 'kitchen', name: 'Kök' }]);
+
+    render(
+      <LightsPage
+        entities={{
+          'light.kitchen_window': {
+            entity_id: 'light.kitchen_window',
+            state: 'on',
+            attributes: {
+              friendly_name: 'Köksfönster',
+              area_id: 'kitchen',
+              brightness: 180,
+              color_temp_kelvin: 2700,
+              supported_color_modes: ['color_temp'],
+            },
+          },
+        }}
+        callService={vi.fn()}
+        conn={{}}
+        pageSettings={{ lights: { lightsSort: 'area' } }}
+        pageId="lights"
+        savePageSetting={vi.fn()}
+        t={(key) => ({ 'light.warmth': 'Värme' })[key] || key}
+      />
+    );
+
+    await screen.findByRole('heading', { name: 'Kök' });
+    expect(screen.queryByRole('button', { name: 'Värme Köksfönster' })).not.toBeInTheDocument();
+  });
 });

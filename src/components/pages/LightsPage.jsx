@@ -10,6 +10,7 @@ import {
   Check,
   Eye,
   EyeOff,
+  Thermometer,
 } from '../../icons';
 import { getIconComponent } from '../../icons';
 import M3Slider from '../ui/M3Slider';
@@ -17,6 +18,7 @@ import { getAreas } from '../../services/haClient';
 
 const SLIDER_DEBOUNCE_MS = 200;
 const DEFAULT_COLLAPSED_LIGHT_AREAS = ['Hall'];
+const WARMTH_DISABLED_LIGHT_NAMES = new Set(['Köksfönster']);
 const DEFAULT_AREA_LIGHT_ALLOWLIST = {
   Kontor: new Set(['Jordglob', 'Tak', 'Skrivbord']),
   Kök: new Set(['Köksfönster']),
@@ -97,8 +99,18 @@ function hsToRgbString(h, s) {
 // ── Individual Light Tile ────────────────────────────────────────────────
 
 const LightTile = memo(
-  /** @param {{ entity: any, areaName?: string, onToggle: (entityId: string) => void, onBrightness: (entityId: string, value: number) => void, optimisticBrightness?: number, t: (key: string) => string }} props */
-  function LightTile({ entity, areaName, onToggle, onBrightness, optimisticBrightness, t }) {
+  /** @param {{ entity: any, areaName?: string, onToggle: (entityId: string) => void, onBrightness: (entityId: string, value: number) => void, onWarmth: (entityId: string, value: number) => void, optimisticBrightness?: number, optimisticKelvin?: number, t: (key: string) => string }} props */
+  function LightTile({
+    entity,
+    areaName,
+    onToggle,
+    onBrightness,
+    onWarmth,
+    optimisticBrightness,
+    optimisticKelvin,
+    t,
+  }) {
+    const [showWarmth, setShowWarmth] = useState(false);
     const { entity_id, state, attributes } = entity;
     const isOn = state === 'on';
     const isUnavailable = state === 'unavailable' || state === 'unknown';
@@ -110,6 +122,22 @@ const LightTile = memo(
     const isDimmable = supportedColorModes
       ? !supportedColorModes.includes('onoff') || supportedColorModes.length > 1
       : false;
+    const supportsColorTemp =
+      !WARMTH_DISABLED_LIGHT_NAMES.has(name) &&
+      supportedColorModes?.some((mode) => ['color_temp', 'color_temp_kelvin'].includes(mode));
+    const minKelvin =
+      attributes?.min_color_temp_kelvin ||
+      (attributes?.max_mireds ? Math.round(1000000 / attributes.max_mireds) : 2000);
+    const maxKelvin =
+      attributes?.max_color_temp_kelvin ||
+      (attributes?.min_mireds ? Math.round(1000000 / attributes.min_mireds) : 6500);
+    const currentKelvin =
+      optimisticKelvin ??
+      attributes?.color_temp_kelvin ??
+      (attributes?.color_temp
+        ? Math.round(1000000 / attributes.color_temp)
+        : Math.round((minKelvin + maxKelvin) / 2));
+    const warmthPosition = ((currentKelvin - minKelvin) / (maxKelvin - minKelvin)) * 100;
 
     const lightColor = getLightColor(entity);
     const iconName = attributes?.icon;
@@ -171,26 +199,44 @@ const LightTile = memo(
             </div>
           </div>
 
-          <button
-            onClick={() => !isUnavailable && onToggle(entity_id)}
-            disabled={isUnavailable}
-            className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
-              isOn
-                ? 'hover:opacity-80'
-                : 'bg-[var(--glass-bg)] text-[var(--text-muted)] hover:bg-[var(--glass-bg-hover)]'
-            }`}
-            style={
-              isOn && lightColor
-                ? {
-                    backgroundColor: `rgba(${lightColor}, 0.22)`,
-                    color: `rgb(${lightColor})`,
-                  }
-                : undefined
-            }
-            aria-label={`${name}: ${isOn ? t('common.off') || 'Off' : t('common.on') || 'On'}`}
-          >
-            <Power className="h-4 w-4" />
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            {supportsColorTemp && (
+              <button
+                type="button"
+                onClick={() => setShowWarmth((visible) => !visible)}
+                disabled={isUnavailable}
+                className={`flex h-10 w-10 items-center justify-center rounded-full border transition-all active:scale-95 ${
+                  showWarmth
+                    ? 'border-amber-400/50 bg-amber-400/15 text-amber-300'
+                    : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-muted)] hover:bg-[var(--glass-bg-hover)]'
+                }`}
+                aria-label={`${t('light.warmth') || 'Värme'} ${name}`}
+                aria-expanded={showWarmth}
+              >
+                <Thermometer className="h-4 w-4" />
+              </button>
+            )}
+            <button
+              onClick={() => !isUnavailable && onToggle(entity_id)}
+              disabled={isUnavailable}
+              className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
+                isOn
+                  ? 'hover:opacity-80'
+                  : 'bg-[var(--glass-bg)] text-[var(--text-muted)] hover:bg-[var(--glass-bg-hover)]'
+              }`}
+              style={
+                isOn && lightColor
+                  ? {
+                      backgroundColor: `rgba(${lightColor}, 0.22)`,
+                      color: `rgb(${lightColor})`,
+                    }
+                  : undefined
+              }
+              aria-label={`${name}: ${isOn ? t('common.off') || 'Off' : t('common.on') || 'On'}`}
+            >
+              <Power className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
         {/* Brightness slider */}
@@ -207,6 +253,42 @@ const LightTile = memo(
               colorClass={isOn ? 'bg-amber-400' : 'bg-[var(--text-muted)]'}
               ariaLabel={t('light.brightness') || 'Brightness'}
             />
+          </div>
+        )}
+
+        {supportsColorTemp && showWarmth && (
+          <div className="mt-4 border-t border-[var(--glass-border)] pt-4">
+            <div className="mb-2 flex items-center justify-between text-[11px] font-semibold tracking-wider text-[var(--text-muted)] uppercase">
+              <span>{t('light.warmth') || 'Värme'}</span>
+              <span className="font-mono tracking-normal text-[var(--text-secondary)] normal-case">
+                {currentKelvin} K
+              </span>
+            </div>
+            <div className="relative h-10 overflow-hidden rounded-2xl border border-white/10 shadow-inner">
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    'linear-gradient(90deg, #ff9f43 0%, #ffe5b4 35%, #fffdf5 58%, #a9c7ff 100%)',
+                }}
+              />
+              <div
+                className="pointer-events-none absolute top-1/2 z-10 h-7 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_1px_8px_rgba(0,0,0,0.55)]"
+                style={{ left: `${Math.min(100, Math.max(0, warmthPosition))}%` }}
+              />
+              <input
+                type="range"
+                min={minKelvin}
+                max={maxKelvin}
+                step={50}
+                value={currentKelvin}
+                disabled={isUnavailable}
+                onChange={(event) => onWarmth(entity_id, parseInt(event.target.value, 10))}
+                className="absolute inset-0 z-20 h-full w-full cursor-pointer opacity-0"
+                aria-label={`${t('light.warmth') || 'Värme'} ${name}`}
+                aria-valuetext={`${currentKelvin} K`}
+              />
+            </div>
           </div>
         )}
       </div>
@@ -602,6 +684,7 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
 
   // Debounce state for brightness
   const [optimistic, setOptimistic] = useState({});
+  const [optimisticKelvin, setOptimisticKelvin] = useState({});
   const debounceRefs = useRef({});
 
   const handleToggle = useCallback(
@@ -617,6 +700,21 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
       clearTimeout(debounceRefs.current[entityId]);
       debounceRefs.current[entityId] = setTimeout(() => {
         callService('light', 'turn_on', { entity_id: entityId, brightness: val });
+      }, SLIDER_DEBOUNCE_MS);
+    },
+    [callService]
+  );
+
+  const handleWarmth = useCallback(
+    (entityId, val) => {
+      setOptimisticKelvin((prev) => ({ ...prev, [entityId]: val }));
+      const debounceKey = `${entityId}:warmth`;
+      clearTimeout(debounceRefs.current[debounceKey]);
+      debounceRefs.current[debounceKey] = setTimeout(() => {
+        callService('light', 'turn_on', {
+          entity_id: entityId,
+          color_temp_kelvin: val,
+        });
       }, SLIDER_DEBOUNCE_MS);
     },
     [callService]
@@ -641,7 +739,9 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
       areaName={getAreaName(entity)}
       onToggle={handleToggle}
       onBrightness={handleBrightness}
+      onWarmth={handleWarmth}
       optimisticBrightness={optimistic[entity.entity_id]}
+      optimisticKelvin={optimisticKelvin[entity.entity_id]}
       t={t}
     />
   );
