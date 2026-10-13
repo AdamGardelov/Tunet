@@ -746,6 +746,7 @@
   "profiles.cancelEdit": "Avbryt",
   "profiles.confirmBlank": "Detta kommer att ta bort alla kort och återställa layouten.",
   "profiles.confirmDelete": "Är du säker på att du vill ta bort den här profilen?",
+  "profiles.confirmOverwrite": "Ersätt profilens sparade dashboard med den som visas på den här enheten? Alla enheter som följer profilen får ändringen.",
   "profiles.created": "Skapad",
   "profiles.delete": "Ta bort",
   "profiles.deviceLabel": "Enhetsetikett (valfritt)",

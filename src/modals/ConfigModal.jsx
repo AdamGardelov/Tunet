@@ -504,6 +504,7 @@ export default function ConfigModal({
       loadSummary,
       backendAvailable,
       saveProfile,
+      overwriteProfile,
       editProfile,
       loadProfile,
       activeProfileId,
@@ -700,6 +701,18 @@ export default function ConfigModal({
                           className="rounded-lg border border-[var(--status-success-border)] bg-[var(--status-success-bg)] px-3 py-1.5 text-xs font-bold text-[var(--status-success-fg)] transition-all hover:opacity-90"
                         >
                           {t('profiles.load')}
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (!globalThis.confirm(t('profiles.confirmOverwrite'))) return;
+                            try {
+                              await overwriteProfile(profile.id, profile.name);
+                            } catch {}
+                          }}
+                          disabled={loading}
+                          className="rounded-lg border border-[var(--accent-border)] bg-[var(--accent-bg)] px-3 py-1.5 text-xs font-bold text-[var(--accent-color)] transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {t('profiles.overwrite')}
                         </button>
                         <button
                           onClick={() =>
