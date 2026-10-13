@@ -78,12 +78,12 @@ const QuickControlsCard = ({
               type="button"
               disabled={unavailable || editMode}
               onClick={(event) => handleToggle(event, entityId)}
-              className={`touch-feedback flex min-h-0 min-w-0 flex-1 items-center gap-3 rounded-xl px-1 py-1 text-left transition-all active:scale-[0.98] ${active ? 'bg-[var(--accent-bg)]' : ''} ${unavailable ? 'opacity-55' : ''}`}
+              className={`touch-feedback flex min-h-0 min-w-0 flex-1 items-center gap-3 rounded-xl px-1 py-1 text-left transition-all active:scale-[0.98] ${unavailable ? 'opacity-55' : ''}`}
             >
               <span
                 className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
                   active
-                    ? 'bg-[var(--accent-bg)] text-[var(--accent-color)]'
+                    ? 'bg-[var(--glass-bg-hover)] text-[var(--accent-color)]'
                     : 'bg-[var(--glass-bg-hover)] text-[var(--text-muted)]'
                 }`}
               >

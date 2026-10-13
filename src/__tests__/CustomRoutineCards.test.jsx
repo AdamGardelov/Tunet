@@ -66,8 +66,8 @@ describe('custom routine cards', () => {
     expect(screen.getByText('Emma sänglampa')).toHaveClass('whitespace-normal');
   });
 
-  it('shows remaining doses and registers morning and evening separately', () => {
-    const callService = vi.fn();
+  it('shows remaining doses and decrements them when a dose is registered', async () => {
+    const callService = vi.fn().mockResolvedValue(undefined);
     render(
       <MedicationCard
         cardId="medication_card_1"
@@ -79,7 +79,7 @@ describe('custom routine cards', () => {
           ],
         }}
         entities={{
-          'input_number.sparven_doser': { state: '38', attributes: {} },
+          'input_number.sparven_doser': { state: '38', attributes: { min: 0, max: 60 } },
           'input_boolean.sparven_morgon': { state: 'off', attributes: {} },
           'input_boolean.sparven_kvall': { state: 'on', attributes: {} },
         }}
@@ -93,8 +93,41 @@ describe('custom routine cards', () => {
 
     expect(screen.getByText('38 doser kvar · ca 19 dagar')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Morgon/i }));
-    expect(callService).toHaveBeenCalledWith('input_boolean', 'toggle', {
+    expect(callService).toHaveBeenNthCalledWith(1, 'input_number', 'set_value', {
+      entity_id: 'input_number.sparven_doser',
+      value: 37,
+    });
+    await vi.waitFor(() => expect(callService).toHaveBeenCalledTimes(2));
+    expect(callService).toHaveBeenNthCalledWith(2, 'input_boolean', 'toggle', {
       entity_id: 'input_boolean.sparven_morgon',
     });
+  });
+
+  it('restores a dose when a medication registration is undone', async () => {
+    const callService = vi.fn().mockResolvedValue(undefined);
+    render(
+      <MedicationCard
+        cardId="medication_card_1"
+        settings={{
+          entityIds: ['input_number.sparven_doser', 'input_boolean.sparven_morgon'],
+        }}
+        entities={{
+          'input_number.sparven_doser': { state: '37', attributes: { min: 0, max: 60 } },
+          'input_boolean.sparven_morgon': { state: 'on', attributes: {} },
+        }}
+        callService={callService}
+        dragProps={{}}
+        controls={null}
+        cardStyle={{}}
+        editMode={false}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Morgon/i }));
+    expect(callService).toHaveBeenNthCalledWith(1, 'input_number', 'set_value', {
+      entity_id: 'input_number.sparven_doser',
+      value: 38,
+    });
+    await vi.waitFor(() => expect(callService).toHaveBeenCalledTimes(2));
   });
 });

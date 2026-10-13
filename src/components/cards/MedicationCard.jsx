@@ -45,14 +45,31 @@ const MedicationCard = ({
   const days = hasDoseValue ? Math.ceil(doses / 2) : null;
 
   const toggleDose = useCallback(
-    (event, entityId) => {
+    async (event, entityId) => {
       event.stopPropagation();
       if (editMode || !entityId) return;
       const domain = entityId.split('.')[0];
       if (!['input_boolean', 'switch'].includes(domain)) return;
-      callService(domain, 'toggle', { entity_id: entityId });
+
+      const wasDone = entities[entityId]?.state === 'on';
+      if (hasDoseValue && mapping.doseId?.startsWith('input_number.')) {
+        const doseEntity = entities[mapping.doseId];
+        const minimum = Number.parseFloat(doseEntity?.attributes?.min);
+        const maximum = Number.parseFloat(doseEntity?.attributes?.max);
+        let nextDoses = doses + (wasDone ? 1 : -1);
+        if (Number.isFinite(minimum)) nextDoses = Math.max(minimum, nextDoses);
+        else nextDoses = Math.max(0, nextDoses);
+        if (Number.isFinite(maximum)) nextDoses = Math.min(maximum, nextDoses);
+
+        await callService('input_number', 'set_value', {
+          entity_id: mapping.doseId,
+          value: nextDoses,
+        });
+      }
+
+      await callService(domain, 'toggle', { entity_id: entityId });
     },
-    [callService, editMode]
+    [callService, doses, editMode, entities, hasDoseValue, mapping.doseId]
   );
 
   const DoseButton = ({ entityId, label }) => {
