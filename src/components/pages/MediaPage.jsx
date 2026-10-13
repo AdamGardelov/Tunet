@@ -125,7 +125,7 @@ function MediaPage({
         .filter((id) => {
           const entity = entities[id];
           const sonos = isSonosMediaEntity(entity);
-          return isSonosMode ? sonos : !sonos;
+          return isSonosMode ? sonos : true;
         }),
     [entities, isSonosMode]
   );

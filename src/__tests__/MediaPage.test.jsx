@@ -134,6 +134,42 @@ describe('MediaPage Sonos discovery', () => {
   });
 });
 
+describe('MediaPage mixed media discovery', () => {
+  it('includes Sonos speakers and a TV on the regular Media page', () => {
+    render(
+      <MediaPage
+        {...makeBaseProps({
+          pageId: 'media',
+          mode: 'media',
+          entities: {
+            'media_player.kitchen': {
+              entity_id: 'media_player.kitchen',
+              state: 'idle',
+              attributes: {
+                friendly_name: 'Sonos kitchen',
+                integration: 'sonos',
+                supported_features: 0,
+              },
+            },
+            'media_player.living_room_tv': {
+              entity_id: 'media_player.living_room_tv',
+              state: 'off',
+              attributes: {
+                friendly_name: 'Living room TV',
+                device_class: 'tv',
+                supported_features: 0,
+              },
+            },
+          },
+        })}
+      />
+    );
+
+    expect(screen.getAllByText('Sonos kitchen').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Living room TV').length).toBeGreaterThan(0);
+  });
+});
+
 describe('MediaPage Sonos empty state', () => {
   it('renders the empty state when no Sonos players are present', () => {
     render(<MediaPage {...makeBaseProps({ entities: {} })} />);
