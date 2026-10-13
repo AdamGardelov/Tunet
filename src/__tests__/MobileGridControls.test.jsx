@@ -80,10 +80,12 @@ describe('mobile grid controls', () => {
           pages: ['home'],
           header: [],
           home: [
+            'vacuum.dammit',
             'sensor.first',
             'calendar_card_family',
             'weather_temp_home',
             'media_player.kok',
+            'medication_card_sparven',
             'quick_controls_home',
           ],
         },
@@ -92,11 +94,13 @@ describe('mobile grid controls', () => {
         ...dashboardProps.grid,
         gridColCount: 1,
         gridLayout: {
-          'sensor.first': { row: 1, col: 1, span: 1, colSpan: 1 },
-          calendar_card_family: { row: 2, col: 1, span: 1, colSpan: 1 },
-          weather_temp_home: { row: 3, col: 1, span: 1, colSpan: 1 },
-          'media_player.kok': { row: 4, col: 1, span: 1, colSpan: 1 },
-          quick_controls_home: { row: 5, col: 1, span: 1, colSpan: 1 },
+          'vacuum.dammit': { row: 1, col: 1, span: 1, colSpan: 1 },
+          'sensor.first': { row: 2, col: 1, span: 1, colSpan: 1 },
+          calendar_card_family: { row: 3, col: 1, span: 1, colSpan: 1 },
+          weather_temp_home: { row: 4, col: 1, span: 1, colSpan: 1 },
+          'media_player.kok': { row: 5, col: 1, span: 1, colSpan: 1 },
+          medication_card_sparven: { row: 6, col: 1, span: 1, colSpan: 1 },
+          quick_controls_home: { row: 7, col: 1, span: 1, colSpan: 1 },
         },
       },
       cards: {
@@ -110,7 +114,9 @@ describe('mobile grid controls', () => {
 
     expect(cards.map((card) => card.dataset.dashboardCard)).toEqual([
       'quick_controls_home',
+      'medication_card_sparven',
       'sensor.first',
+      'vacuum.dammit',
     ]);
     expect(screen.queryByText('calendar_card_family')).not.toBeInTheDocument();
     expect(screen.queryByText('weather_temp_home')).not.toBeInTheDocument();

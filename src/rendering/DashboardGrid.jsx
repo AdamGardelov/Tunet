@@ -23,9 +23,14 @@ export const isCardHiddenOnMobile = (cardId) =>
 export const sortCardPlacements = (items, isMobile) =>
   [...items].sort((a, b) => {
     if (isMobile) {
-      const aQuickControls = a.id.startsWith('quick_controls_');
-      const bQuickControls = b.id.startsWith('quick_controls_');
-      if (aQuickControls !== bQuickControls) return aQuickControls ? -1 : 1;
+      const mobilePriority = (id) => {
+        if (id.startsWith('quick_controls_')) return 0;
+        if (id.startsWith('medication_card_')) return 1;
+        if (id.startsWith('vacuum.')) return 3;
+        return 2;
+      };
+      const priorityDifference = mobilePriority(a.id) - mobilePriority(b.id);
+      if (priorityDifference !== 0) return priorityDifference;
     }
     if (a.placement.row !== b.placement.row) return a.placement.row - b.placement.row;
     return a.placement.col - b.placement.col;
