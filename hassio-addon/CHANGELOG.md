@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0-adam.31
+
+- Made Sparven's estimated days remaining prominent on the medication card.
+- Kept the exact dose count and twice-daily schedule visible on narrow phones.
+
 ## 1.23.0-adam.30
 
 - Centered the mobile page tabs to match the person cards.
