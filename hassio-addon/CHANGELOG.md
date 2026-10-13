@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0-adam.32
+
+- Kept Sparven's remaining-day text clear of the dose buttons on narrow phones.
+- Removed the redundant twice-daily label.
+
 ## 1.23.0-adam.31
 
 - Made Sparven's estimated days remaining prominent on the medication card.
