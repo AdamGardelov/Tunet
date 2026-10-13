@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.23.0-adam.38
+
+- Softens active and completed controls with the same tinted treatment as the Lights page.
+- Uses each active bedside light's real color for a calmer, warmer power indicator.
+- Aligns the medication icon tile with the camera and bedside-light cards.
+
 ## 1.23.0-adam.37
 
 - Gives camera presets, bedside lights, and medication actions one shared visual language.
