@@ -653,6 +653,7 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
     });
 
     collapsedAreas.forEach((areaName) => {
+      if (Object.hasOwn(DEFAULT_AREA_LIGHT_ALLOWLIST, areaName)) return;
       const areaLights = sortedLights.filter((entity) => getAreaName(entity) === areaName);
       const areaGroup = findAreaGroup(areaLights, areaName);
       if (!areaGroup) return;
@@ -876,7 +877,9 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
               const fullAreaLights = sortedLights.filter(
                 (entity) => getAreaName(entity) === areaName
               );
-              const canCollapse = Boolean(findAreaGroup(fullAreaLights, areaName));
+              const canCollapse =
+                !Object.hasOwn(DEFAULT_AREA_LIGHT_ALLOWLIST, areaName) &&
+                Boolean(findAreaGroup(fullAreaLights, areaName));
               const isCollapsed = collapsedAreas.has(areaName);
 
               return (

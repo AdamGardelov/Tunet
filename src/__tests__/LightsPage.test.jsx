@@ -228,7 +228,9 @@ describe('LightsPage', () => {
         }}
         callService={vi.fn()}
         conn={{}}
-        pageSettings={{ lights: { lightsSort: 'area' } }}
+        pageSettings={{
+          lights: { lightsSort: 'area', lightsCollapsedAreas: ['Kök'] },
+        }}
         pageId="lights"
         savePageSetting={vi.fn()}
         t={(key) => key}
@@ -239,6 +241,9 @@ describe('LightsPage', () => {
       expect(screen.getByText('Köksfönster')).toBeInTheDocument();
       expect(screen.queryByText('Kök', { selector: 'p' })).not.toBeInTheDocument();
       expect(screen.queryByText('Kök: Fönster')).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /^(Visa|Dölj|common\.show|common\.hide) Kök$/ })
+      ).not.toBeInTheDocument();
     });
   });
 
