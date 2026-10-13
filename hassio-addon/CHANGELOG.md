@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0-adam.18
+
+- Fixed Tapo camera preset buttons being disabled while their momentary selector rests in the normal `unknown` state.
+- Added dedicated baby, bed, and stroller icons for the household camera positions.
+
 ## 1.23.0-adam.17
 
 - Made profile publishing work reliably inside Home Assistant ingress without a blocking browser confirmation.

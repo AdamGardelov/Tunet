@@ -58,6 +58,7 @@ export {
   Workflow,
   Home,
   Bed,
+  Baby,
   Bath,
   ShowerHead,
   Droplets,

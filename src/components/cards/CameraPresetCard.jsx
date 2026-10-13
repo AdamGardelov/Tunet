@@ -1,10 +1,11 @@
 import { memo, useCallback } from 'react';
+import { MdOutlineStroller } from 'react-icons/md';
 import {
+  Baby,
   Bed,
   Camera,
   Check,
   Eye,
-  Heart,
   Home,
   MapPin,
   Navigation,
@@ -23,7 +24,8 @@ const gridColumns = {
 
 const getPresetIcon = (option, index) => {
   const name = String(option).toLowerCase();
-  if (/walter|barn|baby|child/.test(name)) return Heart;
+  if (/walter|barn|baby|child/.test(name)) return Baby;
+  if (/vagn|stroller|pram/.test(name)) return MdOutlineStroller;
   if (/säng|bed/.test(name)) return Bed;
   if (/vardag|living|soffa/.test(name)) return Sofa;
   if (/kök|kitchen/.test(name)) return Utensils;
@@ -48,7 +50,10 @@ const CameraPresetCard = ({
     : [];
   const configuredOptions = Array.isArray(settings.options) ? settings.options : [];
   const options = (configuredOptions.length > 0 ? configuredOptions : availableOptions).slice(0, 4);
-  const unavailable = !entity || ['unavailable', 'unknown'].includes(entity.state);
+  // Tapo's momentary "Move to Preset" select deliberately rests in `unknown`.
+  // Its options and select_option service still work, so only a genuinely
+  // unavailable/missing entity should disable these buttons.
+  const unavailable = !entity || entity.state === 'unavailable';
 
   const selectPreset = useCallback(
     (event, option) => {

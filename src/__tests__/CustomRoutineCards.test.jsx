@@ -141,7 +141,7 @@ describe('custom routine cards', () => {
         settings={{ entityId: 'select.walles_kamera_move_to_preset' }}
         entities={{
           'select.walles_kamera_move_to_preset': {
-            state: 'Våran säng',
+            state: 'unknown',
             attributes: { options: ['Våran säng', 'Walters säng'] },
           },
         }}
@@ -154,6 +154,7 @@ describe('custom routine cards', () => {
     );
 
     expect(container.querySelector('.grid')).toHaveClass('grid-cols-2');
+    expect(screen.getByRole('button', { name: /Walters säng/i })).toBeEnabled();
     fireEvent.click(screen.getByRole('button', { name: /Walters säng/i }));
     expect(callService).toHaveBeenCalledWith('select', 'select_option', {
       entity_id: 'select.walles_kamera_move_to_preset',
