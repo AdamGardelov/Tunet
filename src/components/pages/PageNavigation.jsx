@@ -212,8 +212,9 @@ export default function PageNavigation({
   return (
     <div className="flex min-w-0 flex-1 items-center gap-2">
       {/* Scrollable page pills */}
-      <div className="scrollbar-hide flex min-w-0 flex-1 items-center gap-4 overflow-x-auto pb-2">
-        {navigationPages.map((page) => {
+      <div className="scrollbar-hide min-w-0 flex-1 overflow-x-auto pb-2">
+        <div className="flex w-max min-w-full items-center justify-center gap-4 sm:justify-start">
+          {navigationPages.map((page) => {
           const settings = pageSettings[page.id] || {};
           const label = settings.label || page.label;
           const isHidden = settings.hidden;
@@ -265,7 +266,8 @@ export default function PageNavigation({
               <span className={showLabelsOnMobile ? undefined : 'hidden sm:inline'}>{label}</span>
             </button>
           );
-        })}
+          })}
+        </div>
       </div>
 
       {/* Pinned edit-mode page manager trigger — always visible */}

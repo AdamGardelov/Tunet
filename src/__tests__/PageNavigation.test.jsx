@@ -83,6 +83,7 @@ describe('PageNavigation', () => {
 
     const button = screen.getByRole('button', { name: 'Home' });
     expect(button).toHaveClass('min-h-11', 'min-w-11', 'px-3', 'py-2.5');
+    expect(button.parentElement).toHaveClass('min-w-full', 'justify-center', 'sm:justify-start');
     expect(screen.getByTestId('mock-icon')).toHaveClass('h-5', 'w-5', 'sm:h-4', 'sm:w-4');
   });
 
