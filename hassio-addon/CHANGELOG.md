@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0-adam.36
+
+- Makes an active bedside-light power button unmistakably filled and bright.
+- Keeps off buttons muted gray for clear at-a-glance contrast.
+
 ## 1.23.0-adam.35
 
 - Replaced the bedside-light switches with the same round power controls used in the Lights page.
