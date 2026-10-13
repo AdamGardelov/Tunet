@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0-adam.21
+
+- Added reusable action feedback to compact dashboard controls.
+- Camera preset and bedside-light buttons now show sending, success, and failure states.
+
 ## 1.23.0-adam.20
 
 - Hide the legacy default `Snabbkontroller` heading on compact grouped control rows while preserving custom headings.
