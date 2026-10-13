@@ -191,12 +191,12 @@ describe('custom routine cards', () => {
     expect(screen.queryByText('Sparvens inhalator')).not.toBeInTheDocument();
     expect(screen.queryByText(/2\/dag/i)).not.toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Sparvens inhalator' })).toHaveClass(
-      'flex-col',
-      'gap-2.5',
+      'items-center',
+      'gap-3',
       'px-5'
     );
     expect(screen.getByTestId('medication-dose-actions')).toHaveClass(
-      'w-full',
+      'min-w-[164px]',
       'grid-cols-2',
       'gap-2'
     );

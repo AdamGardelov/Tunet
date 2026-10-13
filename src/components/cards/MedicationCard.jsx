@@ -99,10 +99,10 @@ const MedicationCard = ({
         aria-checked={unavailable ? undefined : done}
         aria-label={`${label} ${done ? 'tagen' : 'inte tagen'}`}
         data-testid={`medication-dose-control-${entityId}`}
-        className={`touch-feedback relative flex h-11 min-w-0 items-center justify-center rounded-2xl border px-3 text-[13px] font-bold transition-all duration-200 active:scale-[0.97] ${tone} ${unavailable ? 'opacity-45' : ''}`}
+        className={`touch-feedback relative flex h-11 min-w-0 items-center justify-center rounded-2xl border px-2 text-[11px] font-bold transition-all duration-200 active:scale-[0.97] ${tone} ${unavailable ? 'opacity-45' : ''}`}
       >
         <span className="truncate">{label}</span>
-        <span className="absolute right-3 flex items-center justify-center">
+        <span className="absolute top-1.5 right-1.5 flex items-center justify-center">
           {actionStatus === 'idle' ? (
             done && <Check aria-hidden="true" className="h-4 w-4 shrink-0" />
           ) : (
@@ -117,30 +117,28 @@ const MedicationCard = ({
     <section
       key={cardId}
       {...dragProps}
-      className={`group relative flex h-full flex-col gap-2.5 overflow-hidden rounded-3xl border px-5 py-3 font-sans ${editMode ? 'cursor-move' : ''}`}
+      className={`group relative flex h-full items-center gap-3 overflow-hidden rounded-3xl border px-5 py-3 font-sans ${editMode ? 'cursor-move' : ''}`}
       style={cardStyle}
       aria-label={settings.title || 'Sparvens inhalator'}
     >
       {controls}
-      <div className="flex w-full min-w-0 items-center gap-3">
-        <span className={compactIconTile}>
-          <Cat className="h-6 w-6 stroke-[1.7px]" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm leading-tight font-extrabold text-[var(--text-primary)]">
-            {hasDoseValue
-              ? `${doses % 2 === 0 ? days : `ca ${days}`} dagar kvar`
-              : 'Dosantal saknas'}
+      <span className={compactIconTile}>
+        <Cat className="h-6 w-6 stroke-[1.7px]" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[12px] leading-tight font-extrabold text-[var(--text-primary)]">
+          {hasDoseValue
+            ? `${doses % 2 === 0 ? days : `ca ${days}`} dagar kvar`
+            : 'Dosantal saknas'}
+        </p>
+        {hasDoseValue && (
+          <p className="mt-1 truncate text-[9px] font-bold tracking-wide text-[var(--text-secondary)] uppercase">
+            {doses} doser
           </p>
-          {hasDoseValue && (
-            <p className="mt-1 truncate text-[10px] font-bold tracking-wide text-[var(--text-secondary)] uppercase">
-              {doses} doser
-            </p>
-          )}
-        </div>
+        )}
       </div>
       <div
-        className="grid w-full grid-cols-2 gap-2"
+        className="grid min-w-[164px] grid-cols-2 gap-2"
         data-testid="medication-dose-actions"
       >
         <DoseButton entityId={mapping.morningId} label="Morgon" />
