@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0-adam.28
+
+- Replaced the cramped mobile light search field with a compact search icon.
+- The search field expands to full width when opened.
+
 ## 1.23.0-adam.27
 
 - Added mixed Media pages with Sonos speakers and TV players together.
