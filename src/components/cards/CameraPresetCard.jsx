@@ -50,6 +50,38 @@ export const resolvePresetCameraId = (selectEntityId, entities, configuredCamera
   );
 };
 
+export const resolvePresetStateEntityId = (
+  selectEntityId,
+  entities,
+  configuredStateEntityId,
+  presetOptions = []
+) => {
+  if (configuredStateEntityId && entities[configuredStateEntityId]) {
+    return configuredStateEntityId;
+  }
+
+  const normalizedOptions = new Set(presetOptions.map((option) => String(option).toLowerCase()));
+  const cameraStem = String(selectEntityId || '')
+    .replace(/^select\./, '')
+    .replace(/_(?:move_to_)?preset.*$/i, '');
+
+  const candidates = Object.entries(entities).filter(([candidateId, candidate]) => {
+    if (!candidateId.startsWith('input_select.')) return false;
+    const options = Array.isArray(candidate?.attributes?.options) ? candidate.attributes.options : [];
+    return options.some((option) => normalizedOptions.has(String(option).toLowerCase()));
+  });
+
+  return (
+    candidates.find(([candidateId, candidate]) => {
+      const haystack = `${candidateId} ${candidate?.attributes?.friendly_name || ''}`.toLowerCase();
+      return (
+        /kamera.*position|camera.*position/.test(haystack) ||
+        (cameraStem && haystack.includes(cameraStem))
+      );
+    })?.[0] || null
+  );
+};
+
 const getPresetIcon = (option, index) => {
   const name = String(option).toLowerCase();
   if (/walter|barn|baby|child/.test(name)) return Baby;
@@ -84,6 +116,13 @@ const CameraPresetCard = ({
   const options = (
     configuredOptions.length > 0 ? configuredOptions : orderDefaultPresets(availableOptions)
   ).slice(0, showLiveButton ? 3 : 4);
+  const stateEntityId = resolvePresetStateEntityId(
+    entityId,
+    entities,
+    settings.stateEntityId,
+    options
+  );
+  const stateEntity = stateEntityId ? entities[stateEntityId] : null;
   // Tapo's momentary "Move to Preset" select deliberately rests in `unknown`.
   // Its options and select_option service still work, so only a genuinely
   // unavailable/missing entity should disable these buttons.
@@ -94,11 +133,17 @@ const CameraPresetCard = ({
     (event, option) => {
       event.stopPropagation();
       if (editMode || unavailable || !entityId) return;
-      runAction(option, () =>
-        callService('select', 'select_option', { entity_id: entityId, option })
-      );
+      runAction(option, async () => {
+        await callService('select', 'select_option', { entity_id: entityId, option });
+        if (stateEntityId) {
+          await callService('input_select', 'select_option', {
+            entity_id: stateEntityId,
+            option,
+          });
+        }
+      });
     },
-    [callService, editMode, entityId, runAction, unavailable]
+    [callService, editMode, entityId, runAction, stateEntityId, unavailable]
   );
 
   const openLiveStream = useCallback(
@@ -139,7 +184,7 @@ const CameraPresetCard = ({
           </button>
         )}
         {options.map((option, index) => {
-          const active = entity?.state === option;
+          const active = (stateEntity?.state || entity?.state) === option;
           const actionStatus = getStatus(option);
           const pending = actionStatus === 'pending';
           const PresetIcon = getPresetIcon(option, index);
@@ -150,6 +195,7 @@ const CameraPresetCard = ({
               disabled={editMode || unavailable || pending}
               onClick={(event) => selectPreset(event, option)}
               aria-label={option}
+              aria-pressed={active}
               title={option}
               className={`touch-feedback relative flex min-w-0 items-center justify-center rounded-xl border px-2 py-2 transition-all duration-200 active:scale-[0.94] ${
                 actionStatus === 'success'
@@ -157,7 +203,7 @@ const CameraPresetCard = ({
                   : actionStatus === 'error'
                     ? 'border-[var(--status-error-border)] bg-[var(--status-error-bg)] text-[var(--status-error-fg)]'
                     : active
-                      ? 'border-sky-400/35 bg-sky-400/12 text-sky-300'
+                      ? 'border-sky-300/70 bg-sky-400/20 text-sky-200 shadow-[0_0_0_2px_rgba(125,211,252,0.18)]'
                       : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-primary)]'
               } ${unavailable ? 'opacity-45' : ''}`}
             >

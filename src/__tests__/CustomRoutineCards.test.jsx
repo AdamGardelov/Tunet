@@ -207,6 +207,55 @@ describe('custom routine cards', () => {
     expect(button).toBeEnabled();
   });
 
+  it('uses a shared helper to show and update the active camera preset', async () => {
+    const callService = vi.fn().mockResolvedValue(undefined);
+    render(
+      <CameraPresetCard
+        cardId="camera_presets_1"
+        settings={{ entityId: 'select.walles_kamera_move_to_preset' }}
+        entities={{
+          'select.walles_kamera_move_to_preset': {
+            state: 'unknown',
+            attributes: { options: ['Våran säng', 'Walters säng', 'Vagn'] },
+          },
+          'input_select.walles_kameraposition': {
+            state: 'Våran säng',
+            attributes: {
+              friendly_name: 'Walles kameraposition',
+              options: ['Våran säng', 'Walters säng', 'Vagn'],
+            },
+          },
+        }}
+        callService={callService}
+        dragProps={{}}
+        controls={null}
+        cardStyle={{}}
+        editMode={false}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: 'Våran säng' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+    expect(screen.getByRole('button', { name: 'Walters säng' })).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Walters säng' }));
+
+    await vi.waitFor(() => expect(callService).toHaveBeenCalledTimes(2));
+    expect(callService).toHaveBeenNthCalledWith(1, 'select', 'select_option', {
+      entity_id: 'select.walles_kamera_move_to_preset',
+      option: 'Walters säng',
+    });
+    expect(callService).toHaveBeenNthCalledWith(2, 'input_select', 'select_option', {
+      entity_id: 'input_select.walles_kameraposition',
+      option: 'Walters säng',
+    });
+  });
+
   it('shows error feedback when a quick control action fails', async () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     const callService = vi.fn().mockRejectedValue(new Error('Disconnected'));
