@@ -132,7 +132,10 @@ const MedicationCard = ({
           </p>
         )}
       </div>
-      <div className="grid min-w-[190px] grid-cols-2 gap-2 max-sm:min-w-[180px]">
+      <div
+        className="grid min-w-[190px] grid-cols-2 gap-2 max-sm:min-w-[164px]"
+        data-testid="medication-dose-actions"
+      >
         <DoseButton entityId={mapping.morningId} label="Morgon" />
         <DoseButton entityId={mapping.eveningId} label="Kväll" />
       </div>

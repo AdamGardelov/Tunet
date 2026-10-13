@@ -165,6 +165,7 @@ describe('custom routine cards', () => {
     expect(screen.getByText('38 doser')).toBeInTheDocument();
     expect(screen.queryByText(/2\/dag/i)).not.toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Sparvens inhalator' })).toHaveClass('gap-3', 'px-5');
+    expect(screen.getByTestId('medication-dose-actions')).toHaveClass('max-sm:min-w-[164px]');
     expect(screen.getByRole('checkbox', { name: 'Morgon inte tagen' })).toHaveAttribute(
       'aria-checked',
       'false'
