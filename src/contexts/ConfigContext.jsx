@@ -210,15 +210,16 @@ export const ConfigProvider = ({ children }) => {
   const [config, setConfig] = useState(() => {
     if (typeof globalThis.window !== 'undefined') {
       // Ingress auto-detection: if served under /api/hassio_ingress/<token>,
-      // connect to HA's root URL via Token (OAuth often fails in Ingress iframe)
+      // always connect through the HA origin that is currently serving the iframe.
+      // This follows Home Assistant Cloud outside the home and the local HA URL at
+      // home instead of getting stuck on a previously saved local-only address.
       const path = globalThis.window.location.pathname;
       const ingressMatch = /(.*\/api\/hassio_ingress\/[^/]+)/.exec(path);
       if (ingressMatch && ingressMatch[1]) {
         // Still load saved URL/token from localStorage so the user doesn't
         // have to re-enter credentials on every page reload
-        let savedUrl, savedToken;
+        let savedToken;
         try {
-          savedUrl = localStorage.getItem('ha_url') || '';
           const persistentToken = localStorage.getItem('ha_token') || '';
           const sessionToken = globalThis.sessionStorage.getItem('ha_token') || '';
           if (persistentToken) {
@@ -231,11 +232,10 @@ export const ConfigProvider = ({ children }) => {
             savedToken = '';
           }
         } catch {
-          savedUrl = '';
           savedToken = '';
         }
         return {
-          url: savedUrl || globalThis.window.location.origin,
+          url: globalThis.window.location.origin,
           fallbackUrl: '',
           token: savedToken,
           authMethod: 'token',

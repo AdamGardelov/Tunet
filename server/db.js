@@ -69,4 +69,9 @@ ensureColumn('profiles', 'shared', 'INTEGER NOT NULL DEFAULT 0');
 ensureColumn('current_settings', 'data_enc', 'TEXT');
 ensureColumn('current_settings_history', 'data_enc', 'TEXT');
 
+// The household mobile profile may have been created by an older cached
+// frontend which did not send the shared flag. Promote it during startup so it
+// is immediately available to the other Home Assistant users in the home.
+db.prepare("UPDATE profiles SET shared = 1 WHERE shared = 0 AND lower(trim(name)) = 'mobil'").run();
+
 export default db;

@@ -143,6 +143,11 @@ router.post('/', (req, res) => {
   }
   const plainPayload = shouldPersistPlaintextData() ? payload : getEncryptedOnlyPlaintextStub();
 
+  // Profiles are household-shared by default. Treat an omitted flag from an
+  // older cached client as shared, while still allowing an explicit private
+  // profile with shared: false.
+  const isShared = shared !== false;
+
   db.prepare(
     'INSERT INTO profiles (id, ha_user_id, name, device_label, shared, data, data_enc, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
   ).run(
@@ -150,7 +155,7 @@ router.post('/', (req, res) => {
     ha_user_id,
     name,
     device_label || null,
-    shared ? 1 : 0,
+    isShared ? 1 : 0,
     plainPayload,
     encryptedPayload,
     now,
@@ -162,7 +167,7 @@ router.post('/', (req, res) => {
     ha_user_id,
     name,
     device_label,
-    shared: Boolean(shared),
+    shared: isShared,
     data,
     created_at: now,
     updated_at: now,

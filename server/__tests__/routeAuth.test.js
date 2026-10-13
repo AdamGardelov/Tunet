@@ -334,6 +334,28 @@ describe('profiles route auth', () => {
     await expect(response.json()).resolves.toEqual({ error: 'Forbidden: user mismatch' });
   });
 
+  it('shares profiles created by older clients that omit the shared flag', async () => {
+    const harness = await startRouterHarness('../routes/profiles.js', '/api/profiles');
+
+    const response = await harness.request('/', {
+      method: 'POST',
+      headers: {
+        'x-test-user-id': 'user-1',
+      },
+      body: JSON.stringify({
+        ha_user_id: 'user-1',
+        name: 'Mobil',
+        data: { layout: { pagesConfig: { pages: ['home'] } } },
+      }),
+    });
+
+    expect(response.status).toBe(201);
+    expect(await response.json()).toMatchObject({ shared: true });
+    expect(
+      harness.database.prepare('SELECT shared FROM profiles WHERE name = ?').get('Mobil')
+    ).toEqual({ shared: 1 });
+  });
+
   it('allows another authenticated household user to read a shared profile', async () => {
     const harness = await startRouterHarness('../routes/profiles.js', '/api/profiles');
     const snapshot = JSON.stringify({ version: 1, layout: {}, appearance: {} });
