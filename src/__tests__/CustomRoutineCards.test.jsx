@@ -165,16 +165,24 @@ describe('custom routine cards', () => {
     expect(screen.getByText('38 doser')).toBeInTheDocument();
     expect(screen.queryByText(/2\/dag/i)).not.toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Sparvens inhalator' })).toHaveClass('gap-3', 'px-5');
-    expect(screen.getByRole('button', { name: /Morgon/i })).toHaveClass(
-      'rounded-2xl',
+    expect(screen.getByRole('checkbox', { name: 'Morgon inte tagen' })).toHaveAttribute(
+      'aria-checked',
+      'false'
+    );
+    expect(screen.getByTestId('medication-dose-check-input_boolean.sparven_morgon')).toHaveClass(
+      'rounded-full',
       'bg-[var(--glass-bg)]'
     );
-    expect(screen.getByRole('button', { name: /Kväll/i })).toHaveClass(
-      'rounded-2xl',
+    expect(screen.getByRole('checkbox', { name: 'Kväll tagen' })).toHaveAttribute(
+      'aria-checked',
+      'true'
+    );
+    expect(screen.getByTestId('medication-dose-check-input_boolean.sparven_kvall')).toHaveClass(
+      'rounded-full',
       'bg-[var(--status-success-bg)]',
       'text-[var(--status-success-fg)]'
     );
-    fireEvent.click(screen.getByRole('button', { name: /Morgon/i }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Morgon inte tagen' }));
     expect(callService).toHaveBeenNthCalledWith(1, 'input_number', 'set_value', {
       entity_id: 'input_number.sparven_doser',
       value: 37,
@@ -207,7 +215,7 @@ describe('custom routine cards', () => {
 
     expect(screen.getByText('ca 19 dagar kvar')).toBeInTheDocument();
     expect(screen.getByText('37 doser')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Morgon/i }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Morgon tagen' }));
     expect(callService).toHaveBeenNthCalledWith(1, 'input_number', 'set_value', {
       entity_id: 'input_number.sparven_doser',
       value: 38,

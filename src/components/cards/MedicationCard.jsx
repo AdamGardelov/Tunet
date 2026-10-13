@@ -80,14 +80,23 @@ const MedicationCard = ({
     return (
       <button
         type="button"
+        role="checkbox"
         disabled={editMode || unavailable}
         onClick={(event) => toggleDose(event, entityId)}
-        className={`touch-feedback flex h-11 min-w-0 items-center justify-center gap-2 rounded-2xl border px-3 text-xs font-bold transition-all active:scale-[0.97] ${
-          done ? compactControlTone.success : compactControlTone.idle
-        } ${unavailable ? 'opacity-45' : ''}`}
+        aria-checked={unavailable ? undefined : done}
+        aria-label={`${label} ${done ? 'tagen' : 'inte tagen'}`}
+        className={`touch-feedback flex h-11 min-w-0 items-center justify-end gap-1.5 rounded-xl text-[10px] font-bold text-[var(--text-secondary)] transition-all active:scale-[0.97] ${unavailable ? 'opacity-45' : ''}`}
       >
         <span className="truncate">{label}</span>
-        {done && <Check className="h-4 w-4 shrink-0" />}
+        <span
+          data-testid={`medication-dose-check-${entityId}`}
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-all duration-300 ${
+            done ? compactControlTone.success : compactControlTone.idle
+          }`}
+          aria-hidden="true"
+        >
+          {done && <Check className="h-4 w-4 shrink-0" />}
+        </span>
       </button>
     );
   };
@@ -123,7 +132,7 @@ const MedicationCard = ({
           </p>
         )}
       </div>
-      <div className="grid min-w-[190px] grid-cols-2 gap-2 max-sm:min-w-[160px]">
+      <div className="grid min-w-[190px] grid-cols-2 gap-2 max-sm:min-w-[180px]">
         <DoseButton entityId={mapping.morningId} label="Morgon" />
         <DoseButton entityId={mapping.eveningId} label="Kväll" />
       </div>
