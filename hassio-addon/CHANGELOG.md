@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.23.0-adam.15
+
+- Made Home Assistant ingress follow the current local or Home Assistant Cloud origin automatically.
+- Made profiles shared by default for compatibility with older cached clients.
+- Migrated an existing `Mobil` profile to household sharing during startup.
+
 ## 1.23.0-adam.14
 
 - Added shared dashboard profiles that stay synchronized across phones and tablets.
