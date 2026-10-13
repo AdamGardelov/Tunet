@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0-adam.16
+
+- Added a safe way to replace an existing shared profile with the dashboard currently shown on the publishing device.
+- Kept the existing profile identity so phones and tablets that already follow it receive the new layout automatically.
+
 ## 1.23.0-adam.15
 
 - Made Home Assistant ingress follow the current local or Home Assistant Cloud origin automatically.
