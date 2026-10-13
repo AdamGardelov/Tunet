@@ -170,7 +170,7 @@ export default function DashboardLayout(props) {
 
   const personHeader = (
     <div
-      className={`flex min-w-0 flex-wrap items-center gap-2.5 ${isMobile ? 'flex-1 origin-left scale-90 empty:hidden' : ''}`}
+      className={`flex min-w-0 flex-wrap items-center gap-2.5 ${isMobile ? 'w-full justify-center gap-4 empty:hidden' : ''}`}
     >
       {(pagesConfig.header || []).map((id) => personStatus(id))}
       {editMode && (
@@ -257,7 +257,7 @@ export default function DashboardLayout(props) {
             sectionSpacing={sectionSpacing}
           >
             <div
-              className={`mt-0 w-full font-sans ${isMobile ? 'flex flex-col items-start gap-2' : 'flex items-center justify-between'}`}
+              className={`mt-0 w-full font-sans ${isMobile ? 'flex flex-col items-center gap-2' : 'flex items-center justify-between'}`}
               style={{
                 marginTop: `${
                   isMobile
@@ -267,7 +267,7 @@ export default function DashboardLayout(props) {
               }}
             >
               {isMobile ? (
-                <div className="flex w-full min-w-0 items-center gap-2">{personHeader}</div>
+                <div className="flex w-full min-w-0 items-center justify-center">{personHeader}</div>
               ) : (
                 personHeader
               )}

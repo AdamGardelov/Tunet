@@ -29,8 +29,8 @@ describe('PersonStatus', () => {
 
     const name = screen.getByText('Ola Nordmann');
     expect(name.parentElement?.parentElement).toHaveClass('flex');
-    expect(name).toHaveClass('truncate', 'text-xs', 'sm:text-sm');
-    expect(screen.getByText('Heime')).toHaveClass('text-[10px]', 'sm:text-xs');
+    expect(name).toHaveClass('truncate', 'text-sm');
+    expect(screen.getByText('Heime')).toHaveClass('text-[11px]', 'sm:text-xs');
   });
 
   it('shows state by itself on mobile when the name is disabled', () => {

@@ -67,7 +67,7 @@ const PersonStatus = ({
           onOpenPerson(id);
         }
       }}
-      className={`group relative flex items-center rounded-full transition-all duration-500 hover:bg-[var(--glass-bg)] ${avatarOnly ? 'gap-1 py-1 pr-1.5 pl-1' : 'gap-2 py-1.5 pr-2 pl-1.5 sm:gap-3 sm:pr-5'}`}
+      className={`group relative flex items-center rounded-full transition-all duration-500 hover:bg-[var(--glass-bg)] ${avatarOnly ? 'gap-1 py-1 pr-1.5 pl-1' : 'gap-2.5 py-2 pr-3 pl-2 sm:gap-3 sm:py-1.5 sm:pr-5 sm:pl-1.5'}`}
       style={{
         backgroundColor: 'rgba(255, 255, 255, 0.02)',
         boxShadow: isHome ? '0 0 20px rgba(34, 197, 94, 0.05)' : 'none',
@@ -99,7 +99,7 @@ const PersonStatus = ({
 
       <div className="relative">
         <div
-          className="h-10 w-10 overflow-hidden rounded-full bg-gray-800 transition-all duration-500"
+          className="h-12 w-12 overflow-hidden rounded-full bg-gray-800 transition-all duration-500 sm:h-10 sm:w-10"
           style={{ filter: isHome ? 'grayscale(0%)' : 'grayscale(100%) opacity(0.7)' }}
         >
           {useIcon ? (
@@ -135,14 +135,14 @@ const PersonStatus = ({
         <div className="flex min-w-0 flex-col justify-center">
           {showName && (
             <div className="flex items-center gap-2">
-              <span className="max-w-20 truncate text-xs leading-tight font-bold tracking-normal text-[var(--text-primary)] sm:max-w-none sm:text-sm sm:tracking-wide">
+              <span className="max-w-24 truncate text-sm leading-tight font-bold tracking-normal text-[var(--text-primary)] sm:max-w-none sm:tracking-wide">
                 {name}
               </span>
             </div>
           )}
           {showState && (
             <span
-              className={`max-w-20 truncate text-[10px] leading-tight font-bold tracking-[0.12em] uppercase transition-colors duration-300 sm:max-w-none sm:text-xs sm:tracking-[0.18em] ${showName ? 'mt-1' : ''}`}
+              className={`max-w-24 truncate text-[11px] leading-tight font-bold tracking-[0.12em] uppercase transition-colors duration-300 sm:max-w-none sm:text-xs sm:tracking-[0.18em] ${showName ? 'mt-1' : ''}`}
               style={{ color: isHome ? '#4ade80' : 'rgba(156, 163, 175, 0.5)' }}
             >
               {String(statusText)}
