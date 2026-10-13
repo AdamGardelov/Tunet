@@ -25,7 +25,8 @@ const QuickControlsCard = ({
 }) => {
   const entityIds = Array.isArray(settings.entityIds) ? settings.entityIds : [];
   const singleControl = entityIds.length === 1;
-  const title = typeof settings.title === 'string' ? settings.title.trim() : '';
+  const configuredTitle = typeof settings.title === 'string' ? settings.title.trim() : '';
+  const title = configuredTitle.toLocaleLowerCase('sv-SE') === 'snabbkontroller' ? '' : configuredTitle;
 
   const handleToggle = useCallback(
     (event, entityId) => {

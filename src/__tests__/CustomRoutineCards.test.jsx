@@ -17,7 +17,10 @@ describe('custom routine cards', () => {
     render(
       <QuickControlsCard
         cardId="quick_controls_1"
-        settings={{ entityIds: ['light.emma', 'climate.ac'] }}
+        settings={{
+          entityIds: ['light.emma', 'climate.ac'],
+          title: 'Snabbkontroller',
+        }}
         entities={{
           'light.emma': { state: 'off', attributes: { friendly_name: 'Emma sänglampa' } },
           'climate.ac': {
