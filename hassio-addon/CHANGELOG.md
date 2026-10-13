@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.23.0-adam.40
+
+- Replaces medication pills with compact circular checkbox controls.
+- Keeps the full labeled dose area easy to tap while separating dose completion from power controls.
+- Exposes the morning and evening states as accessible checkboxes.
+
 ## 1.23.0-adam.39
 
 - Replaces duplicate bedside-light icons with one shared leading light icon.
