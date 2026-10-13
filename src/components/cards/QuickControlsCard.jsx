@@ -44,6 +44,79 @@ const QuickControlsCard = ({
     [callService, editMode, entities]
   );
 
+  const renderControl = (entityId, standalone = false) => {
+    const entity = entities[entityId];
+    const domain = entityId.split('.')[0];
+    const unavailable = !entity || ['unavailable', 'unknown'].includes(entity.state);
+    const active = !unavailable && entity.state !== 'off';
+    const Icon = domain === 'climate' ? AirVent : domain === 'light' ? Lightbulb : Power;
+    const temperature = entity?.attributes?.current_temperature;
+    const stateLabel = unavailable
+      ? t('status.unavailable')
+      : domain === 'climate' && active && temperature !== undefined
+        ? `${t('common.on')} · ${temperature}°`
+        : active
+          ? t('common.on')
+          : t('common.off');
+
+    return (
+      <button
+        key={entityId}
+        type="button"
+        disabled={unavailable || editMode}
+        onClick={(event) => handleToggle(event, entityId)}
+        className={`touch-feedback flex min-h-0 min-w-0 flex-1 items-center gap-3 text-left transition-all active:scale-[0.98] ${standalone ? 'w-full' : 'rounded-xl px-1 py-1'} ${unavailable ? 'opacity-55' : ''}`}
+      >
+        <span
+          className={`flex shrink-0 items-center justify-center bg-[var(--glass-bg-hover)] ${standalone ? 'h-11 w-11 rounded-2xl' : 'h-10 w-10 rounded-xl'} ${active ? 'text-[var(--accent-color)]' : 'text-[var(--text-muted)]'}`}
+        >
+          <Icon className="h-[22px] w-[22px] stroke-[1.7px]" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span
+            className={`block text-[15px] leading-tight font-bold text-[var(--text-primary)] ${standalone ? 'whitespace-normal' : 'truncate'}`}
+          >
+            {getCompactName(entityId, entity)}
+          </span>
+          <span className="mt-0.5 block truncate text-[10px] font-bold tracking-wide text-[var(--text-secondary)] uppercase">
+            {stateLabel}
+          </span>
+        </span>
+        {!unavailable && (
+          <span
+            className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
+              active ? 'bg-[var(--accent-color)]' : 'bg-[var(--glass-bg-hover)]'
+            }`}
+            aria-hidden="true"
+          >
+            <span
+              className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
+                active ? 'translate-x-[18px]' : 'translate-x-0.5'
+              }`}
+            />
+          </span>
+        )}
+      </button>
+    );
+  };
+
+  if (singleControl) {
+    const entityId = entityIds[0];
+    const entity = entities[entityId];
+    return (
+      <section
+        key={cardId}
+        {...dragProps}
+        className={`group relative flex h-full items-center overflow-hidden rounded-3xl border px-4 py-3 font-sans ${editMode ? 'cursor-move' : ''}`}
+        style={cardStyle}
+        aria-label={getCompactName(entityId, entity)}
+      >
+        {controls}
+        {renderControl(entityId, true)}
+      </section>
+    );
+  }
+
   return (
     <section
       key={cardId}
@@ -56,66 +129,8 @@ const QuickControlsCard = ({
       <p className="mb-1 px-1 text-[10px] font-bold tracking-[0.18em] text-[var(--text-secondary)] uppercase opacity-60">
         {settings.title || 'Snabbkontroller'}
       </p>
-      <div className={`grid min-h-0 flex-1 gap-2 ${singleControl ? 'grid-cols-1' : 'grid-cols-2'}`}>
-        {entityIds.map((entityId) => {
-          const entity = entities[entityId];
-          const domain = entityId.split('.')[0];
-          const unavailable = !entity || ['unavailable', 'unknown'].includes(entity.state);
-          const active = !unavailable && entity.state !== 'off';
-          const Icon = domain === 'climate' ? AirVent : domain === 'light' ? Lightbulb : Power;
-          const temperature = entity?.attributes?.current_temperature;
-          const stateLabel = unavailable
-            ? t('status.unavailable')
-            : domain === 'climate' && active && temperature !== undefined
-              ? `${t('common.on')} · ${temperature}°`
-              : active
-                ? t('common.on')
-                : t('common.off');
-
-          return (
-            <button
-              key={entityId}
-              type="button"
-              disabled={unavailable || editMode}
-              onClick={(event) => handleToggle(event, entityId)}
-              className={`touch-feedback flex min-h-0 min-w-0 flex-1 items-center gap-3 rounded-xl px-1 py-1 text-left transition-all active:scale-[0.98] ${unavailable ? 'opacity-55' : ''}`}
-            >
-              <span
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-                  active
-                    ? 'bg-[var(--glass-bg-hover)] text-[var(--accent-color)]'
-                    : 'bg-[var(--glass-bg-hover)] text-[var(--text-muted)]'
-                }`}
-              >
-                <Icon className="h-[22px] w-[22px] stroke-[1.7px]" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span
-                  className={`block text-[15px] leading-tight font-bold text-[var(--text-primary)] ${singleControl ? 'whitespace-normal' : 'truncate'}`}
-                >
-                  {getCompactName(entityId, entity)}
-                </span>
-                <span className="mt-0.5 block truncate text-[10px] font-bold tracking-wide text-[var(--text-secondary)] uppercase">
-                  {stateLabel}
-                </span>
-              </span>
-              {!unavailable && (
-                <span
-                  className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
-                    active ? 'bg-[var(--accent-color)]' : 'bg-[var(--glass-bg-hover)]'
-                  }`}
-                  aria-hidden="true"
-                >
-                  <span
-                    className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
-                      active ? 'translate-x-[18px]' : 'translate-x-0.5'
-                    }`}
-                  />
-                </span>
-              )}
-            </button>
-          );
-        })}
+      <div className="grid min-h-0 flex-1 grid-cols-2 gap-2">
+        {entityIds.map((entityId) => renderControl(entityId))}
       </div>
     </section>
   );

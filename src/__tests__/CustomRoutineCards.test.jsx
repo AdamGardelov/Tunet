@@ -44,7 +44,7 @@ describe('custom routine cards', () => {
     });
   });
 
-  it('uses the full quick-control width when only one entity is configured', () => {
+  it('renders a single quick control as a standalone card without a group heading', () => {
     const { container } = render(
       <QuickControlsCard
         cardId="quick_controls_1"
@@ -62,7 +62,8 @@ describe('custom routine cards', () => {
       />
     );
 
-    expect(container.querySelector('.grid')).toHaveClass('grid-cols-1');
+    expect(container.querySelector('.grid')).not.toBeInTheDocument();
+    expect(screen.queryByText('Snabbkontroller')).not.toBeInTheDocument();
     expect(screen.getByText('Emma sänglampa')).toHaveClass('whitespace-normal');
   });
 
