@@ -1208,8 +1208,8 @@ function AddCardContent({
                 )}
                 {addCardType === 'camera_presets' && (
                   <p className="mt-2 ml-4 text-[11px] text-[var(--text-secondary)] opacity-75">
-                    Välj kamerans preset-väljare. De två första positionerna visas som kompakta
-                    snabbknappar.
+                    Välj kamerans preset-väljare. Upp till fyra positioner visas som kompakta
+                    ikonknappar på samma rad.
                   </p>
                 )}
               </div>

@@ -1,5 +1,35 @@
 import { memo, useCallback } from 'react';
-import { Camera, Check } from '../../icons';
+import {
+  Bed,
+  Camera,
+  Check,
+  Eye,
+  Heart,
+  Home,
+  MapPin,
+  Navigation,
+  Sofa,
+  Star,
+  Utensils,
+} from '../../icons';
+
+const fallbackIcons = [MapPin, Navigation, Eye, Star];
+const gridColumns = {
+  1: 'grid-cols-1',
+  2: 'grid-cols-2',
+  3: 'grid-cols-3',
+  4: 'grid-cols-4',
+};
+
+const getPresetIcon = (option, index) => {
+  const name = String(option).toLowerCase();
+  if (/walter|barn|baby|child/.test(name)) return Heart;
+  if (/säng|bed/.test(name)) return Bed;
+  if (/vardag|living|soffa/.test(name)) return Sofa;
+  if (/kök|kitchen/.test(name)) return Utensils;
+  if (/hem|home/.test(name)) return Home;
+  return fallbackIcons[index] || MapPin;
+};
 
 const CameraPresetCard = ({
   cardId,
@@ -17,7 +47,7 @@ const CameraPresetCard = ({
     ? entity.attributes.options
     : [];
   const configuredOptions = Array.isArray(settings.options) ? settings.options : [];
-  const options = (configuredOptions.length > 0 ? configuredOptions : availableOptions).slice(0, 2);
+  const options = (configuredOptions.length > 0 ? configuredOptions : availableOptions).slice(0, 4);
   const unavailable = !entity || ['unavailable', 'unknown'].includes(entity.state);
 
   const selectPreset = useCallback(
@@ -41,23 +71,27 @@ const CameraPresetCard = ({
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-sky-400/12 text-sky-300">
         <Camera className="h-6 w-6 stroke-[1.7px]" />
       </span>
-      <div className="grid min-w-0 flex-1 grid-cols-2 gap-2">
-        {options.map((option) => {
+      <div className={`grid min-w-0 flex-1 gap-2 ${gridColumns[options.length] || 'grid-cols-1'}`}>
+        {options.map((option, index) => {
           const active = entity?.state === option;
+          const PresetIcon = getPresetIcon(option, index);
           return (
             <button
               key={option}
               type="button"
               disabled={editMode || unavailable}
               onClick={(event) => selectPreset(event, option)}
-              className={`touch-feedback flex min-w-0 items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-xs font-bold transition-all active:scale-[0.97] ${
+              aria-label={option}
+              title={option}
+              className={`touch-feedback relative flex min-w-0 items-center justify-center rounded-xl border px-2 py-2 transition-all active:scale-[0.97] ${
                 active
                   ? 'border-sky-400/35 bg-sky-400/12 text-sky-300'
                   : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-primary)]'
               } ${unavailable ? 'opacity-45' : ''}`}
             >
-              <span className="truncate">{option}</span>
-              {active && <Check className="h-4 w-4 shrink-0" />}
+              <PresetIcon className="h-5 w-5 stroke-[1.7px]" />
+              <span className="sr-only">{option}</span>
+              {active && <Check className="absolute top-1 right-1 h-3 w-3" />}
             </button>
           );
         })}

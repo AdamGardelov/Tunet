@@ -160,4 +160,48 @@ describe('custom routine cards', () => {
       option: 'Walters säng',
     });
   });
+
+  it('adapts camera preset columns from one through four icon buttons', () => {
+    const { rerender, container } = render(
+      <CameraPresetCard
+        cardId="camera_presets_1"
+        settings={{ entityId: 'select.camera_preset' }}
+        entities={{
+          'select.camera_preset': {
+            state: 'Preset 1',
+            attributes: { options: ['Preset 1'] },
+          },
+        }}
+        callService={vi.fn()}
+        dragProps={{}}
+        controls={null}
+        cardStyle={{}}
+        editMode={false}
+      />
+    );
+
+    expect(container.querySelector('.grid')).toHaveClass('grid-cols-1');
+
+    rerender(
+      <CameraPresetCard
+        cardId="camera_presets_1"
+        settings={{ entityId: 'select.camera_preset' }}
+        entities={{
+          'select.camera_preset': {
+            state: 'Preset 1',
+            attributes: { options: ['Preset 1', 'Preset 2', 'Preset 3', 'Preset 4', 'Preset 5'] },
+          },
+        }}
+        callService={vi.fn()}
+        dragProps={{}}
+        controls={null}
+        cardStyle={{}}
+        editMode={false}
+      />
+    );
+
+    expect(container.querySelector('.grid')).toHaveClass('grid-cols-4');
+    expect(screen.getAllByRole('button')).toHaveLength(4);
+    expect(screen.queryByText('Preset 1', { selector: ':not(.sr-only)' })).not.toBeInTheDocument();
+  });
 });
