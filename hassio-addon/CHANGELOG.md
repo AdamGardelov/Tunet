@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0-adam.39
+
+- Replaces duplicate bedside-light icons with one shared leading light icon.
+- Gives both light names and power controls more room while preserving the aligned card layout.
+
 ## 1.23.0-adam.38
 
 - Softens active and completed controls with the same tinted treatment as the Lights page.
