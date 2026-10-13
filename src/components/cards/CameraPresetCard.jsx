@@ -3,7 +3,6 @@ import { MdCameraOutdoor, MdOutlineStroller } from 'react-icons/md';
 import {
   Baby,
   Bed,
-  Check,
   Eye,
   Home,
   MapPin,
@@ -15,6 +14,7 @@ import {
 } from '../../icons';
 import useActionFeedback from '../../hooks/useActionFeedback';
 import ActionFeedbackIndicator from '../ui/ActionFeedbackIndicator';
+import { compactControlTone, compactIconTile } from '../ui/compactControlStyles';
 
 const fallbackIcons = [MapPin, Navigation, Eye, Star];
 const gridColumns = {
@@ -166,7 +166,7 @@ const CameraPresetCard = ({
       aria-label={settings.title || 'Kamerapositioner'}
     >
       {controls}
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-sky-400/12 text-sky-300">
+      <span className={compactIconTile}>
         <MdCameraOutdoor className="h-6 w-6" data-testid="camera-surveillance-icon" />
       </span>
       <div className={`grid min-w-0 flex-1 gap-2 ${gridColumns[actionCount] || 'grid-cols-1'}`}>
@@ -177,7 +177,7 @@ const CameraPresetCard = ({
             onClick={openLiveStream}
             aria-label="Live"
             title="Live"
-            className="touch-feedback relative flex min-w-0 items-center justify-center rounded-xl border border-sky-400/35 bg-sky-400/12 px-2 py-2 text-sky-300 transition-all duration-200 active:scale-[0.94] disabled:opacity-45"
+            className={`touch-feedback relative flex h-11 min-w-0 items-center justify-center rounded-2xl border px-2 transition-all duration-200 active:scale-[0.94] disabled:opacity-45 ${compactControlTone.idle}`}
           >
             <Video className="h-5 w-5 stroke-[1.7px]" />
             <span className="sr-only">Live</span>
@@ -197,14 +197,14 @@ const CameraPresetCard = ({
               aria-label={option}
               aria-pressed={active}
               title={option}
-              className={`touch-feedback relative flex min-w-0 items-center justify-center rounded-xl border px-2 py-2 transition-all duration-200 active:scale-[0.94] ${
+              className={`touch-feedback relative flex h-11 min-w-0 items-center justify-center rounded-2xl border px-2 transition-all duration-200 active:scale-[0.94] ${
                 actionStatus === 'success'
-                  ? 'border-[var(--status-success-border)] bg-[var(--status-success-bg)] text-[var(--status-success-fg)] shadow-[0_0_0_2px_var(--status-success-bg)]'
+                  ? compactControlTone.success
                   : actionStatus === 'error'
-                    ? 'border-[var(--status-error-border)] bg-[var(--status-error-bg)] text-[var(--status-error-fg)]'
+                    ? compactControlTone.error
                     : active
-                      ? 'border-sky-300/70 bg-sky-400/20 text-sky-200 shadow-[0_0_0_2px_rgba(125,211,252,0.18)]'
-                      : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-primary)]'
+                      ? compactControlTone.active
+                      : compactControlTone.idle
               } ${unavailable ? 'opacity-45' : ''}`}
             >
               {actionStatus === 'idle' ? (
@@ -213,9 +213,6 @@ const CameraPresetCard = ({
                 <ActionFeedbackIndicator status={actionStatus} />
               )}
               <span className="sr-only">{option}</span>
-              {active && actionStatus === 'idle' && (
-                <Check className="absolute top-1 right-1 h-3 w-3" />
-              )}
             </button>
           );
         })}

@@ -113,6 +113,15 @@ describe('custom routine cards', () => {
     expect(screen.getByText('ca 19 dagar kvar')).toBeInTheDocument();
     expect(screen.getByText('38 doser')).toBeInTheDocument();
     expect(screen.queryByText(/2\/dag/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Morgon/i })).toHaveClass(
+      'rounded-2xl',
+      'bg-[var(--glass-bg)]'
+    );
+    expect(screen.getByRole('button', { name: /Kväll/i })).toHaveClass(
+      'rounded-2xl',
+      'bg-[var(--status-success-fg)]',
+      'text-white'
+    );
     fireEvent.click(screen.getByRole('button', { name: /Morgon/i }));
     expect(callService).toHaveBeenNthCalledWith(1, 'input_number', 'set_value', {
       entity_id: 'input_number.sparven_doser',
@@ -254,6 +263,15 @@ describe('custom routine cards', () => {
     expect(screen.getByRole('button', { name: 'Walters säng' })).toHaveAttribute(
       'aria-pressed',
       'false'
+    );
+    expect(screen.getByRole('button', { name: 'Våran säng' })).toHaveClass(
+      'rounded-2xl',
+      'bg-[var(--accent-color)]',
+      'text-white'
+    );
+    expect(screen.getByRole('button', { name: 'Walters säng' })).toHaveClass(
+      'rounded-2xl',
+      'bg-[var(--glass-bg)]'
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Walters säng' }));

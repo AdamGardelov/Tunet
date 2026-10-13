@@ -1,5 +1,6 @@
 import { memo, useCallback, useMemo } from 'react';
 import { Cat, Check } from '../../icons';
+import { compactControlTone, compactIconTile } from '../ui/compactControlStyles';
 
 const findEntity = (entityIds, pattern, fallbackDomains, entities, used = new Set()) =>
   entityIds.find((id) => !used.has(id) && pattern.test(id)) ||
@@ -81,10 +82,8 @@ const MedicationCard = ({
         type="button"
         disabled={editMode || unavailable}
         onClick={(event) => toggleDose(event, entityId)}
-        className={`touch-feedback flex min-w-0 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold transition-all active:scale-[0.97] ${
-          done
-            ? 'border-emerald-400/30 bg-emerald-400/12 text-emerald-300'
-            : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)]'
+        className={`touch-feedback flex h-11 min-w-0 items-center justify-center gap-2 rounded-2xl border px-3 text-xs font-bold transition-all active:scale-[0.97] ${
+          done ? compactControlTone.success : compactControlTone.idle
         } ${unavailable ? 'opacity-45' : ''}`}
       >
         <span className="truncate">{label}</span>
@@ -102,7 +101,7 @@ const MedicationCard = ({
       aria-label={settings.title || 'Sparvens inhalator'}
     >
       {controls}
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-400/12 text-emerald-300">
+      <span className={compactIconTile}>
         <Cat className="h-6 w-6 stroke-[1.7px]" />
       </span>
       <div className="min-w-0 flex-1 overflow-hidden">
@@ -111,7 +110,7 @@ const MedicationCard = ({
         </p>
         {hasDoseValue ? (
           <div className="mt-1.5 min-w-0 leading-none">
-            <p className="truncate text-[11px] font-extrabold text-emerald-300">
+            <p className="truncate text-[11px] font-extrabold text-[var(--text-primary)]">
               ca {days} dagar kvar
             </p>
             <p className="mt-1 truncate text-[9px] font-bold tracking-wide text-[var(--text-secondary)] uppercase">

@@ -2,6 +2,7 @@ import { memo, useCallback } from 'react';
 import { AirVent, Lightbulb, Power } from '../../icons';
 import useActionFeedback from '../../hooks/useActionFeedback';
 import ActionFeedbackIndicator from '../ui/ActionFeedbackIndicator';
+import { compactControlTone, compactIconTile } from '../ui/compactControlStyles';
 
 const toggleDomains = new Set(['light', 'switch', 'input_boolean', 'fan']);
 
@@ -78,9 +79,7 @@ const QuickControlsCard = ({
         aria-pressed={unavailable ? undefined : active}
         className={`touch-feedback flex min-h-0 min-w-0 flex-1 items-center gap-3 text-left transition-all duration-200 active:scale-[0.96] ${standalone ? 'w-full' : 'rounded-xl py-1'} ${unavailable ? 'opacity-55' : ''} ${actionStatus === 'success' ? 'text-[var(--status-success-fg)]' : actionStatus === 'error' ? 'text-[var(--status-error-fg)]' : ''}`}
       >
-        <span
-          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--glass-bg-hover)] ${active ? 'text-[var(--accent-color)]' : 'text-[var(--text-muted)]'}`}
-        >
+        <span className={compactIconTile}>
           <Icon className="h-[22px] w-[22px] stroke-[1.7px]" />
         </span>
         <span className="min-w-0 flex-1">
@@ -100,11 +99,7 @@ const QuickControlsCard = ({
         ) : !unavailable ? (
           <span
             data-testid={`quick-control-power-${entityId}`}
-            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
-              active
-                ? 'bg-[var(--accent-color)] text-white shadow-lg shadow-black/20'
-                : 'bg-[var(--glass-bg)] text-[var(--text-muted)]'
-            }`}
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-all duration-300 ${active ? compactControlTone.active : compactControlTone.idle}`}
             aria-hidden="true"
           >
             <Power className="h-4 w-4" />
