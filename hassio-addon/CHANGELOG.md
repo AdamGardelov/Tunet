@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.23.0-adam.42
+
+- Makes each bedside light a large, fully tappable control instead of using a separate power circle.
+- Shows on and off through both text and a calm warm-or-neutral tile treatment.
+- Keeps immediate sending, success, and failure feedback inside the tapped light control.
+
 ## 1.23.0-adam.41
 
 - Preserves room for the full medication-days status on narrow mobile screens.
