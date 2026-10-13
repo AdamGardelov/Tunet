@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.23.0-adam.20
+
+- Hide the legacy default `Snabbkontroller` heading on compact grouped control rows while preserving custom headings.
+
 ## 1.23.0-adam.19
 
 - Corrected the reviewed-source pin so the camera preset and grouped bedside-light fixes are included in the installed image.
