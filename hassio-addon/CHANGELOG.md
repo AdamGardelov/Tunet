@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0-adam.45
+
+- Removes the redundant visible medication heading.
+- Promotes remaining days to the primary status while keeping the exact dose count secondary.
+
 ## 1.23.0-adam.44
 
 - Rebuilds the medication card with a quiet summary row and two equal, fully tappable dose controls.
