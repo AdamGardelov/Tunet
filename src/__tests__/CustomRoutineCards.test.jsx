@@ -188,6 +188,7 @@ describe('custom routine cards', () => {
 
     expect(screen.getByText('19 dagar kvar')).toBeInTheDocument();
     expect(screen.getByText('38 doser')).toBeInTheDocument();
+    expect(screen.queryByText('Sparvens inhalator')).not.toBeInTheDocument();
     expect(screen.queryByText(/2\/dag/i)).not.toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Sparvens inhalator' })).toHaveClass(
       'flex-col',
