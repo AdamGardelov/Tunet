@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.23.0-adam.17
+
+- Made profile publishing work reliably inside Home Assistant ingress without a blocking browser confirmation.
+
 ## 1.23.0-adam.16
 
 - Added a safe way to replace an existing shared profile with the dashboard currently shown on the publishing device.
