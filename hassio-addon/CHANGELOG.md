@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0-adam.29
+
+- Centered the person cards at the top of the mobile dashboard.
+- Made mobile avatars and labels slightly larger for easier reading.
+
 ## 1.23.0-adam.28
 
 - Replaced the cramped mobile light search field with a compact search icon.
