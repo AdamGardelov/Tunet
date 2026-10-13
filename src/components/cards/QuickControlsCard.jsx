@@ -25,6 +25,7 @@ const QuickControlsCard = ({
 }) => {
   const entityIds = Array.isArray(settings.entityIds) ? settings.entityIds : [];
   const singleControl = entityIds.length === 1;
+  const title = typeof settings.title === 'string' ? settings.title.trim() : '';
 
   const handleToggle = useCallback(
     (event, entityId) => {
@@ -123,12 +124,14 @@ const QuickControlsCard = ({
       {...dragProps}
       className={`group relative flex h-full flex-col overflow-hidden rounded-3xl border font-sans ${isMobile ? 'px-4 py-3' : 'p-3'} ${editMode ? 'cursor-move' : ''}`}
       style={cardStyle}
-      aria-label={settings.title || 'Snabbkontroller'}
+      aria-label={title || 'Snabbkontroller'}
     >
       {controls}
-      <p className="mb-1 px-1 text-[10px] font-bold tracking-[0.18em] text-[var(--text-secondary)] uppercase opacity-60">
-        {settings.title || 'Snabbkontroller'}
-      </p>
+      {title && (
+        <p className="mb-1 px-1 text-[10px] font-bold tracking-[0.18em] text-[var(--text-secondary)] uppercase opacity-60">
+          {title}
+        </p>
+      )}
       <div className="grid min-h-0 flex-1 grid-cols-2 gap-2">
         {entityIds.map((entityId) => renderControl(entityId))}
       </div>

@@ -4,6 +4,7 @@
 
 - Fixed Tapo camera preset buttons being disabled while their momentary selector rests in the normal `unknown` state.
 - Added dedicated baby, bed, and stroller icons for the household camera positions.
+- Let compact multi-control rows omit their heading for a cleaner pair of bedside-light toggles.
 
 ## 1.23.0-adam.17
 

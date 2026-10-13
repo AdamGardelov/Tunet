@@ -306,7 +306,7 @@ export const handleAddSelected = (ctx) => {
       const cardId = `quick_controls_${Date.now()}`;
       commitSingleCard(cardId, {
         entityIds: selectedEntities,
-        title: 'Snabbkontroller',
+        title: '',
         size: 'small',
         colSpan: 'full',
       });

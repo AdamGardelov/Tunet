@@ -43,6 +43,7 @@ describe('custom routine cards', () => {
     expect(callService).toHaveBeenNthCalledWith(2, 'climate', 'turn_off', {
       entity_id: 'climate.ac',
     });
+    expect(screen.queryByText('Snabbkontroller')).not.toBeInTheDocument();
   });
 
   it('renders a single quick control as a standalone card without a group heading', () => {
