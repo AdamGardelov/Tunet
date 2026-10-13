@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.23.0-adam.37
+
+- Gives camera presets, bedside lights, and medication actions one shared visual language.
+- Uses blue only for active selections, green only for completed doses, and gray for inactive controls.
+- Removes decorative double outlines and keeps non-interactive section icons neutral.
+
 ## 1.23.0-adam.36
 
 - Makes an active bedside-light power button unmistakably filled and bright.
