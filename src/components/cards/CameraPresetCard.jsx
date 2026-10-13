@@ -1,9 +1,8 @@
 import { memo, useCallback } from 'react';
-import { MdOutlineStroller } from 'react-icons/md';
+import { MdCameraOutdoor, MdOutlineStroller } from 'react-icons/md';
 import {
   Baby,
   Bed,
-  Camera,
   Check,
   Eye,
   Home,
@@ -12,6 +11,7 @@ import {
   Sofa,
   Star,
   Utensils,
+  Video,
 } from '../../icons';
 import useActionFeedback from '../../hooks/useActionFeedback';
 import ActionFeedbackIndicator from '../ui/ActionFeedbackIndicator';
@@ -38,6 +38,18 @@ const orderDefaultPresets = (options) =>
     .sort((a, b) => a.rank - b.rank || a.index - b.index)
     .map(({ option }) => option);
 
+export const resolvePresetCameraId = (selectEntityId, entities, configuredCameraId) => {
+  if (configuredCameraId && entities[configuredCameraId]) return configuredCameraId;
+  const selectorName = String(selectEntityId || '').replace(/^select\./, '');
+  const cameraStem = selectorName.replace(/_(?:move_to_)?preset.*$/i, '');
+  if (!cameraStem) return null;
+  return (
+    Object.keys(entities).find(
+      (candidateId) => candidateId.startsWith('camera.') && candidateId.includes(cameraStem)
+    ) || null
+  );
+};
+
 const getPresetIcon = (option, index) => {
   const name = String(option).toLowerCase();
   if (/walter|barn|baby|child/.test(name)) return Baby;
@@ -58,16 +70,20 @@ const CameraPresetCard = ({
   controls,
   cardStyle,
   editMode,
+  onOpenCamera,
 }) => {
   const entityId = settings.entityId || settings.entityIds?.[0];
   const entity = entities[entityId];
+  const cameraId = resolvePresetCameraId(entityId, entities, settings.cameraId);
+  const cameraEntity = cameraId ? entities[cameraId] : null;
+  const showLiveButton = Boolean(onOpenCamera && cameraEntity);
   const availableOptions = Array.isArray(entity?.attributes?.options)
     ? entity.attributes.options
     : [];
   const configuredOptions = Array.isArray(settings.options) ? settings.options : [];
   const options = (
     configuredOptions.length > 0 ? configuredOptions : orderDefaultPresets(availableOptions)
-  ).slice(0, 4);
+  ).slice(0, showLiveButton ? 3 : 4);
   // Tapo's momentary "Move to Preset" select deliberately rests in `unknown`.
   // Its options and select_option service still work, so only a genuinely
   // unavailable/missing entity should disable these buttons.
@@ -85,6 +101,17 @@ const CameraPresetCard = ({
     [callService, editMode, entityId, runAction, unavailable]
   );
 
+  const openLiveStream = useCallback(
+    (event) => {
+      event.stopPropagation();
+      if (editMode || !cameraId || cameraEntity?.state === 'unavailable') return;
+      onOpenCamera(cameraId);
+    },
+    [cameraEntity?.state, cameraId, editMode, onOpenCamera]
+  );
+
+  const actionCount = options.length + (showLiveButton ? 1 : 0);
+
   return (
     <section
       key={cardId}
@@ -95,9 +122,22 @@ const CameraPresetCard = ({
     >
       {controls}
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-sky-400/12 text-sky-300">
-        <Camera className="h-6 w-6 stroke-[1.7px]" />
+        <MdCameraOutdoor className="h-6 w-6" data-testid="camera-surveillance-icon" />
       </span>
-      <div className={`grid min-w-0 flex-1 gap-2 ${gridColumns[options.length] || 'grid-cols-1'}`}>
+      <div className={`grid min-w-0 flex-1 gap-2 ${gridColumns[actionCount] || 'grid-cols-1'}`}>
+        {showLiveButton && (
+          <button
+            type="button"
+            disabled={editMode || cameraEntity?.state === 'unavailable'}
+            onClick={openLiveStream}
+            aria-label="Live"
+            title="Live"
+            className="touch-feedback relative flex min-w-0 items-center justify-center rounded-xl border border-sky-400/35 bg-sky-400/12 px-2 py-2 text-sky-300 transition-all duration-200 active:scale-[0.94] disabled:opacity-45"
+          >
+            <Video className="h-5 w-5 stroke-[1.7px]" />
+            <span className="sr-only">Live</span>
+          </button>
+        )}
         {options.map((option, index) => {
           const active = entity?.state === option;
           const actionStatus = getStatus(option);

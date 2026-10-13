@@ -466,10 +466,18 @@ export function ModalEntitySlice({ core, modals, cardConfig, entityHelpers, reso
 
       {showCameraModal &&
         (() => {
-          const cameraSettingsKey = getCardSettingsKey(showCameraModal);
+          const cameraTarget =
+            typeof showCameraModal === 'string'
+              ? { cardId: showCameraModal }
+              : showCameraModal;
+          const cameraCardId = cameraTarget.cardId || null;
+          const cameraSettingsKey = cameraCardId ? getCardSettingsKey(cameraCardId) : null;
           const cameraSettings =
-            cardSettings[cameraSettingsKey] || cardSettings[showCameraModal] || {};
-          const cameraEntityId = cameraSettings.cameraId;
+            cameraTarget.settings ||
+            (cameraSettingsKey ? cardSettings[cameraSettingsKey] : null) ||
+            (cameraCardId ? cardSettings[cameraCardId] : null) ||
+            {};
+          const cameraEntityId = cameraTarget.cameraId || cameraSettings.cameraId;
           const cameraEntity = cameraEntityId ? entities[cameraEntityId] : null;
           if (!cameraEntityId || !cameraEntity) return null;
           return (
@@ -479,8 +487,8 @@ export function ModalEntitySlice({ core, modals, cardConfig, entityHelpers, reso
                 onClose={() => setShowCameraModal(null)}
                 entityId={cameraEntityId}
                 entity={cameraEntity}
-                customName={customNames?.[showCameraModal]}
-                customIcon={customIcons?.[showCameraModal]}
+                customName={cameraCardId ? customNames?.[cameraCardId] : null}
+                customIcon={cameraCardId ? customIcons?.[cameraCardId] : null}
                 conn={conn}
                 getEntityImageUrl={getEntityImageUrl}
                 settings={cameraSettings}

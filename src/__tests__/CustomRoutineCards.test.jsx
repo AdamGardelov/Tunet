@@ -295,4 +295,38 @@ describe('custom routine cards', () => {
       screen.getAllByRole('button').map((button) => button.getAttribute('aria-label'))
     ).toEqual(['Walters säng', 'Våran säng', 'Vagn']);
   });
+
+  it('places a live camera action before three presets and uses a surveillance icon', () => {
+    const onOpenCamera = vi.fn();
+    render(
+      <CameraPresetCard
+        cardId="camera_presets_1"
+        settings={{ entityId: 'select.walles_kamera_move_to_preset' }}
+        entities={{
+          'select.walles_kamera_move_to_preset': {
+            state: 'unknown',
+            attributes: { options: ['Våran säng', 'Walters säng', 'Vagn'] },
+          },
+          'camera.walles_kamera_hd_stream': {
+            state: 'streaming',
+            attributes: { friendly_name: 'Walles kamera HD stream' },
+          },
+        }}
+        callService={vi.fn()}
+        dragProps={{}}
+        controls={null}
+        cardStyle={{}}
+        editMode={false}
+        onOpenCamera={onOpenCamera}
+      />
+    );
+
+    expect(screen.getByTestId('camera-surveillance-icon')).toBeInTheDocument();
+    expect(
+      screen.getAllByRole('button').map((button) => button.getAttribute('aria-label'))
+    ).toEqual(['Live', 'Walters säng', 'Våran säng', 'Vagn']);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Live' }));
+    expect(onOpenCamera).toHaveBeenCalledWith('camera.walles_kamera_hd_stream');
+  });
 });

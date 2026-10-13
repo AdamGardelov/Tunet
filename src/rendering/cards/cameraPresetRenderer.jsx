@@ -9,7 +9,7 @@ export function renderCameraPresetCard(
   settingsKey,
   ctx
 ) {
-  const { entities, editMode, cardSettings, callService } = ctx;
+  const { entities, editMode, cardSettings, callService, setShowCameraModal } = ctx;
   const settings = getSettings(cardSettings, settingsKey, cardId);
   return (
     <CameraPresetCard
@@ -21,6 +21,7 @@ export function renderCameraPresetCard(
       controls={getControls(cardId)}
       cardStyle={cardStyle}
       editMode={editMode}
+      onOpenCamera={(cameraId) => setShowCameraModal({ cameraId })}
     />
   );
 }
