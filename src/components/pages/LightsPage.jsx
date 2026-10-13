@@ -432,6 +432,7 @@ const SortDropdown = memo(
 
 function LightsPage({ entities, callService, conn, pageSettings, pageId, savePageSetting, t }) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [sortMode, setSortMode] = useState(() => pageSettings?.[pageId]?.lightsSort || 'status');
   const [showGroups, setShowGroups] = useState(
     () => pageSettings?.[pageId]?.lightsShowGroups !== false
@@ -787,24 +788,44 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
       {allLights.length > 0 && (
         <div className="mb-5 flex flex-wrap items-center gap-3">
           {/* Search */}
-          <div className="relative min-w-0 flex-1">
-            <Search className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder={t('lights.search') || 'Search lights...'}
-              className="popup-surface w-full rounded-2xl py-2.5 pr-9 pl-10 text-sm text-[var(--text-primary)] transition-colors outline-none placeholder:text-[var(--text-muted)]"
-            />
-            {searchTerm && (
+          <div
+            className={`relative min-w-0 ${isMobileSearchOpen ? 'order-first basis-full' : ''} sm:flex-1 sm:basis-auto`}
+          >
+            {!isMobileSearchOpen && (
               <button
-                onClick={() => setSearchTerm('')}
-                className="absolute top-1/2 right-3 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full bg-[var(--glass-bg)] text-[var(--text-muted)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]"
-                aria-label={t('common.close') || 'Clear'}
+                type="button"
+                onClick={() => setIsMobileSearchOpen(true)}
+                className="popup-surface flex h-[42px] w-[42px] items-center justify-center rounded-2xl text-[var(--text-secondary)] transition-all active:scale-95 sm:hidden"
+                aria-label={t('lights.search') || 'Search lights'}
+                title={t('lights.search') || 'Search lights'}
               >
-                <X className="h-3 w-3" />
+                <Search className="h-4 w-4" />
               </button>
             )}
+            <div className={`${isMobileSearchOpen ? 'block' : 'hidden'} relative sm:block`}>
+              <Search className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
+              <input
+                type="search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder={t('lights.search') || 'Search lights...'}
+                className="popup-surface w-full rounded-2xl py-2.5 pr-9 pl-10 text-sm text-[var(--text-primary)] transition-colors outline-none placeholder:text-[var(--text-muted)]"
+                autoFocus={isMobileSearchOpen}
+              />
+              {(searchTerm || isMobileSearchOpen) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setIsMobileSearchOpen(false);
+                  }}
+                  className="absolute top-1/2 right-3 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full bg-[var(--glass-bg)] text-[var(--text-muted)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]"
+                  aria-label={t('common.close') || 'Clear'}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Sort dropdown */}
