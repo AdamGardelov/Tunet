@@ -1,5 +1,7 @@
 import { memo, useCallback } from 'react';
 import { AirVent, Lightbulb, Power } from '../../icons';
+import useActionFeedback from '../../hooks/useActionFeedback';
+import ActionFeedbackIndicator from '../ui/ActionFeedbackIndicator';
 
 const toggleDomains = new Set(['light', 'switch', 'input_boolean', 'fan']);
 
@@ -26,7 +28,9 @@ const QuickControlsCard = ({
   const entityIds = Array.isArray(settings.entityIds) ? settings.entityIds : [];
   const singleControl = entityIds.length === 1;
   const configuredTitle = typeof settings.title === 'string' ? settings.title.trim() : '';
-  const title = configuredTitle.toLocaleLowerCase('sv-SE') === 'snabbkontroller' ? '' : configuredTitle;
+  const title =
+    configuredTitle.toLocaleLowerCase('sv-SE') === 'snabbkontroller' ? '' : configuredTitle;
+  const { getStatus, runAction } = useActionFeedback();
 
   const handleToggle = useCallback(
     (event, entityId) => {
@@ -36,14 +40,16 @@ const QuickControlsCard = ({
       if (!entity || ['unavailable', 'unknown'].includes(entity.state)) return;
       const domain = entityId.split('.')[0];
       if (domain === 'climate') {
-        callService('climate', entity.state === 'off' ? 'turn_on' : 'turn_off', {
-          entity_id: entityId,
-        });
+        runAction(entityId, () =>
+          callService('climate', entity.state === 'off' ? 'turn_on' : 'turn_off', {
+            entity_id: entityId,
+          })
+        );
       } else if (toggleDomains.has(domain)) {
-        callService(domain, 'toggle', { entity_id: entityId });
+        runAction(entityId, () => callService(domain, 'toggle', { entity_id: entityId }));
       }
     },
-    [callService, editMode, entities]
+    [callService, editMode, entities, runAction]
   );
 
   const renderControl = (entityId, standalone = false) => {
@@ -51,6 +57,8 @@ const QuickControlsCard = ({
     const domain = entityId.split('.')[0];
     const unavailable = !entity || ['unavailable', 'unknown'].includes(entity.state);
     const active = !unavailable && entity.state !== 'off';
+    const actionStatus = getStatus(entityId);
+    const pending = actionStatus === 'pending';
     const Icon = domain === 'climate' ? AirVent : domain === 'light' ? Lightbulb : Power;
     const temperature = entity?.attributes?.current_temperature;
     const stateLabel = unavailable
@@ -65,9 +73,9 @@ const QuickControlsCard = ({
       <button
         key={entityId}
         type="button"
-        disabled={unavailable || editMode}
+        disabled={unavailable || editMode || pending}
         onClick={(event) => handleToggle(event, entityId)}
-        className={`touch-feedback flex min-h-0 min-w-0 flex-1 items-center gap-3 text-left transition-all active:scale-[0.98] ${standalone ? 'w-full' : 'rounded-xl px-1 py-1'} ${unavailable ? 'opacity-55' : ''}`}
+        className={`touch-feedback flex min-h-0 min-w-0 flex-1 items-center gap-3 text-left transition-all duration-200 active:scale-[0.96] ${standalone ? 'w-full' : 'rounded-xl px-1 py-1'} ${unavailable ? 'opacity-55' : ''} ${actionStatus === 'success' ? 'text-[var(--status-success-fg)]' : actionStatus === 'error' ? 'text-[var(--status-error-fg)]' : ''}`}
       >
         <span
           className={`flex shrink-0 items-center justify-center bg-[var(--glass-bg-hover)] ${standalone ? 'h-11 w-11 rounded-2xl' : 'h-10 w-10 rounded-xl'} ${active ? 'text-[var(--accent-color)]' : 'text-[var(--text-muted)]'}`}
@@ -84,7 +92,11 @@ const QuickControlsCard = ({
             {stateLabel}
           </span>
         </span>
-        {!unavailable && (
+        {!unavailable && actionStatus !== 'idle' ? (
+          <span className="flex h-7 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--glass-bg-hover)]">
+            <ActionFeedbackIndicator status={actionStatus} className="h-4 w-4" />
+          </span>
+        ) : !unavailable ? (
           <span
             className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
               active ? 'bg-[var(--accent-color)]' : 'bg-[var(--glass-bg-hover)]'
@@ -97,7 +109,7 @@ const QuickControlsCard = ({
               }`}
             />
           </span>
-        )}
+        ) : null}
       </button>
     );
   };

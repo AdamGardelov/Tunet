@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import MedicationCard from '../components/cards/MedicationCard';
 import QuickControlsCard from '../components/cards/QuickControlsCard';
@@ -164,6 +164,68 @@ describe('custom routine cards', () => {
       entity_id: 'select.walles_kamera_move_to_preset',
       option: 'Walters säng',
     });
+  });
+
+  it('shows pending and success feedback while a camera preset is sent', async () => {
+    let resolveAction;
+    const callService = vi.fn(
+      () =>
+        new Promise((resolve) => {
+          resolveAction = resolve;
+        })
+    );
+    render(
+      <CameraPresetCard
+        cardId="camera_presets_1"
+        settings={{ entityId: 'select.camera_preset' }}
+        entities={{
+          'select.camera_preset': {
+            state: 'unknown',
+            attributes: { options: ['Walters säng'] },
+          },
+        }}
+        callService={callService}
+        dragProps={{}}
+        controls={null}
+        cardStyle={{}}
+        editMode={false}
+      />
+    );
+
+    const button = screen.getByRole('button', { name: /Walters säng/i });
+    fireEvent.click(button);
+
+    expect(screen.getByRole('status', { name: 'Skickar' })).toBeInTheDocument();
+    expect(button).toBeDisabled();
+
+    await act(async () => resolveAction());
+    expect(await screen.findByRole('status', { name: 'Klart' })).toBeInTheDocument();
+    expect(button).toBeEnabled();
+  });
+
+  it('shows error feedback when a quick control action fails', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const callService = vi.fn().mockRejectedValue(new Error('Disconnected'));
+    render(
+      <QuickControlsCard
+        cardId="quick_controls_1"
+        settings={{ entityIds: ['light.emma'] }}
+        entities={{
+          'light.emma': { state: 'off', attributes: { friendly_name: 'Emma sänglampa' } },
+        }}
+        callService={callService}
+        dragProps={{}}
+        controls={null}
+        cardStyle={{}}
+        editMode={false}
+        t={t}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Emma sänglampa/i }));
+
+    expect(await screen.findByRole('status', { name: 'Misslyckades' })).toBeInTheDocument();
+    consoleError.mockRestore();
   });
 
   it('adapts camera preset columns from one through four icon buttons', () => {

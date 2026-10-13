@@ -13,6 +13,8 @@ import {
   Star,
   Utensils,
 } from '../../icons';
+import useActionFeedback from '../../hooks/useActionFeedback';
+import ActionFeedbackIndicator from '../ui/ActionFeedbackIndicator';
 
 const fallbackIcons = [MapPin, Navigation, Eye, Star];
 const gridColumns = {
@@ -54,14 +56,17 @@ const CameraPresetCard = ({
   // Its options and select_option service still work, so only a genuinely
   // unavailable/missing entity should disable these buttons.
   const unavailable = !entity || entity.state === 'unavailable';
+  const { getStatus, runAction } = useActionFeedback();
 
   const selectPreset = useCallback(
     (event, option) => {
       event.stopPropagation();
       if (editMode || unavailable || !entityId) return;
-      callService('select', 'select_option', { entity_id: entityId, option });
+      runAction(option, () =>
+        callService('select', 'select_option', { entity_id: entityId, option })
+      );
     },
-    [callService, editMode, entityId, unavailable]
+    [callService, editMode, entityId, runAction, unavailable]
   );
 
   return (
@@ -79,24 +84,36 @@ const CameraPresetCard = ({
       <div className={`grid min-w-0 flex-1 gap-2 ${gridColumns[options.length] || 'grid-cols-1'}`}>
         {options.map((option, index) => {
           const active = entity?.state === option;
+          const actionStatus = getStatus(option);
+          const pending = actionStatus === 'pending';
           const PresetIcon = getPresetIcon(option, index);
           return (
             <button
               key={option}
               type="button"
-              disabled={editMode || unavailable}
+              disabled={editMode || unavailable || pending}
               onClick={(event) => selectPreset(event, option)}
               aria-label={option}
               title={option}
-              className={`touch-feedback relative flex min-w-0 items-center justify-center rounded-xl border px-2 py-2 transition-all active:scale-[0.97] ${
-                active
-                  ? 'border-sky-400/35 bg-sky-400/12 text-sky-300'
-                  : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-primary)]'
+              className={`touch-feedback relative flex min-w-0 items-center justify-center rounded-xl border px-2 py-2 transition-all duration-200 active:scale-[0.94] ${
+                actionStatus === 'success'
+                  ? 'border-[var(--status-success-border)] bg-[var(--status-success-bg)] text-[var(--status-success-fg)] shadow-[0_0_0_2px_var(--status-success-bg)]'
+                  : actionStatus === 'error'
+                    ? 'border-[var(--status-error-border)] bg-[var(--status-error-bg)] text-[var(--status-error-fg)]'
+                    : active
+                      ? 'border-sky-400/35 bg-sky-400/12 text-sky-300'
+                      : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-primary)]'
               } ${unavailable ? 'opacity-45' : ''}`}
             >
-              <PresetIcon className="h-5 w-5 stroke-[1.7px]" />
+              {actionStatus === 'idle' ? (
+                <PresetIcon className="h-5 w-5 stroke-[1.7px]" />
+              ) : (
+                <ActionFeedbackIndicator status={actionStatus} />
+              )}
               <span className="sr-only">{option}</span>
-              {active && <Check className="absolute top-1 right-1 h-3 w-3" />}
+              {active && actionStatus === 'idle' && (
+                <Check className="absolute top-1 right-1 h-3 w-3" />
+              )}
             </button>
           );
         })}
