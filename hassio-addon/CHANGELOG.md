@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.23.0-adam.23
+
+- Added a responsive vacuum view with a live map, room selection, and cleaning controls.
+- Replaced Sparven's heart with a cat and aligned compact dashboard icons.
+- Kept the Stugan tab at the far right.
+
 ## 1.23.0-adam.22
 
 - Reordered the household camera presets to Walter, shared bed, and stroller.
