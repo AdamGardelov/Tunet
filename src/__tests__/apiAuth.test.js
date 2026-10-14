@@ -19,6 +19,7 @@ vi.mock('home-assistant-js-websocket', () => ({
 
 describe('getHomeAssistantRequestHeaders', () => {
   beforeEach(() => {
+    globalThis.history.replaceState(null, '', '/');
     localStorage.clear();
     sessionStorage.clear();
     loadTokensMock.mockReset();
@@ -27,6 +28,28 @@ describe('getHomeAssistantRequestHeaders', () => {
     getOAuthTokenSavedAtMock.mockReturnValue(0);
     saveTokensMock.mockReset();
     getAuthMock.mockReset();
+  });
+
+  it('uses the authenticated Supervisor session inside ingress without browser credentials', async () => {
+    globalThis.history.replaceState(null, '', '/api/hassio_ingress/session-token/#/page/home');
+    localStorage.setItem('ha_auth_method', 'oauth');
+    localStorage.setItem('ha_url', 'https://stale.example');
+    loadTokensMock.mockReturnValue(undefined);
+
+    const {
+      getHomeAssistantRequestHeaders,
+      getStoredAuthMethod,
+      getValidatedHomeAssistantRequestHeaders,
+      getValidatedHomeAssistantRequestHeadersAsync,
+      hasHomeAssistantRequestAuth,
+    } = await import('../services/apiAuth');
+
+    expect(getStoredAuthMethod()).toBe('ingress');
+    expect(getHomeAssistantRequestHeaders()).toEqual({});
+    expect(getValidatedHomeAssistantRequestHeaders()).toEqual({});
+    await expect(getValidatedHomeAssistantRequestHeadersAsync()).resolves.toEqual({});
+    expect(hasHomeAssistantRequestAuth()).toBe(true);
+    expect(getAuthMock).not.toHaveBeenCalled();
   });
 
   it('uses OAuth access tokens when OAuth auth is active', async () => {

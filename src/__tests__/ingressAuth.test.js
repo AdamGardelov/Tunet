@@ -3,6 +3,7 @@ import {
   buildIngressWebSocketUrl,
   createIngressAuth,
   fetchIngressSessionUser,
+  isIngressLocation,
 } from '../services/ingressAuth';
 
 describe('ingress authentication', () => {
@@ -16,6 +17,7 @@ describe('ingress authentication', () => {
     expect(buildIngressWebSocketUrl(location)).toBe(
       'wss://example.ui.nabu.casa/api/hassio_ingress/session-token/api/ha-websocket'
     );
+    expect(isIngressLocation(location)).toBe(true);
     expect(createIngressAuth(location)).toMatchObject({
       accessToken: 'supervisor-ingress',
       expired: false,
@@ -30,6 +32,7 @@ describe('ingress authentication', () => {
     };
 
     expect(buildIngressWebSocketUrl(location)).toBe('');
+    expect(isIngressLocation(location)).toBe(false);
     expect(createIngressAuth(location)).toBeNull();
   });
 

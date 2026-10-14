@@ -1,5 +1,6 @@
 import { getAuth } from 'home-assistant-js-websocket';
 import { clearOAuthTokens, getOAuthTokenSavedAt, loadTokens, saveTokens } from './oauthStorage';
+import { isIngressLocation } from './ingressAuth';
 
 export const HOME_ASSISTANT_API_UNAUTHORIZED_EVENT = 'tunet:api-auth-unauthorized';
 const OAUTH_PROACTIVE_REFRESH_MS = 45 * 60 * 1000;
@@ -11,6 +12,8 @@ let pendingOAuthRefreshPromise = null;
 let pendingOAuthAuthPromise = null;
 
 export const getStoredAuthMethod = () => {
+  if (isIngressLocation()) return 'ingress';
+
   try {
     return globalThis.localStorage?.getItem('ha_auth_method') || 'oauth';
   } catch {
@@ -208,6 +211,8 @@ const getStoredFallbackUrl = () => {
 };
 
 export function getHomeAssistantRequestHeaders() {
+  if (isIngressLocation()) return {};
+
   const headers = {};
   const haUrl = getStoredUrl();
   const fallbackUrl = getStoredFallbackUrl();
@@ -229,6 +234,8 @@ export function getHomeAssistantRequestHeaders() {
 }
 
 export async function getHomeAssistantRequestHeadersAsync({ forceRefreshOAuth = false } = {}) {
+  if (isIngressLocation()) return {};
+
   const headers = {};
   const haUrl = getStoredUrl();
   const fallbackUrl = getStoredFallbackUrl();
@@ -268,11 +275,15 @@ export async function getHomeAssistantRequestHeadersAsync({ forceRefreshOAuth = 
 }
 
 export function hasHomeAssistantRequestAuth() {
+  if (isIngressLocation()) return true;
+
   const headers = getHomeAssistantRequestHeaders();
   return Boolean(headers['x-ha-url'] && headers.Authorization);
 }
 
 export function getValidatedHomeAssistantRequestHeaders() {
+  if (isIngressLocation()) return {};
+
   const headers = getHomeAssistantRequestHeaders();
 
   if (!headers['x-ha-url']) {
@@ -287,6 +298,8 @@ export function getValidatedHomeAssistantRequestHeaders() {
 }
 
 export async function getValidatedHomeAssistantRequestHeadersAsync(options = {}) {
+  if (isIngressLocation()) return {};
+
   const headers = await getHomeAssistantRequestHeadersAsync(options);
 
   if (!headers['x-ha-url']) {

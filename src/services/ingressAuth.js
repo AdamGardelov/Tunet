@@ -1,13 +1,21 @@
 const INGRESS_PATH_PATTERN = /(.*\/api\/hassio_ingress\/[^/]+)/;
 
+const getIngressBasePath = (location = globalThis.window?.location) => {
+  if (!location) return '';
+  return INGRESS_PATH_PATTERN.exec(location.pathname || '')?.[1] || '';
+};
+
+export const isIngressLocation = (location = globalThis.window?.location) =>
+  Boolean(getIngressBasePath(location));
+
 export const buildIngressWebSocketUrl = (location = globalThis.window?.location) => {
   if (!location) return '';
 
-  const ingressMatch = INGRESS_PATH_PATTERN.exec(location.pathname || '');
-  if (!ingressMatch?.[1]) return '';
+  const ingressBasePath = getIngressBasePath(location);
+  if (!ingressBasePath) return '';
 
   const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-  return `${protocol}//${location.host}${ingressMatch[1]}/api/ha-websocket`;
+  return `${protocol}//${location.host}${ingressBasePath}/api/ha-websocket`;
 };
 
 export const createIngressAuth = (location = globalThis.window?.location) => {
