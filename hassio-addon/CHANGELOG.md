@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.23.0-adam.53
+
+- Uses the signed-in Home Assistant person for dashboard profiles and settings while running through ingress.
+- Restores profile synchronization across local, VPN, and Home Assistant Cloud addresses.
+- Removes misleading proxy-header warnings from the add-on log.
+
 ## 1.23.0-adam.52
 
 - Connects Tunet to Home Assistant through its authenticated Supervisor ingress session.
