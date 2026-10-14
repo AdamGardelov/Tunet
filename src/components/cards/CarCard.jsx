@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, memo } from 'react';
 import { getIconComponent } from '../../icons';
-import { Car, Flame, MapPin, Plug, Zap } from '../../icons';
+import { Car, Flame, MapPin, Plug, WifiOff, Zap } from '../../icons';
 import { useConfig, useHomeAssistantMeta } from '../../contexts';
 import {
   convertValueByKind,
@@ -91,6 +91,24 @@ const CarCard = ({
     imageUrl,
   } = settings;
   const effectiveChargingId = chargingStateId || chargingId;
+  const availabilityEntityIds = [
+    settings.anchorEntityId,
+    settings.apiStatusId,
+    batteryId,
+    rangeId,
+    locationId,
+    effectiveChargingId,
+    pluggedId,
+    climateId,
+  ].filter(Boolean);
+  const hasEntitySnapshot = entities && Object.keys(entities).length > 0;
+  const isUnavailable =
+    hasEntitySnapshot &&
+    availabilityEntityIds.length > 0 &&
+    availabilityEntityIds.every((id) => {
+      const state = entities[id]?.state;
+      return !state || ['unavailable', 'unknown'].includes(String(state).toLowerCase());
+    });
 
   const batteryValue = getNumberState(entities, batteryId);
   const rangeValue = getNumberState(entities, rangeId);
@@ -129,18 +147,30 @@ const CarCard = ({
   const isSmall = sizeSetting === 'small';
   const isDenseMobile = isMobile && !isSmall;
   const useCompactMetrics = isDenseMobile || isNarrowLargeCard;
+  const openCard = () => {
+    if (!editMode && !isUnavailable) onOpen();
+  };
+  const handleKeyDown = (event) => {
+    if (editMode || isUnavailable || !['Enter', ' '].includes(event.key)) return;
+    event.preventDefault();
+    onOpen();
+  };
 
   if (isSmall) {
     return (
       <div
         key={cardId}
         {...dragProps}
-        data-haptic={editMode ? undefined : 'card'}
+        role={editMode ? undefined : 'button'}
+        tabIndex={editMode || isUnavailable ? -1 : 0}
+        aria-disabled={!editMode && isUnavailable ? true : undefined}
+        data-haptic={editMode || isUnavailable ? undefined : 'card'}
         onClick={(e) => {
           e.stopPropagation();
-          if (!editMode) onOpen();
+          openCard();
         }}
-        className={`glass-texture touch-feedback group relative flex h-full items-center justify-between gap-4 overflow-hidden rounded-3xl border p-4 pl-5 font-sans transition-all duration-500 ${!editMode ? 'cursor-pointer active:scale-[0.98]' : 'cursor-move'}`}
+        onKeyDown={handleKeyDown}
+        className={`glass-texture group relative flex h-full items-center justify-between gap-4 overflow-hidden rounded-3xl border p-4 pl-5 font-sans transition-all duration-500 ${editMode ? 'cursor-move' : isUnavailable ? 'cursor-default' : 'touch-feedback cursor-pointer active:scale-[0.98]'}`}
         style={{
           ...cardStyle,
           backgroundColor: isHtg ? 'rgba(249, 115, 22, 0.06)' : 'var(--card-bg)',
@@ -163,15 +193,24 @@ const CarCard = ({
               {name}
             </p>
             <div className="flex flex-col gap-0.5 leading-tight">
-              <span
-                className={`text-sm font-bold ${isCharging ? 'text-[var(--status-success-fg)]' : 'text-[var(--text-primary)]'}`}
-              >
-                {batteryValue !== null ? `${formatValue(batteryValue)}%` : '--'}
-              </span>
-              {displayRangeValue !== null && (
-                <span className="text-xs text-[var(--text-secondary)]">
-                  {formatUnitValue(displayRangeValue, { fallback: '--' })} {rangeUnit}
+              {isUnavailable ? (
+                <span className="flex items-center gap-1.5 text-xs font-semibold text-[var(--text-muted)]">
+                  <WifiOff className="h-3.5 w-3.5 shrink-0" />
+                  {t('status.unavailable')}
                 </span>
+              ) : (
+                <>
+                  <span
+                    className={`text-sm font-bold ${isCharging ? 'text-[var(--status-success-fg)]' : 'text-[var(--text-primary)]'}`}
+                  >
+                    {batteryValue !== null ? `${formatValue(batteryValue)}%` : '--'}
+                  </span>
+                  {displayRangeValue !== null && (
+                    <span className="text-xs text-[var(--text-secondary)]">
+                      {formatUnitValue(displayRangeValue, { fallback: '--' })} {rangeUnit}
+                    </span>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -185,12 +224,16 @@ const CarCard = ({
       ref={cardRef}
       key={cardId}
       {...dragProps}
-      data-haptic={editMode ? undefined : 'card'}
+      role={editMode ? undefined : 'button'}
+      tabIndex={editMode || isUnavailable ? -1 : 0}
+      aria-disabled={!editMode && isUnavailable ? true : undefined}
+      data-haptic={editMode || isUnavailable ? undefined : 'card'}
       onClick={(e) => {
         e.stopPropagation();
-        if (!editMode) onOpen();
+        openCard();
       }}
-      className={`glass-texture touch-feedback group relative flex h-full flex-col overflow-hidden rounded-3xl border font-sans transition-all duration-500 ${isDenseMobile ? 'gap-4 p-5' : 'gap-5 p-7'} ${!editMode ? 'cursor-pointer active:scale-98' : 'cursor-move'}`}
+      onKeyDown={handleKeyDown}
+      className={`glass-texture group relative flex h-full flex-col overflow-hidden rounded-3xl border font-sans transition-all duration-500 ${isDenseMobile ? 'gap-4 p-5' : 'gap-5 p-7'} ${editMode ? 'cursor-move' : isUnavailable ? 'cursor-default' : 'touch-feedback cursor-pointer active:scale-98'}`}
       style={{
         ...cardStyle,
         backgroundColor: isHtg ? 'rgba(249, 115, 22, 0.08)' : 'var(--card-bg)',
@@ -217,7 +260,16 @@ const CarCard = ({
           </p>
         </div>
         <div className={`flex max-w-[62%] flex-col items-end ${isDenseMobile ? 'gap-1.5' : 'gap-2'}`}>
-          {locationLabel && (
+          {isUnavailable ? (
+            <div
+              className={`flex max-w-full items-center border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-muted)] ${isDenseMobile ? 'gap-1.5 rounded-xl px-2.5 py-1' : 'gap-2 rounded-2xl px-3 py-1.5'}`}
+            >
+              <WifiOff className={`${isDenseMobile ? 'h-3 w-3' : 'h-3.5 w-3.5'} shrink-0`} />
+              <span className={`${isDenseMobile ? 'text-[10px]' : 'text-xs'} font-bold tracking-widest uppercase`}>
+                {t('status.unavailable')}
+              </span>
+            </div>
+          ) : locationLabel ? (
             <div
               className={`flex max-w-full items-start border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] ${isDenseMobile ? 'gap-1 rounded-xl px-2.5 py-1' : 'gap-1.5 rounded-2xl px-3 py-1.5'}`}
             >
@@ -228,8 +280,8 @@ const CarCard = ({
                 {String(locationLabel)}
               </span>
             </div>
-          )}
-          {(isHtg || isPlugged) && (
+          ) : null}
+          {!isUnavailable && (isHtg || isPlugged) && (
             <div className={`flex shrink-0 items-center ${isDenseMobile ? 'gap-1.5' : 'gap-2'}`}>
               {isHtg && (
                 <div

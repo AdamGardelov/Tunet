@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.23.0-adam.56
+
+- Keeps unavailable vehicle cards visible with a clear disconnected status instead of misleading empty data.
+- Disables vehicle details and haptic click feedback while every mapped vehicle entity is unavailable.
+- Restores the card automatically as soon as the vehicle integration comes back online.
+
 ## 1.23.0-adam.55
 
 - Makes all heater controls respond immediately while Home Assistant and Adax catch up.
