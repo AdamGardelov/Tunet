@@ -217,6 +217,12 @@ describe('custom routine cards', () => {
       'bg-[var(--status-success-bg)]',
       'text-[var(--status-success-fg)]'
     );
+    expect(
+      screen.getByTestId('medication-dose-indicator-input_boolean.sparven_kvall')
+    ).toHaveClass('flex', 'h-4', 'w-4', 'items-center', 'justify-center');
+    expect(
+      screen.getByTestId('medication-dose-indicator-input_boolean.sparven_kvall')
+    ).not.toHaveClass('absolute');
     fireEvent.click(screen.getByRole('checkbox', { name: 'Morgon inte tagen' }));
     expect(callService).toHaveBeenNthCalledWith(1, 'input_number', 'set_value', {
       entity_id: 'input_number.sparven_doser',

@@ -101,12 +101,19 @@ const MedicationCard = ({
         data-testid={`medication-dose-control-${entityId}`}
         className={`touch-feedback relative flex h-11 min-w-0 items-center justify-center rounded-2xl border px-2 text-[11px] font-bold transition-all duration-200 active:scale-[0.97] ${tone} ${unavailable ? 'opacity-45' : ''}`}
       >
-        <span className="truncate">{label}</span>
-        <span className="absolute top-1.5 right-1.5 flex items-center justify-center">
-          {actionStatus === 'idle' ? (
-            done && <Check aria-hidden="true" className="h-4 w-4 shrink-0" />
-          ) : (
-            <ActionFeedbackIndicator status={actionStatus} className="h-4 w-4" />
+        <span className="flex min-w-0 items-center justify-center gap-1.5">
+          <span className="truncate">{label}</span>
+          {(done || actionStatus !== 'idle') && (
+            <span
+              className="flex h-4 w-4 shrink-0 items-center justify-center"
+              data-testid={`medication-dose-indicator-${entityId}`}
+            >
+              {actionStatus === 'idle' ? (
+                <Check aria-hidden="true" className="h-4 w-4" />
+              ) : (
+                <ActionFeedbackIndicator status={actionStatus} className="h-4 w-4" />
+              )}
+            </span>
           )}
         </span>
       </button>
