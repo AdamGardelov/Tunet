@@ -4,6 +4,7 @@ import {
   Baby,
   Bed,
   Eye,
+  EyeOff,
   Home,
   MapPin,
   Navigation,
@@ -50,6 +51,28 @@ export const resolvePresetCameraId = (selectEntityId, entities, configuredCamera
   );
 };
 
+export const resolvePrivacySwitchId = (selectEntityId, entities, configuredPrivacyEntityId) => {
+  if (configuredPrivacyEntityId && entities[configuredPrivacyEntityId]) {
+    return configuredPrivacyEntityId;
+  }
+
+  const cameraStem = String(selectEntityId || '')
+    .replace(/^select\./, '')
+    .replace(/_(?:move_to_)?preset.*$/i, '');
+  const privacyCandidates = Object.entries(entities).filter(([candidateId, candidate]) => {
+    if (!candidateId.startsWith('switch.')) return false;
+    const haystack = `${candidateId} ${candidate?.attributes?.friendly_name || ''}`.toLowerCase();
+    return /privacy|integritet/.test(haystack);
+  });
+
+  return (
+    privacyCandidates.find(([candidateId, candidate]) => {
+      const haystack = `${candidateId} ${candidate?.attributes?.friendly_name || ''}`.toLowerCase();
+      return cameraStem && haystack.includes(cameraStem);
+    })?.[0] || (privacyCandidates.length === 1 ? privacyCandidates[0][0] : null)
+  );
+};
+
 export const resolvePresetStateEntityId = (
   selectEntityId,
   entities,
@@ -67,7 +90,9 @@ export const resolvePresetStateEntityId = (
 
   const candidates = Object.entries(entities).filter(([candidateId, candidate]) => {
     if (!candidateId.startsWith('input_select.')) return false;
-    const options = Array.isArray(candidate?.attributes?.options) ? candidate.attributes.options : [];
+    const options = Array.isArray(candidate?.attributes?.options)
+      ? candidate.attributes.options
+      : [];
     return options.some((option) => normalizedOptions.has(String(option).toLowerCase()));
   });
 
@@ -108,6 +133,10 @@ const CameraPresetCard = ({
   const entity = entities[entityId];
   const cameraId = resolvePresetCameraId(entityId, entities, settings.cameraId);
   const cameraEntity = cameraId ? entities[cameraId] : null;
+  const privacyEntityId = resolvePrivacySwitchId(entityId, entities, settings.privacyEntityId);
+  const privacyEntity = privacyEntityId ? entities[privacyEntityId] : null;
+  const privacyEnabled = privacyEntity?.state === 'on';
+  const privacyUnavailable = !privacyEntity || privacyEntity.state === 'unavailable';
   const showLiveButton = Boolean(onOpenCamera && cameraEntity);
   const availableOptions = Array.isArray(entity?.attributes?.options)
     ? entity.attributes.options
@@ -129,10 +158,23 @@ const CameraPresetCard = ({
   const unavailable = !entity || entity.state === 'unavailable';
   const { getStatus, runAction } = useActionFeedback();
 
+  const togglePrivacy = useCallback(
+    (event) => {
+      event.stopPropagation();
+      if (editMode || privacyUnavailable || !privacyEntityId) return;
+      runAction('privacy', () =>
+        callService('switch', privacyEnabled ? 'turn_off' : 'turn_on', {
+          entity_id: privacyEntityId,
+        })
+      );
+    },
+    [callService, editMode, privacyEnabled, privacyEntityId, privacyUnavailable, runAction]
+  );
+
   const selectPreset = useCallback(
     (event, option) => {
       event.stopPropagation();
-      if (editMode || unavailable || !entityId) return;
+      if (editMode || unavailable || privacyEnabled || !entityId) return;
       runAction(option, async () => {
         await callService('select', 'select_option', { entity_id: entityId, option });
         if (stateEntityId) {
@@ -143,16 +185,16 @@ const CameraPresetCard = ({
         }
       });
     },
-    [callService, editMode, entityId, runAction, stateEntityId, unavailable]
+    [callService, editMode, entityId, privacyEnabled, runAction, stateEntityId, unavailable]
   );
 
   const openLiveStream = useCallback(
     (event) => {
       event.stopPropagation();
-      if (editMode || !cameraId || cameraEntity?.state === 'unavailable') return;
+      if (editMode || privacyEnabled || !cameraId || cameraEntity?.state === 'unavailable') return;
       onOpenCamera(cameraId);
     },
-    [cameraEntity?.state, cameraId, editMode, onOpenCamera]
+    [cameraEntity?.state, cameraId, editMode, onOpenCamera, privacyEnabled]
   );
 
   const actionCount = options.length + (showLiveButton ? 1 : 0);
@@ -166,14 +208,44 @@ const CameraPresetCard = ({
       aria-label={settings.title || 'Kamerapositioner'}
     >
       {controls}
-      <span className={compactIconTile}>
-        <MdCameraOutdoor className="h-6 w-6" data-testid="camera-surveillance-icon" />
-      </span>
+      {privacyEntity ? (
+        <button
+          type="button"
+          disabled={editMode || privacyUnavailable || getStatus('privacy') === 'pending'}
+          onClick={togglePrivacy}
+          aria-label={privacyEnabled ? 'Stäng av integritetsläge' : 'Slå på integritetsläge'}
+          aria-pressed={privacyEnabled}
+          title={privacyEnabled ? 'Integritetsläge på' : 'Integritetsläge av'}
+          className={`touch-feedback relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border transition-all duration-200 active:scale-[0.94] disabled:opacity-45 ${
+            getStatus('privacy') === 'success'
+              ? compactControlTone.success
+              : getStatus('privacy') === 'error'
+                ? compactControlTone.error
+                : privacyEnabled
+                  ? compactControlTone.active
+                  : compactControlTone.idle
+          }`}
+        >
+          {getStatus('privacy') === 'idle' ? (
+            privacyEnabled ? (
+              <EyeOff className="h-5 w-5 stroke-[1.7px]" data-testid="camera-privacy-icon" />
+            ) : (
+              <MdCameraOutdoor className="h-6 w-6" data-testid="camera-surveillance-icon" />
+            )
+          ) : (
+            <ActionFeedbackIndicator status={getStatus('privacy')} />
+          )}
+        </button>
+      ) : (
+        <span className={compactIconTile}>
+          <MdCameraOutdoor className="h-6 w-6" data-testid="camera-surveillance-icon" />
+        </span>
+      )}
       <div className={`grid min-w-0 flex-1 gap-2 ${gridColumns[actionCount] || 'grid-cols-1'}`}>
         {showLiveButton && (
           <button
             type="button"
-            disabled={editMode || cameraEntity?.state === 'unavailable'}
+            disabled={editMode || privacyEnabled || cameraEntity?.state === 'unavailable'}
             onClick={openLiveStream}
             aria-label="Live"
             title="Live"
@@ -192,7 +264,7 @@ const CameraPresetCard = ({
             <button
               key={option}
               type="button"
-              disabled={editMode || unavailable || pending}
+              disabled={editMode || unavailable || privacyEnabled || pending}
               onClick={(event) => selectPreset(event, option)}
               aria-label={option}
               aria-pressed={active}
@@ -205,7 +277,7 @@ const CameraPresetCard = ({
                     : active
                       ? compactControlTone.active
                       : compactControlTone.idle
-              } ${unavailable ? 'opacity-45' : ''}`}
+              } ${unavailable || privacyEnabled ? 'opacity-45' : ''}`}
             >
               {actionStatus === 'idle' ? (
                 <PresetIcon className="h-5 w-5 stroke-[1.7px]" />

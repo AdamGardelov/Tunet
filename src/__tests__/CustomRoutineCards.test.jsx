@@ -508,4 +508,81 @@ describe('custom routine cards', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Live' }));
     expect(onOpenCamera).toHaveBeenCalledWith('camera.walles_kamera_hd_stream');
   });
+
+  it('uses the camera tile as a privacy control and disables camera actions while privacy is on', () => {
+    const callService = vi.fn().mockResolvedValue(undefined);
+    const onOpenCamera = vi.fn();
+    render(
+      <CameraPresetCard
+        cardId="camera_presets_1"
+        settings={{ entityId: 'select.walles_kamera_move_to_preset' }}
+        entities={{
+          'select.walles_kamera_move_to_preset': {
+            state: 'unknown',
+            attributes: { options: ['Walters säng', 'Våran säng', 'Vagn'] },
+          },
+          'camera.walles_kamera_hd_stream': {
+            state: 'unavailable',
+            attributes: { friendly_name: 'Walles kamera HD stream' },
+          },
+          'switch.walles_kamera_privacy': {
+            state: 'on',
+            attributes: { friendly_name: 'Privacy' },
+          },
+        }}
+        callService={callService}
+        dragProps={{}}
+        controls={null}
+        cardStyle={{}}
+        editMode={false}
+        onOpenCamera={onOpenCamera}
+      />
+    );
+
+    const privacyButton = screen.getByRole('button', { name: 'Stäng av integritetsläge' });
+    expect(privacyButton).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTestId('camera-privacy-icon')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Live' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Walters säng' })).toBeDisabled();
+
+    fireEvent.click(privacyButton);
+    expect(callService).toHaveBeenCalledWith('switch', 'turn_off', {
+      entity_id: 'switch.walles_kamera_privacy',
+    });
+  });
+
+  it('can enable camera privacy while normal camera actions remain available', () => {
+    const callService = vi.fn().mockResolvedValue(undefined);
+    render(
+      <CameraPresetCard
+        cardId="camera_presets_1"
+        settings={{ entityId: 'select.walles_kamera_move_to_preset' }}
+        entities={{
+          'select.walles_kamera_move_to_preset': {
+            state: 'unknown',
+            attributes: { options: ['Walters säng'] },
+          },
+          'switch.walles_kamera_privacy': {
+            state: 'off',
+            attributes: { friendly_name: 'Privacy' },
+          },
+        }}
+        callService={callService}
+        dragProps={{}}
+        controls={null}
+        cardStyle={{}}
+        editMode={false}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: 'Walters säng' })).toBeEnabled();
+    const privacyButton = screen.getByRole('button', { name: 'Slå på integritetsläge' });
+    expect(privacyButton).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByTestId('camera-surveillance-icon')).toBeInTheDocument();
+
+    fireEvent.click(privacyButton);
+    expect(callService).toHaveBeenCalledWith('switch', 'turn_on', {
+      entity_id: 'switch.walles_kamera_privacy',
+    });
+  });
 });
