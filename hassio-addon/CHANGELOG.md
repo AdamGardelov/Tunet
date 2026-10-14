@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.23.0-adam.58
+
+- Corrects the immutable source reference used by the add-on builder so the vehicle availability frontend can be installed successfully.
+
 ## 1.23.0-adam.57
 
 - Rebuilds the add-on from the reviewed vehicle-availability source revision so the 1.23.0-adam.56 frontend fix is actually included.

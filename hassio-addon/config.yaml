@@ -1,6 +1,6 @@
 name: 'Tunet Hardened'
 description: 'Hardened Tunet dashboard for Home Assistant'
-version: '1.23.0-adam.57'
+version: '1.23.0-adam.58'
 slug: 'tunet'
 url: 'https://github.com/AdamGardelov/Tunet'
 init: false
