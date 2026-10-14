@@ -66,6 +66,7 @@
   "profiles.edit": "Rediger",
   "profiles.confirmBlank": "Dette fjerner alle kort og nullstiller oppsettet.",
   "profiles.confirmDelete": "Er du sikker på at du vil slette denne profilen?",
+  "profiles.confirmOverwrite": "Erstatt profilens lagrede dashboard med det som vises på denne enheten? Alle enheter som følger profilen, får endringen.",
   "profiles.created": "Opprettet",
   "profiles.delete": "Slett",
   "profiles.deviceLabel": "Enhetsetikett (valgfritt)",

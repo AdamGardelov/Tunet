@@ -757,6 +757,7 @@
   "profiles.cancelEdit": "Avbryt",
   "profiles.confirmBlank": "Dette vil fjerne alle kort og tilbakestille oppsettet.",
   "profiles.confirmDelete": "Er du sikker på at du vil slette denne profilen?",
+  "profiles.confirmOverwrite": "Erstatt det lagra dashbordet i profilen med det som blir vist på denne eininga? Alle einingar som følgjer profilen, får endringa.",
   "profiles.created": "Oppretta",
   "profiles.delete": "Slett",
   "profiles.deviceLabel": "Einingsetikett (valfritt)",

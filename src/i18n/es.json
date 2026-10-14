@@ -756,6 +756,7 @@
   "profiles.edit": "Editar",
   "profiles.confirmBlank": "Esto eliminará todas las tarjetas y restablecerá la disposición.",
   "profiles.confirmDelete": "¿Seguro que quieres eliminar este perfil?",
+  "profiles.confirmOverwrite": "¿Reemplazar el panel guardado de este perfil por el que se muestra en este dispositivo? Todos los dispositivos que siguen el perfil recibirán el cambio.",
   "profiles.created": "Creado",
   "profiles.delete": "Eliminar",
   "profiles.deviceLabel": "Etiqueta del dispositivo (opcional)",

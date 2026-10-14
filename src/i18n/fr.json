@@ -746,6 +746,7 @@
   "profiles.cancelEdit": "Annuler",
   "profiles.confirmBlank": "Cela supprimera toutes les cartes et réinitialisera la mise en page.",
   "profiles.confirmDelete": "Êtes-vous sûr de vouloir supprimer ce profil ?",
+  "profiles.confirmOverwrite": "Remplacer le tableau de bord enregistré de ce profil par celui affiché sur cet appareil ? Tous les appareils qui suivent ce profil recevront la modification.",
   "profiles.created": "Créé",
   "profiles.delete": "Supprimer",
   "profiles.deviceLabel": "Libellé de l'appareil (optionnel)",

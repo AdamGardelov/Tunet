@@ -16,6 +16,7 @@ import {
 import { saveTokens, loadTokens, clearOAuthTokens, hasOAuthTokens } from '../services/oauthStorage';
 import { HOME_ASSISTANT_API_UNAUTHORIZED_EVENT, setOAuthAuthProvider } from '../services/apiAuth';
 import { getDeviceRegistry, getEntityRegistry } from '../services/haClient';
+import { createIngressAuth } from '../services/ingressAuth';
 import { validateUrl } from '../config/onboarding';
 import { useMobileConnectionRecovery } from '../hooks/useMobileConnectionRecovery';
 import {
@@ -244,8 +245,8 @@ export const HomeAssistantProvider = ({ children, config }) => {
       return;
     }
 
-    // For token mode, require token
-    if (!isOAuth && !hasToken) {
+    // For token mode outside Supervisor ingress, require a token.
+    if (!config.isIngress && !isOAuth && !hasToken) {
       cleanupConnection();
       setConnected(false);
       setEntityDataStale(false);
@@ -424,6 +425,38 @@ export const HomeAssistantProvider = ({ children, config }) => {
       return connInstance;
     }
 
+    async function connectWithIngress() {
+      const auth = createIngressAuth();
+      if (!auth) throw new Error('Missing Home Assistant ingress path');
+
+      const connInstance = await createConnection({ auth });
+      fetchHaConfig(connInstance);
+      if (!isCurrentAttempt()) {
+        connInstance.close();
+        return null;
+      }
+      connection = connInstance;
+      connectionRef.current = connInstance;
+      authRef.current = null;
+      setConn(connInstance);
+      setConnected(true);
+      setHaUnavailable(false);
+      setDisconnectedSince(null);
+      setActiveUrl(globalThis.window.location.origin);
+      fetchCurrentUser(connInstance);
+      fetchRegistryMetadata(connInstance);
+      const unsub = subscribeEntities(connInstance, (updatedEntities) => {
+        if (isCurrentAttempt()) {
+          pushEntitySnapshot(updatedEntities);
+          setEntitiesLoaded(true);
+          setLastEntityUpdateAt(Date.now());
+          setEntityDataStale(false);
+        }
+      });
+      unsubscribeEntitiesRef.current = typeof unsub === 'function' ? unsub : null;
+      return connInstance;
+    }
+
     async function connectWithOAuth(url) {
       // Let HAWS compute default clientId and redirectUrl so they match
       // the values used during the initial getAuth() redirect in startOAuthLogin.
@@ -470,7 +503,9 @@ export const HomeAssistantProvider = ({ children, config }) => {
 
     async function connect() {
       try {
-        if (isOAuth) {
+        if (config.isIngress) {
+          await connectWithIngress();
+        } else if (isOAuth) {
           await connectWithOAuth(config.url);
         } else {
           await connectWithToken(config.url);

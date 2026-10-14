@@ -231,7 +231,8 @@ describe('useSensorCardAction', () => {
       type: 'call_service',
       domain: 'switch',
       service: 'turn_on',
-      service_data: { entity_id: 'switch.socket' },
+      target: { entity_id: 'switch.socket' },
+      service_data: {},
     });
   });
 });

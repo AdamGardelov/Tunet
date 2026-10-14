@@ -746,6 +746,7 @@
   "profiles.cancelEdit": "Abbrechen",
   "profiles.confirmBlank": "Dies entfernt alle Karten und setzt das Layout zurück.",
   "profiles.confirmDelete": "Möchtest du dieses Profil wirklich löschen?",
+  "profiles.confirmOverwrite": "Gespeichertes Dashboard dieses Profils durch das auf diesem Gerät angezeigte ersetzen? Alle Geräte, die dem Profil folgen, erhalten die Änderung.",
   "profiles.created": "Erstellt",
   "profiles.delete": "Löschen",
   "profiles.deviceLabel": "Gerätebezeichnung (optional)",

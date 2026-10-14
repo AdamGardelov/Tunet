@@ -46,13 +46,21 @@ export function useConnectionSetup({
       new URLSearchParams(window.location.search).has('auth_callback');
     if (isOAuthCallback) return;
 
-    const hasAuth = config.token || (config.authMethod === 'oauth' && hasOAuthTokens());
+    const hasAuth =
+      config.isIngress || config.token || (config.authMethod === 'oauth' && hasOAuthTokens());
     if (!hasAuth && !showOnboarding && !showConfigModal) {
       setShowOnboarding(true);
       setOnboardingStep(0);
       setConfigTab('connection');
     }
-  }, [config.token, config.authMethod, showOnboarding, showConfigModal, setShowOnboarding]);
+  }, [
+    config.isIngress,
+    config.token,
+    config.authMethod,
+    showOnboarding,
+    showConfigModal,
+    setShowOnboarding,
+  ]);
 
   // ── Connection test (long-lived token) ─────────────────────────────────
   const testConnection = async () => {

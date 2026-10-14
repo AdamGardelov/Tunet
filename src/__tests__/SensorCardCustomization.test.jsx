@@ -74,7 +74,8 @@ describe('SensorCard customization', () => {
       type: 'call_service',
       domain: 'scene',
       service: 'turn_on',
-      service_data: { entity_id: 'scene.night' },
+      target: { entity_id: 'scene.night' },
+      service_data: {},
     });
     expect(p.onOpen).not.toHaveBeenCalled();
   });

@@ -700,6 +700,7 @@
   "profiles.cancelEdit": "取消",
   "profiles.confirmBlank": "这将删除所有卡片并重置布局。",
   "profiles.confirmDelete": "您确定要删除此个人资料吗？",
+  "profiles.confirmOverwrite": "要用此设备上显示的仪表板替换此配置中保存的仪表板吗？所有跟随此配置的设备都会收到此更改。",
   "profiles.created": "已创建",
   "profiles.delete": "删除",
   "profiles.deviceLabel": "设备标签（可选）",

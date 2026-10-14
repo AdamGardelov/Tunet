@@ -55,12 +55,17 @@ const normalizeRemoteAddress = (rawAddress) => {
   return trimmed.startsWith('::ffff:') ? trimmed.slice(7) : trimmed;
 };
 
-const isTrustedIngressRequest = (req) => {
+const getRequestHeader = (req, name) => {
+  if (typeof req.get === 'function') return req.get(name);
+  return req.headers?.[name.toLowerCase()];
+};
+
+export const isTrustedSupervisorIngressRequest = (req) => {
   if (!isSupervisorIngressTrustEnabled()) {
     return false;
   }
 
-  const ingressPath = req.get('x-ingress-path');
+  const ingressPath = getRequestHeader(req, 'x-ingress-path');
   if (typeof ingressPath !== 'string' || !ingressPath.trim()) {
     return false;
   }
@@ -73,13 +78,13 @@ const isTrustedIngressRequest = (req) => {
 };
 
 const getTrustedSupervisorUser = (req) => {
-  if (!isTrustedIngressRequest(req)) return null;
+  if (!isTrustedSupervisorIngressRequest(req)) return null;
 
-  const userId = req.get('x-remote-user-id');
+  const userId = getRequestHeader(req, 'x-remote-user-id');
   if (typeof userId !== 'string' || !userId.trim()) return null;
 
-  const displayName = req.get('x-remote-user-display-name');
-  const userName = req.get('x-remote-user-name');
+  const displayName = getRequestHeader(req, 'x-remote-user-display-name');
+  const userName = getRequestHeader(req, 'x-remote-user-name');
 
   return {
     id: userId.trim(),

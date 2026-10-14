@@ -1970,13 +1970,13 @@ export default function ConfigModal({
 
                     {onboardingStep === 0 && (
                       <div className="animate-in fade-in slide-in-from-right-4 space-y-4 duration-300">
-                        {/* Auth Method Toggle — hidden in Ingress mode (always token) */}
+                        {/* Auth Method Toggle — hidden in Ingress mode */}
                         {!config.isIngress && renderAuthMethodToggle(true)}
 
                         {config.isIngress && (
                           <div className="rounded-xl border border-[var(--accent-color)] bg-[var(--accent-bg)] p-3 text-xs leading-relaxed text-[var(--accent-color)]">
-                            <strong>Add-on Mode:</strong> URL is auto-detected. Just paste a
-                            Long-Lived Access Token from your HA Profile.
+                            <strong>Add-on Mode:</strong> Home Assistant handles the connection
+                            securely. No token is required on this device.
                           </div>
                         )}
 
@@ -2016,7 +2016,7 @@ export default function ConfigModal({
                           )}
 
                           {/* Token mode — show token + fallback */}
-                          {!isOAuth && (
+                          {!config.isIngress && !isOAuth && (
                             <>
                               <div className="space-y-1.5">
                                 <label className="ml-1 text-xs font-bold text-[var(--text-muted)] uppercase">
