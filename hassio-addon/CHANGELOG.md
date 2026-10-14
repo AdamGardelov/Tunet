@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0-adam.48
+
+- Aligns medication checkmarks and action feedback with their labels on the button centerline.
+- Includes the new compact Tapo privacy control from 1.23.0-adam.47.
+
 ## 1.23.0-adam.47
 
 - Adds a dedicated privacy control to the compact Tapo camera card.
