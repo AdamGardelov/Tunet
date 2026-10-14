@@ -7,20 +7,17 @@ export function callService(conn, domain, service, service_data) {
     return Promise.reject(new Error('Invalid or disconnected HA connection'));
   }
 
-  const { target, ...restData } = service_data || {};
+  const { target, entity_id, ...restData } = service_data || {};
+  const resolvedTarget = target || (entity_id ? { entity_id } : undefined);
   const message = {
     type: 'call_service',
     domain,
     service,
   };
 
-  if (target) {
-    message.target = target;
+  if (resolvedTarget) {
+    message.target = resolvedTarget;
     message.service_data = restData;
-  } else if (service_data && service_data.entity_id && service === 'clean_area') {
-    message.target = { entity_id: service_data.entity_id };
-    const { entity_id: _entityId, ...rest } = service_data;
-    message.service_data = rest;
   } else {
     message.service_data = service_data;
   }
