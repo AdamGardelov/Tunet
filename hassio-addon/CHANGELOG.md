@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.23.0-adam.52
+
+- Connects Tunet to Home Assistant through its authenticated Supervisor ingress session.
+- Removes the need for separate long-lived tokens on phones and tablets.
+- Uses the same secure connection locally, through VPN, and through Home Assistant Cloud.
+
 ## 1.23.0-adam.51
 
 - Sends entity targets through Home Assistant's current WebSocket target field so climate commands reach the selected heater.
