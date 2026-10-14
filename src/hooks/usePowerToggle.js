@@ -40,5 +40,9 @@ export function usePowerToggle({ entityId, isOn, domain, callService, buildCall 
     }
   };
 
-  return { isPending: pending !== null, togglePower };
+  return {
+    isPending: pending !== null,
+    optimisticIsOn: pending?.entityId === entityId ? pending.target : isOn,
+    togglePower,
+  };
 }

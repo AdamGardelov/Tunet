@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { Minus, Plus, AirVent, Fan, RefreshCw, getIconComponent } from '../../icons';
 import { useConfig, useHomeAssistantMeta } from '../../contexts';
 import { formatKindValueForDisplay, getEffectiveUnitMode } from '../../utils';
@@ -67,7 +67,7 @@ const GenericClimateCard = memo(
     const { haConfig } = useHomeAssistantMeta();
     const isUnavailable = !entity || ['unavailable', 'unknown'].includes(entity.state);
     const isOn = !isUnavailable && entity.state !== 'off';
-    const { isPending, togglePower } = usePowerToggle({
+    const { isPending, optimisticIsOn, togglePower } = usePowerToggle({
       entityId,
       isOn,
       domain: 'climate',
@@ -84,11 +84,35 @@ const GenericClimateCard = memo(
       },
     });
 
+    const isSmall = settings?.size === 'small';
+    const currentTemp = entity?.attributes?.current_temperature ?? '--';
+    const targetTemp = entity?.attributes?.temperature ?? '--';
+    const temperatureStep = Math.max(Number(entity?.attributes?.target_temp_step) || 0.5, 0.1);
+    const minTemperature = Number(entity?.attributes?.min_temp);
+    const maxTemperature = Number(entity?.attributes?.max_temp);
+    const [optimisticTargetTemp, setOptimisticTargetTemp] = useState(null);
+    const optimisticTargetTimeoutRef = useRef(null);
+
+    useEffect(() => {
+      if (optimisticTargetTemp === null) return;
+      if (Number(targetTemp) === optimisticTargetTemp) {
+        clearTimeout(optimisticTargetTimeoutRef.current);
+        optimisticTargetTimeoutRef.current = null;
+        setOptimisticTargetTemp(null);
+      }
+    }, [optimisticTargetTemp, targetTemp]);
+
+    useEffect(
+      () => () => {
+        clearTimeout(optimisticTargetTimeoutRef.current);
+      },
+      []
+    );
+
+    const effectiveTargetTemp = optimisticTargetTemp ?? targetTemp;
+
     if (!entity || !entityId) return null;
 
-    const isSmall = settings?.size === 'small';
-    const currentTemp = entity.attributes?.current_temperature ?? '--';
-    const targetTemp = entity.attributes?.temperature ?? '--';
     const sourceTempUnit =
       /** @type {any} */ (haConfig?.unit_system)?.temperature ||
       entity.attributes?.temperature_unit ||
@@ -99,7 +123,7 @@ const GenericClimateCard = memo(
       fromUnit: sourceTempUnit,
       unitMode: effectiveUnitMode,
     });
-    const displayTargetTemp = formatKindValueForDisplay(targetTemp, {
+    const displayTargetTemp = formatKindValueForDisplay(effectiveTargetTemp, {
       kind: 'temperature',
       fromUnit: sourceTempUnit,
       unitMode: effectiveUnitMode,
@@ -118,10 +142,10 @@ const GenericClimateCard = memo(
     const translate = t || ((key) => key);
     const isCooling = isCoolingState(entity);
     const isHeating = isHeatingState(entity);
-    const clTheme = isOn ? (isCooling ? 'blue' : isHeating ? 'orange' : 'gray') : 'gray';
-    const hvacAction = isOn ? entity.attributes?.hvac_action || null : 'off';
+    const clTheme = optimisticIsOn ? (isCooling ? 'blue' : isHeating ? 'orange' : 'gray') : 'gray';
+    const hvacAction = optimisticIsOn ? entity.attributes?.hvac_action || null : 'off';
     const actionLabel =
-      isOn && !hvacAction
+      optimisticIsOn && !hvacAction
         ? translate('common.on')
         : translate('climate.action.' + hvacAction);
     const DisplayIcon = Icon || AirVent;
@@ -146,9 +170,9 @@ const GenericClimateCard = memo(
 
     const activeTheme = themeClasses[clTheme];
     const powerIconBg =
-      isOn && clTheme === 'gray'
+      optimisticIsOn && clTheme === 'gray'
         ? 'bg-[var(--accent-bg)] text-[var(--accent-color)]'
-        : isOn
+        : optimisticIsOn
           ? activeTheme.iconBg
           : 'bg-[var(--glass-bg)] text-[var(--text-muted)]';
     const isTapToggle = settings?.tapAction === 'toggle';
@@ -159,7 +183,30 @@ const GenericClimateCard = memo(
       togglePower();
     };
 
-    const stepTemp = (delta) => onSetTemperature((targetTemp || 21) + delta);
+    const stepTemp = (direction) => {
+      if (!onSetTemperature || isUnavailable) return;
+      const currentTarget = Number(effectiveTargetTemp);
+      const fallbackTarget = Number.isFinite(currentTarget) ? currentTarget : 21;
+      const unclamped = fallbackTarget + direction * temperatureStep;
+      const clamped = Math.min(
+        Number.isFinite(maxTemperature) ? maxTemperature : unclamped,
+        Math.max(Number.isFinite(minTemperature) ? minTemperature : unclamped, unclamped)
+      );
+      const nextTarget = Number(clamped.toFixed(3));
+
+      setOptimisticTargetTemp(nextTarget);
+      clearTimeout(optimisticTargetTimeoutRef.current);
+      optimisticTargetTimeoutRef.current = setTimeout(() => {
+        setOptimisticTargetTemp(null);
+        optimisticTargetTimeoutRef.current = null;
+      }, 10000);
+
+      Promise.resolve(onSetTemperature(nextTarget)).catch(() => {
+        clearTimeout(optimisticTargetTimeoutRef.current);
+        optimisticTargetTimeoutRef.current = null;
+        setOptimisticTargetTemp(null);
+      });
+    };
 
     if (isSmall) {
       return (
@@ -184,7 +231,7 @@ const GenericClimateCard = memo(
               onClick={handleTogglePower}
               disabled={editMode || isPending || isUnavailable}
               aria-busy={isPending}
-              aria-pressed={isOn}
+              aria-pressed={optimisticIsOn}
               aria-label={translate('climate.togglePower')}
               className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl transition-all duration-300 group-hover:scale-110 active:scale-90 ${powerIconBg}`}
             >
@@ -222,8 +269,9 @@ const GenericClimateCard = memo(
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                stepTemp(0.5);
+                stepTemp(1);
               }}
+              aria-label={translate('climate.increaseTemperature')}
               className="control-plus flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--glass-bg)] text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-90"
             >
               <Plus className="h-4 w-4" />
@@ -231,8 +279,9 @@ const GenericClimateCard = memo(
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                stepTemp(-0.5);
+                stepTemp(-1);
               }}
+              aria-label={translate('climate.decreaseTemperature')}
               className="control-minus flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--glass-bg)] text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-90"
             >
               <Minus className="h-4 w-4" />
@@ -268,7 +317,7 @@ const GenericClimateCard = memo(
             onClick={handleTogglePower}
             disabled={editMode || isPending || isUnavailable}
             aria-busy={isPending}
-            aria-pressed={isOn}
+            aria-pressed={optimisticIsOn}
             aria-label={translate('climate.togglePower')}
             className={`flex-shrink-0 transition-all duration-300 group-hover:scale-110 active:scale-90 ${powerIconBg} ${isDenseMobile ? 'rounded-xl p-2.5' : 'rounded-2xl p-3'}`}
           >
@@ -326,8 +375,9 @@ const GenericClimateCard = memo(
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  stepTemp(-0.5);
+                  stepTemp(-1);
                 }}
+                aria-label={translate('climate.decreaseTemperature')}
                 className={`flex items-center justify-center text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-90 ${isDenseMobile ? 'h-7 w-5 rounded-lg' : 'h-8 w-6 rounded-xl'}`}
               >
                 <Minus className="h-4 w-4" />
@@ -342,8 +392,9 @@ const GenericClimateCard = memo(
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  stepTemp(0.5);
+                  stepTemp(1);
                 }}
+                aria-label={translate('climate.increaseTemperature')}
                 className={`flex items-center justify-center text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-90 ${isDenseMobile ? 'h-7 w-5 rounded-lg' : 'h-8 w-6 rounded-xl'}`}
               >
                 <Plus className="h-4 w-4" />

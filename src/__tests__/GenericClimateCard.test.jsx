@@ -90,6 +90,41 @@ describe('GenericClimateCard', () => {
     expect(screen.queryByText('climate.action.idle')).not.toBeInTheDocument();
   });
 
+  it('uses the temperature step reported by Home Assistant and updates immediately', () => {
+    const onSetTemperature = vi.fn().mockResolvedValue(undefined);
+    render(
+      <GenericClimateCard
+        {...baseProps({ temperature: 15, target_temp_step: 1, min_temp: 5, max_temp: 35 })}
+        onSetTemperature={onSetTemperature}
+        isMobile
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'climate.increaseTemperature' }));
+
+    expect(onSetTemperature).toHaveBeenCalledWith(16);
+    expect(screen.getByText('16°C')).toBeInTheDocument();
+  });
+
+  it('stacks quick temperature taps on the optimistic target', () => {
+    const onSetTemperature = vi.fn().mockResolvedValue(undefined);
+    render(
+      <GenericClimateCard
+        {...baseProps({ temperature: 15, target_temp_step: 1 })}
+        onSetTemperature={onSetTemperature}
+        isMobile
+      />
+    );
+
+    const increase = screen.getByRole('button', { name: 'climate.increaseTemperature' });
+    fireEvent.click(increase);
+    fireEvent.click(increase);
+
+    expect(onSetTemperature).toHaveBeenNthCalledWith(1, 16);
+    expect(onSetTemperature).toHaveBeenNthCalledWith(2, 17);
+    expect(screen.getByText('17°C')).toBeInTheDocument();
+  });
+
   it('calls climate.turn_off when toggling power while active', () => {
     const callService = vi.fn();
     render(<GenericClimateCard {...baseProps()} callService={callService} />);
@@ -172,6 +207,7 @@ describe('GenericClimateCard', () => {
       const button = screen.getByRole('button', { name: 'climate.togglePower' });
       fireEvent.click(button);
       expect(button).toHaveAttribute('aria-busy', 'true');
+      expect(button).toHaveAttribute('aria-pressed', 'false');
       expect(button).toBeDisabled();
       expect(button.querySelector('.animate-spin')).toBeInTheDocument();
       fireEvent.click(container.firstChild);
