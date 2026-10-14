@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.23.0-adam.47
+
+- Adds a dedicated privacy control to the compact Tapo camera card.
+- Disables live view and preset actions while privacy mode is active, then restores them when the camera is reopened.
+- Auto-detects the matching camera privacy switch and provides sending, success, and failure feedback.
+
 ## 1.23.0-adam.46
 
 - Fits the minimalist medication summary and both dose controls inside the existing compact mobile card height.
