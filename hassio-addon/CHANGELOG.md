@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0-adam.59
+
+- Makes the Tunet ingress panel available to dedicated non-admin household and tablet accounts.
+- Keeps Home Assistant's administrator-only settings unavailable to those accounts.
+
 ## 1.23.0-adam.58
 
 - Corrects the immutable source reference used by the add-on builder so the vehicle availability frontend can be installed successfully.
