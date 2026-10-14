@@ -125,6 +125,36 @@ describe('GenericClimateCard', () => {
     expect(screen.getByText('17°C')).toBeInTheDocument();
   });
 
+  it('turns the climate off when decreasing at the minimum temperature', () => {
+    const onSetTemperature = vi.fn().mockResolvedValue(undefined);
+    const callService = vi.fn();
+    const props = baseProps({
+      temperature: 5,
+      target_temp_step: 1,
+      min_temp: 5,
+      max_temp: 35,
+      supported_features: 1,
+      hvac_modes: ['off', 'heat'],
+    });
+    props.entity.entity_id = 'climate.living_room';
+    render(
+      <GenericClimateCard
+        {...props}
+        onSetTemperature={onSetTemperature}
+        callService={callService}
+        isMobile
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'climate.decreaseTemperature' }));
+
+    expect(callService).toHaveBeenCalledWith('climate', 'set_hvac_mode', {
+      entity_id: 'climate.living_room',
+      hvac_mode: 'off',
+    });
+    expect(onSetTemperature).not.toHaveBeenCalled();
+  });
+
   it('calls climate.turn_off when toggling power while active', () => {
     const callService = vi.fn();
     render(<GenericClimateCard {...baseProps()} callService={callService} />);

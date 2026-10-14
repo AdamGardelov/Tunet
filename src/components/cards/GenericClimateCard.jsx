@@ -187,6 +187,17 @@ const GenericClimateCard = memo(
       if (!onSetTemperature || isUnavailable) return;
       const currentTarget = Number(effectiveTargetTemp);
       const fallbackTarget = Number.isFinite(currentTarget) ? currentTarget : 21;
+      if (
+        direction < 0 &&
+        optimisticIsOn &&
+        Number.isFinite(minTemperature) &&
+        fallbackTarget <= minTemperature + temperatureStep / 2 &&
+        Array.isArray(entity.attributes?.hvac_modes) &&
+        entity.attributes.hvac_modes.includes('off')
+      ) {
+        togglePower();
+        return;
+      }
       const unclamped = fallbackTarget + direction * temperatureStep;
       const clamped = Math.min(
         Number.isFinite(maxTemperature) ? maxTemperature : unclamped,

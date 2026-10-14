@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import {
   AirVent,
   ArrowUpDown,
@@ -35,15 +36,47 @@ export default function GenericClimateModal({
 }) {
   const { unitsMode } = useConfig();
   const { haConfig } = useHomeAssistantMeta();
+  const [optimisticMode, setOptimisticMode] = useState(null);
+  const [optimisticTargetTemp, setOptimisticTargetTemp] = useState(null);
+  const targetTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    if (!optimisticMode) return undefined;
+    if (entity?.state === optimisticMode) {
+      setOptimisticMode(null);
+      return undefined;
+    }
+    const timeout = setTimeout(() => setOptimisticMode(null), 10000);
+    return () => clearTimeout(timeout);
+  }, [entity?.state, optimisticMode]);
+
+  useEffect(() => {
+    if (optimisticTargetTemp === null) return undefined;
+    if (Number(entity?.attributes?.temperature) === optimisticTargetTemp) {
+      clearTimeout(targetTimeoutRef.current);
+      targetTimeoutRef.current = null;
+      setOptimisticTargetTemp(null);
+    }
+    return undefined;
+  }, [entity?.attributes?.temperature, optimisticTargetTemp]);
+
+  useEffect(
+    () => () => {
+      clearTimeout(targetTimeoutRef.current);
+    },
+    []
+  );
 
   if (!entityId || !entity) return null;
 
   const hvacAction = entity.attributes?.hvac_action || 'idle';
+  const currentMode = optimisticMode || entity.state;
   const isCooling = hvacAction === 'cooling';
-  const isHeating = hvacAction === 'heating';
+  const isHeating = hvacAction === 'heating' || currentMode === 'heat';
   const clTheme = isCooling ? 'blue' : isHeating ? 'orange' : 'gray';
   const currentTemp = entity.attributes?.current_temperature;
-  const targetTemp = entity.attributes?.temperature;
+  const reportedTargetTemp = entity.attributes?.temperature;
+  const targetTemp = optimisticTargetTemp ?? reportedTargetTemp;
   const sourceTempUnit =
     haConfig?.unit_system?.temperature || entity.attributes?.temperature_unit || '°C';
   const effectiveUnitMode = getEffectiveUnitMode(unitsMode, haConfig);
@@ -62,6 +95,7 @@ export default function GenericClimateModal({
   const displayTempUnit = displayTargetTemp.unit || displayCurrentTemp.unit;
   const minTemp = entity.attributes?.min_temp ?? 16;
   const maxTemp = entity.attributes?.max_temp ?? 30;
+  const temperatureStep = Math.max(Number(entity.attributes?.target_temp_step) || 0.5, 0.1);
 
   const hvacModes = entity.attributes?.hvac_modes || [];
   const fanModes = entity.attributes?.fan_modes || [];
@@ -75,6 +109,69 @@ export default function GenericClimateModal({
   const modalTitleId = `climate-modal-title-${entityId.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
 
   const tempValue = typeof targetTemp === 'number' ? targetTemp : 21;
+  const activeMode =
+    hvacModes.includes('heat') ? 'heat' : hvacModes.find((mode) => mode !== 'off') || null;
+  const statusLabel =
+    currentMode === 'off'
+      ? t('climate.hvac.off')
+      : hvacAction === 'heating' || hvacAction === 'cooling'
+        ? t('climate.action.' + hvacAction)
+        : t('common.on');
+
+  const setHvacMode = (mode) => {
+    setOptimisticMode(mode);
+    return Promise.resolve(
+      callService('climate', 'set_hvac_mode', {
+        entity_id: entityId,
+        hvac_mode: mode,
+      })
+    ).catch((error) => {
+      setOptimisticMode(null);
+      throw error;
+    });
+  };
+
+  const setTemperature = (temperature) => {
+    const next = Number(
+      Math.min(Number(maxTemp), Math.max(Number(minTemp), temperature)).toFixed(3)
+    );
+    setOptimisticTargetTemp(next);
+    clearTimeout(targetTimeoutRef.current);
+    targetTimeoutRef.current = setTimeout(() => {
+      targetTimeoutRef.current = null;
+      setOptimisticTargetTemp(null);
+    }, 10000);
+    return Promise.resolve(
+      callService('climate', 'set_temperature', {
+        entity_id: entityId,
+        temperature: next,
+      })
+    ).catch((error) => {
+      clearTimeout(targetTimeoutRef.current);
+      targetTimeoutRef.current = null;
+      setOptimisticTargetTemp(null);
+      throw error;
+    });
+  };
+
+  const decreaseTemperature = () => {
+    if (tempValue <= Number(minTemp) + temperatureStep / 2 && hvacModes.includes('off')) {
+      if (currentMode !== 'off') void setHvacMode('off').catch(() => {});
+      return;
+    }
+    void setTemperature(tempValue - temperatureStep).catch(() => {});
+  };
+
+  const increaseTemperature = () => {
+    const nextTemperature = Math.max(Number(minTemp), tempValue + temperatureStep);
+    if (currentMode === 'off' && activeMode) {
+      void setHvacMode(activeMode)
+        .then(() => setTemperature(nextTemperature))
+        .catch(() => {});
+      return;
+    }
+    void setTemperature(nextTemperature).catch(() => {});
+  };
 
   return (
     <AccessibleModalShell
@@ -154,7 +251,7 @@ export default function GenericClimateModal({
                 }}
               >
                 <p className="text-[10px] font-bold tracking-widest uppercase italic">
-                  {t('climate.action.' + hvacAction)}
+                  {statusLabel}
                 </p>
               </div>
             </div>
@@ -203,12 +300,9 @@ export default function GenericClimateModal({
                   </div>
                   <div className="flex items-center gap-3 sm:gap-8 sm:px-4">
                     <button
-                      onClick={() =>
-                        callService('climate', 'set_temperature', {
-                          entity_id: entityId,
-                          temperature: tempValue - 0.5,
-                        })
-                      }
+                      type="button"
+                      aria-label={t('climate.decreaseTemperature')}
+                      onClick={decreaseTemperature}
                       className="rounded-full border p-3 shadow-lg transition-all active:scale-90 sm:p-6"
                       style={{
                         backgroundColor: 'var(--glass-bg)',
@@ -221,13 +315,10 @@ export default function GenericClimateModal({
                       <M3Slider
                         min={minTemp}
                         max={maxTemp}
-                        step={0.5}
+                        step={temperatureStep}
                         value={tempValue}
                         onChange={(e) =>
-                          callService('climate', 'set_temperature', {
-                            entity_id: entityId,
-                            temperature: parseFloat(e.target.value),
-                          })
+                          void setTemperature(parseFloat(e.target.value)).catch(() => {})
                         }
                         colorClass={
                           isCooling
@@ -239,12 +330,9 @@ export default function GenericClimateModal({
                       />
                     </div>
                     <button
-                      onClick={() =>
-                        callService('climate', 'set_temperature', {
-                          entity_id: entityId,
-                          temperature: tempValue + 0.5,
-                        })
-                      }
+                      type="button"
+                      aria-label={t('climate.increaseTemperature')}
+                      onClick={increaseTemperature}
                       className="rounded-full border p-3 shadow-lg transition-all active:scale-90 sm:p-6"
                       style={{
                         backgroundColor: 'var(--glass-bg)',
@@ -272,7 +360,7 @@ export default function GenericClimateModal({
                         </p>
                         <div className="popup-surface grid grid-cols-2 gap-1.5 rounded-2xl p-1.5">
                           {favoriteModes.map((mode) => {
-                            const active = entity.state === mode;
+                            const active = currentMode === mode;
                             const label = hvacMap?.[mode] || mode;
                             const ModeIcon =
                               mode === 'off'
@@ -293,12 +381,7 @@ export default function GenericClimateModal({
                                 type="button"
                                 aria-pressed={active}
                                 aria-label={`${t('climate.shortcuts')}: ${label}`}
-                                onClick={() =>
-                                  callService('climate', 'set_hvac_mode', {
-                                    entity_id: entityId,
-                                    hvac_mode: mode,
-                                  })
-                                }
+                                onClick={() => void setHvacMode(mode).catch(() => {})}
                                 className={`flex min-h-12 items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-bold tracking-widest uppercase transition-all active:scale-[0.97] ${active ? 'border-[var(--glass-border)] bg-[var(--glass-bg-hover)] text-[var(--text-primary)] shadow-sm' : 'border-transparent bg-transparent text-[var(--text-secondary)] hover:bg-[var(--glass-bg)] hover:text-[var(--text-primary)]'}`}
                               >
                                 <ModeIcon
@@ -319,13 +402,8 @@ export default function GenericClimateModal({
                       label={favoriteModes.length > 0 ? t('climate.allModes') : t('climate.mode')}
                       icon={Flame}
                       options={hvacModes}
-                      current={entity.state}
-                      onChange={(m) =>
-                        callService('climate', 'set_hvac_mode', {
-                          entity_id: entityId,
-                          hvac_mode: m,
-                        })
-                      }
+                      current={currentMode}
+                      onChange={(m) => void setHvacMode(m).catch(() => {})}
                       map={hvacMap}
                       placeholder={t('dropdown.noneSelected')}
                     />

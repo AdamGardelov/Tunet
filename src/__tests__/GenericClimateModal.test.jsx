@@ -14,7 +14,7 @@ vi.mock('../components/ui/AccessibleModalShell', () => ({
 }));
 
 vi.mock('../components/ui/M3Slider', () => ({
-  default: () => <input aria-label="temperature" type="range" />,
+  default: (props) => <input aria-label="temperature" type="range" {...props} />,
 }));
 
 const translations = {
@@ -102,5 +102,54 @@ describe('GenericClimateModal mode shortcuts', () => {
     );
 
     expect(screen.queryByText('Shortcuts')).not.toBeInTheDocument();
+  });
+
+  it('turns the climate off when decreasing at the minimum temperature', () => {
+    const callService = renderModal({
+      entity: {
+        ...entity,
+        attributes: {
+          ...entity.attributes,
+          temperature: 5,
+          min_temp: 5,
+          target_temp_step: 1,
+          hvac_modes: ['off', 'heat'],
+        },
+      },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'climate.decreaseTemperature' }));
+
+    expect(callService).toHaveBeenCalledWith('climate', 'set_hvac_mode', {
+      entity_id: 'climate.living_room',
+      hvac_mode: 'off',
+    });
+    expect(screen.getByRole('button', { name: 'Shortcuts: Off' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+  });
+
+  it('uses the temperature step reported by the climate entity and updates immediately', () => {
+    const callService = renderModal({
+      entity: {
+        ...entity,
+        attributes: {
+          ...entity.attributes,
+          temperature: 15,
+          min_temp: 5,
+          max_temp: 35,
+          target_temp_step: 1,
+        },
+      },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'climate.increaseTemperature' }));
+
+    expect(callService).toHaveBeenCalledWith('climate', 'set_temperature', {
+      entity_id: 'climate.living_room',
+      temperature: 16,
+    });
+    expect(screen.getByText('16')).toBeInTheDocument();
   });
 });

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.23.0-adam.55
+
+- Makes all heater controls respond immediately while Home Assistant and Adax catch up.
+- Uses each heater's real temperature step in the detail view.
+- Turns a heater off when lowering it once more at its minimum temperature, matching the Adax app.
+- Shows an enabled but idle heater as on instead of inactive.
+
 ## 1.23.0-adam.54
 
 - Automatically follows the shared Mobil profile when Tunet opens on a new device or Home Assistant address.
