@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.23.0-adam.61
+
+- Adds an obvious full-screen control to the camera live-view popup.
+- Uses native Android full screen when available and a full-viewport fallback elsewhere.
+- Makes Escape or Back leave full screen before closing the camera.
+
 ## 1.23.0-adam.60
 
 - Uses the existing authenticated Home Assistant ingress session for profiles and settings.
