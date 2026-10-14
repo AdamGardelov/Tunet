@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from 'react';
+import { useCallback, useEffect, useId, useRef } from 'react';
 import { normalizeModalOverlayStyle } from './modalStyles';
 
 const FOCUSABLE_SELECTOR =
@@ -12,23 +12,27 @@ const PRIORITY_FOCUS_SELECTOR =
  * @param {Object} props
  * @param {boolean} props.open
  * @param {(e?: any) => void} props.onClose
+ * @param {(e?: any) => void} [props.onEscape]
  * @param {string} [props.titleId]
  * @param {string} [props.describedBy]
  * @param {string} [props.overlayClassName]
  * @param {Object} [props.overlayStyle]
  * @param {string} [props.panelClassName]
  * @param {Object} [props.panelStyle]
+ * @param {Object|Function} [props.panelElementRef]
  * @param {Function} props.children
  */
 export default function AccessibleModalShell({
   open,
   onClose,
+  onEscape,
   titleId,
   describedBy,
   overlayClassName,
   overlayStyle,
   panelClassName,
   panelStyle,
+  panelElementRef,
   children,
 }) {
   const fallbackTitleId = useId().replace(/:/g, '');
@@ -37,10 +41,27 @@ export default function AccessibleModalShell({
   const previousActiveRef = useRef(null);
   const wasOpenRef = useRef(false);
   const onCloseRef = useRef(onClose);
+  const onEscapeRef = useRef(onEscape);
+
+  const assignPanelRef = useCallback(
+    (node) => {
+      panelRef.current = node;
+      if (typeof panelElementRef === 'function') {
+        panelElementRef(node);
+      } else if (panelElementRef && typeof panelElementRef === 'object') {
+        panelElementRef.current = node;
+      }
+    },
+    [panelElementRef]
+  );
 
   useEffect(() => {
     onCloseRef.current = onClose;
   }, [onClose]);
+
+  useEffect(() => {
+    onEscapeRef.current = onEscape;
+  }, [onEscape]);
 
   useEffect(() => {
     if (!open) {
@@ -70,7 +91,7 @@ export default function AccessibleModalShell({
       if (!panelRef.current) return;
       if (event.key === 'Escape') {
         event.preventDefault();
-        onCloseRef.current?.();
+        (onEscapeRef.current || onCloseRef.current)?.(event);
         return;
       }
       if (event.key !== 'Tab') return;
@@ -112,7 +133,7 @@ export default function AccessibleModalShell({
   return (
     <div className={overlayClassName} style={resolvedOverlayStyle} onClick={onClose}>
       <div
-        ref={panelRef}
+        ref={assignPanelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={resolvedTitleId}

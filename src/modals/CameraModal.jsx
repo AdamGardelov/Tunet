@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { X, RefreshCw, Video, Camera } from '../icons';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { X, RefreshCw, Video, Camera, Maximize2, Minimize2 } from '../icons';
 import { getIconComponent } from '../icons';
 import AccessibleModalShell from '../components/ui/AccessibleModalShell';
 import CameraFeed from '../components/camera/CameraFeed';
@@ -18,6 +18,9 @@ export default function CameraModal({
 }) {
   const [viewMode, setViewMode] = useState('stream');
   const [refreshTs, setRefreshTs] = useState(Date.now());
+  const [fullscreenMode, setFullscreenMode] = useState(null);
+  const fullscreenModeRef = useRef(null);
+  const panelRef = useRef(null);
   const modalTitleId = `camera-modal-title-${(entityId || 'camera').replace(/[^a-zA-Z0-9_-]/g, '-')}`;
 
   const activeEntity = entity || { attributes: {} };
@@ -28,27 +31,114 @@ export default function CameraModal({
   const Icon = iconName ? getIconComponent(iconName) || Camera : Camera;
   const activeSettings =
     viewMode === 'snapshot' ? { ...settings, cameraStreamEngine: 'snapshot' } : settings;
+  const isFullscreen = Boolean(fullscreenMode);
+
+  const updateFullscreenMode = useCallback((nextMode) => {
+    fullscreenModeRef.current = nextMode;
+    setFullscreenMode(nextMode);
+  }, []);
+
+  const exitFullscreen = useCallback(async () => {
+    const doc = globalThis.document;
+    const exit = doc?.exitFullscreen;
+
+    if (fullscreenModeRef.current === 'native' && typeof exit === 'function') {
+      try {
+        await exit.call(doc);
+      } catch {
+        // The browser may already have left fullscreen via Escape or Back.
+      }
+    }
+    updateFullscreenMode(null);
+  }, [updateFullscreenMode]);
+
+  const toggleFullscreen = useCallback(async () => {
+    if (fullscreenModeRef.current) {
+      await exitFullscreen();
+      return;
+    }
+
+    const panel = panelRef.current;
+    const request = panel?.requestFullscreen;
+    if (panel && typeof request === 'function') {
+      try {
+        await request.call(panel);
+        updateFullscreenMode('native');
+        return;
+      } catch {
+        // Fall back to an in-app viewport takeover below.
+      }
+    }
+
+    updateFullscreenMode('fallback');
+  }, [exitFullscreen, updateFullscreenMode]);
+
+  const handleClose = useCallback(async () => {
+    await exitFullscreen();
+    onClose?.();
+  }, [exitFullscreen, onClose]);
+
+  const handleEscape = useCallback(() => {
+    if (fullscreenModeRef.current) {
+      void exitFullscreen();
+      return;
+    }
+    onClose?.();
+  }, [exitFullscreen, onClose]);
+
+  useEffect(() => {
+    const doc = globalThis.document;
+    if (!doc) return undefined;
+
+    const syncNativeFullscreen = () => {
+      const activeElement = doc.fullscreenElement;
+      if (activeElement === panelRef.current) {
+        updateFullscreenMode('native');
+      } else if (fullscreenModeRef.current === 'native') {
+        updateFullscreenMode(null);
+      }
+    };
+
+    doc.addEventListener('fullscreenchange', syncNativeFullscreen);
+    return () => {
+      doc.removeEventListener('fullscreenchange', syncNativeFullscreen);
+    };
+  }, [updateFullscreenMode]);
+
+  useEffect(() => {
+    if (!show && fullscreenModeRef.current) {
+      void exitFullscreen();
+    }
+  }, [exitFullscreen, show]);
 
   if (!show || !entityId || !entity) return null;
 
   return (
     <AccessibleModalShell
       open={show && !!entityId && !!entity}
-      onClose={onClose}
+      onClose={handleClose}
+      onEscape={handleEscape}
       titleId={modalTitleId}
       overlayClassName="fixed inset-0 z-[130] flex items-center justify-center p-2 sm:p-5"
       overlayStyle={{ backdropFilter: 'blur(20px)', backgroundColor: 'rgba(0,0,0,0.45)' }}
-      panelClassName="popup-anim relative flex max-h-[calc(100dvh-1rem)] w-full max-w-6xl flex-col rounded-2xl border p-3 font-sans shadow-2xl backdrop-blur-xl sm:max-h-[92vh] sm:rounded-3xl sm:p-6"
+      panelClassName={
+        isFullscreen
+          ? 'popup-anim fixed inset-0 z-[160] flex h-[100dvh] max-h-none w-screen max-w-none flex-col overflow-hidden rounded-none border-0 p-2 font-sans shadow-none sm:p-4'
+          : 'popup-anim relative flex max-h-[calc(100dvh-1rem)] w-full max-w-6xl flex-col rounded-2xl border p-3 font-sans shadow-2xl backdrop-blur-xl sm:max-h-[92vh] sm:rounded-3xl sm:p-6'
+      }
       panelStyle={{
-        background: 'linear-gradient(135deg, var(--card-bg) 0%, var(--modal-bg) 100%)',
+        background: isFullscreen
+          ? '#000'
+          : 'linear-gradient(135deg, var(--card-bg) 0%, var(--modal-bg) 100%)',
         borderColor: 'var(--glass-border)',
         color: 'var(--text-primary)',
       }}
+      panelElementRef={panelRef}
     >
       {() => (
         <>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="modal-close absolute top-3 right-3 z-10 sm:top-6 sm:right-6"
             aria-label={t?.('common.close') || 'Close'}
           >
@@ -73,7 +163,7 @@ export default function CameraModal({
               </div>
             </div>
 
-            <div className="grid grid-cols-[1fr_1fr_auto] gap-2 sm:flex sm:items-center">
+            <div className="grid grid-cols-[1fr_1fr_auto_auto] gap-2 sm:flex sm:items-center">
               <button
                 type="button"
                 aria-pressed={viewMode === 'stream'}
@@ -109,10 +199,30 @@ export default function CameraModal({
               >
                 <RefreshCw className="h-4 w-4" />
               </button>
+              <button
+                type="button"
+                onClick={toggleFullscreen}
+                className="rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] p-2 text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+                title={isFullscreen ? 'Exit full screen' : 'Full screen'}
+                aria-label={isFullscreen ? 'Exit full screen' : 'Full screen'}
+                aria-pressed={isFullscreen}
+              >
+                {isFullscreen ? (
+                  <Minimize2 className="h-4 w-4" />
+                ) : (
+                  <Maximize2 className="h-4 w-4" />
+                )}
+              </button>
             </div>
           </div>
 
-          <div className="relative h-[52dvh] min-h-[240px] shrink-0 overflow-hidden rounded-2xl border border-[var(--glass-border)] bg-black/70 sm:h-[68dvh] sm:min-h-[420px]">
+          <div
+            className={
+              isFullscreen
+                ? 'relative min-h-0 flex-1 overflow-hidden rounded-xl bg-black sm:rounded-2xl'
+                : 'relative h-[52dvh] min-h-[240px] shrink-0 overflow-hidden rounded-2xl border border-[var(--glass-border)] bg-black/70 sm:h-[68dvh] sm:min-h-[420px]'
+            }
+          >
             <CameraFeed
               entityId={activeEntityId}
               entity={activeEntity}
