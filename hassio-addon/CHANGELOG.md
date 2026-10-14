@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.23.0-adam.49
+
+- Shows climate devices as on when the integration reports heat mode without a separate HVAC action.
+- Reserves “Värmer” for devices that explicitly report active heating instead of labeling active thermostats as inactive.
+- Includes the camera privacy control and aligned medication checkmarks from the previous two builds.
+
 ## 1.23.0-adam.48
 
 - Aligns medication checkmarks and action feedback with their labels on the button centerline.
