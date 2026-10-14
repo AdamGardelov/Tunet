@@ -33,3 +33,20 @@ export const createIngressAuth = (location = globalThis.window?.location) => {
     },
   };
 };
+
+export const fetchIngressSessionUser = async (fetchImpl = globalThis.fetch) => {
+  if (typeof fetchImpl !== 'function') {
+    throw new Error('Fetch is unavailable');
+  }
+
+  const response = await fetchImpl('./api/session', {
+    credentials: 'same-origin',
+    headers: { Accept: 'application/json' },
+  });
+  if (!response.ok) {
+    throw new Error(`Ingress session lookup failed (${response.status})`);
+  }
+
+  const payload = await response.json();
+  return payload?.user || null;
+};

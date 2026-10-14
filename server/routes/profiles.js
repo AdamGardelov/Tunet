@@ -19,6 +19,7 @@ const profilesRateLimiter = rateLimit({
   max: Math.max(Number(process.env.PROFILES_RATE_LIMIT_MAX) || 120, 10),
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false },
 });
 
 router.use(profilesRateLimiter);

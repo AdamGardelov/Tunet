@@ -16,7 +16,7 @@ import {
 import { saveTokens, loadTokens, clearOAuthTokens, hasOAuthTokens } from '../services/oauthStorage';
 import { HOME_ASSISTANT_API_UNAUTHORIZED_EVENT, setOAuthAuthProvider } from '../services/apiAuth';
 import { getDeviceRegistry, getEntityRegistry } from '../services/haClient';
-import { createIngressAuth } from '../services/ingressAuth';
+import { createIngressAuth, fetchIngressSessionUser } from '../services/ingressAuth';
 import { validateUrl } from '../config/onboarding';
 import { useMobileConnectionRecovery } from '../hooks/useMobileConnectionRecovery';
 import {
@@ -282,7 +282,16 @@ export const HomeAssistantProvider = ({ children, config }) => {
     /** Fetch the authenticated HA user after connecting */
     async function fetchCurrentUser(connInstance) {
       try {
-        const user = await connInstance.sendMessagePromise({ type: 'auth/current_user' });
+        // The Supervisor WebSocket is authenticated as the add-on itself. For
+        // ingress sessions, ask our authenticated same-origin endpoint for the
+        // human HA user instead so profile/settings ownership stays stable
+        // across local, VPN, and Home Assistant Cloud origins.
+        let user = null;
+        if (config.isIngress) {
+          user = await fetchIngressSessionUser();
+        } else {
+          user = await connInstance.sendMessagePromise({ type: 'auth/current_user' });
+        }
         if (isCurrentAttempt() && user) {
           setHaUser({
             id: user.id,

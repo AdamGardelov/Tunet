@@ -72,6 +72,7 @@ export const createApp = ({
     max: Math.max(Number(process.env.API_RATE_LIMIT_MAX) || 300, 10),
     standardHeaders: true,
     legacyHeaders: false,
+    validate: { xForwardedForHeader: false },
   });
 
   const assetFallbackRateLimiter = rateLimit({
@@ -79,6 +80,7 @@ export const createApp = ({
     max: Math.max(Number(process.env.ASSET_FALLBACK_RATE_LIMIT_MAX) || 120, 10),
     standardHeaders: true,
     legacyHeaders: false,
+    validate: { xForwardedForHeader: false },
   });
 
   app.use('/api', apiRateLimiter);
@@ -93,6 +95,9 @@ export const createApp = ({
   });
 
   // API routes
+  app.get('/api/session', homeAssistantAuth, (req, res) => {
+    res.json({ user: req.authenticatedHaUser });
+  });
   app.use('/api/profiles', homeAssistantAuth, profilesRouter);
   app.use('/api/icons', iconsRouter);
   app.use('/api/settings', homeAssistantAuth, settingsRouter);

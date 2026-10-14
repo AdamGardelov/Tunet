@@ -37,9 +37,9 @@ const startHarness = async (app) => {
   openServers.push(server);
 
   return {
-    async request(path) {
+    async request(path, options) {
       const address = server.address();
-      return fetch(`http://127.0.0.1:${address.port}${path}`);
+      return fetch(`http://127.0.0.1:${address.port}${path}`, options);
     },
   };
 };
@@ -84,5 +84,38 @@ describe('createApp SPA fallback', () => {
 
     expect(response.status).toBe(404);
     await expect(response.text()).resolves.not.toContain('Tunet Test');
+  });
+
+  it('returns the human Home Assistant user for a trusted ingress session', async () => {
+    const previousTrustSetting = process.env.TUNET_TRUST_SUPERVISOR_INGRESS;
+    process.env.TUNET_TRUST_SUPERVISOR_INGRESS = '1';
+
+    try {
+      const harness = await startHarness(createApp({ isProduction: false }));
+      const response = await harness.request('/api/session', {
+        headers: {
+          'x-ingress-path': '/api/hassio_ingress/test-session',
+          'x-remote-user-id': 'adam-user',
+          'x-remote-user-display-name': 'Adam',
+        },
+      });
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toEqual({
+        user: {
+          id: 'adam-user',
+          name: 'Adam',
+          is_admin: false,
+          is_owner: false,
+          source: 'supervisor-ingress',
+        },
+      });
+    } finally {
+      if (previousTrustSetting === undefined) {
+        delete process.env.TUNET_TRUST_SUPERVISOR_INGRESS;
+      } else {
+        process.env.TUNET_TRUST_SUPERVISOR_INGRESS = previousTrustSetting;
+      }
+    }
   });
 });

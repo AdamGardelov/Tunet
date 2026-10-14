@@ -22,6 +22,7 @@ const settingsRateLimiter = rateLimit({
   max: Math.max(Number(process.env.SETTINGS_RATE_LIMIT_MAX) || 180, 10),
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false },
 });
 
 router.use(settingsRateLimiter);

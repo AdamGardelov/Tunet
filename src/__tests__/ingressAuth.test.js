@@ -1,5 +1,9 @@
-import { describe, expect, it } from 'vitest';
-import { buildIngressWebSocketUrl, createIngressAuth } from '../services/ingressAuth';
+import { describe, expect, it, vi } from 'vitest';
+import {
+  buildIngressWebSocketUrl,
+  createIngressAuth,
+  fetchIngressSessionUser,
+} from '../services/ingressAuth';
 
 describe('ingress authentication', () => {
   it('builds a same-origin websocket URL through the current ingress session', () => {
@@ -27,5 +31,26 @@ describe('ingress authentication', () => {
 
     expect(buildIngressWebSocketUrl(location)).toBe('');
     expect(createIngressAuth(location)).toBeNull();
+  });
+
+  it('loads the human Home Assistant user from the authenticated ingress session', async () => {
+    const user = { id: 'adam-user', name: 'Adam', is_admin: true };
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ user }),
+    });
+
+    await expect(fetchIngressSessionUser(fetchImpl)).resolves.toEqual(user);
+    expect(fetchImpl).toHaveBeenCalledWith('./api/session', {
+      credentials: 'same-origin',
+      headers: { Accept: 'application/json' },
+    });
+  });
+
+  it('rejects a failed ingress session lookup', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({ ok: false, status: 401 });
+    await expect(fetchIngressSessionUser(fetchImpl)).rejects.toThrow(
+      'Ingress session lookup failed (401)'
+    );
   });
 });
