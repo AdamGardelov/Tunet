@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0-adam.51
+
+- Sends entity targets through Home Assistant's current WebSocket target field so climate commands reach the selected heater.
+- Keeps the correct temperature stepping and immediate control feedback from 1.23.0-adam.50.
+
 ## 1.23.0-adam.50
 
 - Uses each climate entity's actual temperature step instead of always sending half-degree changes.
