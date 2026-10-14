@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.23.0-adam.60
+
+- Uses the existing authenticated Home Assistant ingress session for profiles and settings.
+- Removes the remaining token and OAuth requirement on new phones and tablets opened through the Tunet panel.
+- Prevents stale browser OAuth data from overriding ingress authentication.
+
 ## 1.23.0-adam.59
 
 - Makes the Tunet ingress panel available to dedicated non-admin household and tablet accounts.
