@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.23.0-adam.50
+
+- Uses each climate entity's actual temperature step instead of always sending half-degree changes.
+- Shows temperature changes immediately while Home Assistant and the heater's cloud connection catch up.
+- Shows immediate visual feedback when a heater is switched on or off.
+
 ## 1.23.0-adam.49
 
 - Shows climate devices as on when the integration reports heat mode without a separate HVAC action.
