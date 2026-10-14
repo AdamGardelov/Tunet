@@ -9,6 +9,10 @@ import {
 import { useSettingsSync } from './useSettingsSync';
 import { collectSnapshot, applySnapshot, isValidSnapshot } from '../services/snapshot';
 
+const ACTIVE_PROFILE_STORAGE_KEY = 'tunet_active_profile_id';
+const PROFILE_FOLLOW_DISABLED_STORAGE_KEY = 'tunet_profile_follow_disabled';
+const DEFAULT_SHARED_PROFILE_NAME = 'mobil';
+
 function cloneJson(value, fallback = {}) {
   try {
     return globalThis.structuredClone(value ?? fallback);
@@ -109,7 +113,7 @@ export function useProfiles({ haUser, contextSetters, prefetchProfiles = true })
   const [backendAvailable, setBackendAvailable] = useState(true);
   const [activeProfileId, setActiveProfileId] = useState(() => {
     try {
-      return localStorage.getItem('tunet_active_profile_id') || '';
+      return localStorage.getItem(ACTIVE_PROFILE_STORAGE_KEY) || '';
     } catch {
       return '';
     }
@@ -151,9 +155,10 @@ export function useProfiles({ haUser, contextSetters, prefetchProfiles = true })
     setActiveProfileId(normalized);
     try {
       if (normalized) {
-        localStorage.setItem('tunet_active_profile_id', normalized);
+        localStorage.setItem(ACTIVE_PROFILE_STORAGE_KEY, normalized);
+        localStorage.removeItem(PROFILE_FOLLOW_DISABLED_STORAGE_KEY);
       } else {
-        localStorage.removeItem('tunet_active_profile_id');
+        localStorage.removeItem(ACTIVE_PROFILE_STORAGE_KEY);
       }
     } catch {
       // ignore storage errors
@@ -271,10 +276,34 @@ export function useProfiles({ haUser, contextSetters, prefetchProfiles = true })
 
   const stopFollowingProfile = useCallback(() => {
     persistActiveProfileId('');
+    try {
+      localStorage.setItem(PROFILE_FOLLOW_DISABLED_STORAGE_KEY, '1');
+    } catch {
+      // ignore storage errors
+    }
     lastProfileHashRef.current = '';
     lastProfileUpdatedAtRef.current = '';
     setProfileSyncStatus('idle');
   }, [persistActiveProfileId]);
+
+  useEffect(() => {
+    if (!prefetchProfiles || !haUser?.id || activeProfileId || profiles.length === 0) return;
+
+    try {
+      if (localStorage.getItem(PROFILE_FOLLOW_DISABLED_STORAGE_KEY) === '1') return;
+    } catch {
+      // If storage is unavailable, the shared profile is still the safest default.
+    }
+
+    const defaultProfile = profiles.find(
+      (profile) =>
+        profile?.shared !== false &&
+        typeof profile?.name === 'string' &&
+        profile.name.trim().toLocaleLowerCase('sv-SE') === DEFAULT_SHARED_PROFILE_NAME
+    );
+
+    if (defaultProfile) followProfile(defaultProfile);
+  }, [activeProfileId, followProfile, haUser?.id, prefetchProfiles, profiles]);
 
   const syncActiveProfile = useCallback(async () => {
     const profileId = activeProfileIdRef.current;

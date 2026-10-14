@@ -193,6 +193,56 @@ describe('useProfiles', () => {
 
     expect(result.current.activeProfileId).toBe('');
     expect(localStorage.getItem('tunet_active_profile_id')).toBeNull();
+    expect(localStorage.getItem('tunet_profile_follow_disabled')).toBe('1');
+  });
+
+  it('automatically follows the shared Mobil profile on a new origin', async () => {
+    const profile = {
+      id: 'mobile-profile',
+      ha_user_id: 'user-1',
+      shared: true,
+      name: 'Mobil',
+      updated_at: '2026-10-14T08:00:00.000Z',
+      data: {
+        version: 1,
+        layout: { pagesConfig: { pages: ['home'], header: [], home: ['camera.presets'] } },
+        appearance: {},
+      },
+    };
+    fetchProfiles.mockResolvedValue([profile]);
+    fetchProfile.mockResolvedValue(profile);
+
+    const { result } = renderHook(() =>
+      useProfiles({ haUser: { id: 'user-1' }, contextSetters: {} })
+    );
+
+    await waitFor(() => expect(result.current.activeProfileId).toBe('mobile-profile'));
+    expect(localStorage.getItem('tunet_active_profile_id')).toBe('mobile-profile');
+    expect(applySnapshot).toHaveBeenCalledWith(
+      expect.objectContaining({ version: 1, appearance: {} }),
+      {}
+    );
+  });
+
+  it('does not automatically follow Mobil after the user stops following profiles', async () => {
+    const profile = {
+      id: 'mobile-profile',
+      ha_user_id: 'user-1',
+      shared: true,
+      name: 'Mobil',
+      updated_at: '2026-10-14T08:00:00.000Z',
+      data: { version: 1, layout: {}, appearance: {} },
+    };
+    localStorage.setItem('tunet_profile_follow_disabled', '1');
+    fetchProfiles.mockResolvedValue([profile]);
+
+    const { result } = renderHook(() =>
+      useProfiles({ haUser: { id: 'user-1' }, contextSetters: {} })
+    );
+
+    await waitFor(() => expect(fetchProfiles).toHaveBeenCalledWith('user-1'));
+    expect(result.current.activeProfileId).toBe('');
+    expect(applySnapshot).not.toHaveBeenCalled();
   });
 
   it('publishes dashboard edits to the followed profile', async () => {

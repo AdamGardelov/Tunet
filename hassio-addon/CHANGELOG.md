@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.23.0-adam.54
+
+- Automatically follows the shared Mobil profile when Tunet opens on a new device or Home Assistant address.
+- Keeps local, VPN, and Home Assistant Cloud views on the same dashboard without manual profile setup.
+- Preserves an explicit choice to stop following a profile on that device and address.
+
 ## 1.23.0-adam.53
 
 - Uses the signed-in Home Assistant person for dashboard profiles and settings while running through ingress.
