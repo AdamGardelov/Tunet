@@ -119,7 +119,11 @@ const GenericClimateCard = memo(
     const isCooling = isCoolingState(entity);
     const isHeating = isHeatingState(entity);
     const clTheme = isOn ? (isCooling ? 'blue' : isHeating ? 'orange' : 'gray') : 'gray';
-    const hvacAction = isOn ? entity.attributes?.hvac_action || 'idle' : 'off';
+    const hvacAction = isOn ? entity.attributes?.hvac_action || null : 'off';
+    const actionLabel =
+      isOn && !hvacAction
+        ? translate('common.on')
+        : translate('climate.action.' + hvacAction);
     const DisplayIcon = Icon || AirVent;
 
     const themeClasses = {
@@ -285,7 +289,7 @@ const GenericClimateCard = memo(
             <span
               className={`${isDenseMobile ? 'text-[10px]' : 'text-xs'} font-bold tracking-widest uppercase`}
             >
-              {translate('climate.action.' + hvacAction)}
+              {actionLabel}
             </span>
           </div>
         </div>

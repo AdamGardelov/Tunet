@@ -72,6 +72,24 @@ describe('GenericClimateCard', () => {
     expect(screen.queryByText('climate.fanAuto')).not.toBeInTheDocument();
   });
 
+  it('shows the climate as on when the integration has no hvac action', () => {
+    const props = baseProps();
+    props.entity = {
+      state: 'heat',
+      attributes: {
+        friendly_name: 'Stora sovrummet',
+        temperature: 15,
+        current_temperature: 13.2,
+        hvac_modes: ['heat', 'off'],
+      },
+    };
+
+    render(<GenericClimateCard {...props} />);
+
+    expect(screen.getByText('common.on')).toBeInTheDocument();
+    expect(screen.queryByText('climate.action.idle')).not.toBeInTheDocument();
+  });
+
   it('calls climate.turn_off when toggling power while active', () => {
     const callService = vi.fn();
     render(<GenericClimateCard {...baseProps()} callService={callService} />);
