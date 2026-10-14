@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.23.0-adam.57
+
+- Rebuilds the add-on from the reviewed vehicle-availability source revision so the 1.23.0-adam.56 frontend fix is actually included.
+
 ## 1.23.0-adam.56
 
 - Keeps unavailable vehicle cards visible with a clear disconnected status instead of misleading empty data.
