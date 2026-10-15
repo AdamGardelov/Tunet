@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0-adam.64
+
+- Refines the mobile edit button with a clearer, compact blue treatment.
+- Removes the unrelated Home Assistant update count from the floating edit control.
+
 ## 1.23.0-adam.63
 
 - Makes the floating edit control smaller and visually secondary so it no longer covers dashboard content.
