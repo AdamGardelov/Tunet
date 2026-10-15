@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0-adam.63
+
+- Makes the floating edit control smaller and visually secondary so it no longer covers dashboard content.
+- Keeps the control clear of phone safe areas while preserving a comfortable touch target.
+
 ## 1.23.0-adam.62
 
 - Adds a responsive “Till sopskåpet” shortcut to the vacuum page on phones and tablets.
