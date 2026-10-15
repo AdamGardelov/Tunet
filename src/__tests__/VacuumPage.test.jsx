@@ -58,4 +58,33 @@ describe('VacuumPage', () => {
       )
     );
   });
+
+  it('sends the vacuum to the bin without starting the notification script', async () => {
+    const sendMessagePromise = vi.fn().mockResolvedValue([]);
+    const callService = vi.fn().mockResolvedValue({});
+
+    render(
+      <VacuumPage
+        vacuumId="vacuum.dammit"
+        entities={{
+          'vacuum.dammit': {
+            state: 'docked',
+            attributes: { friendly_name: 'Dammit', battery_level: 92 },
+          },
+        }}
+        conn={{ sendMessagePromise }}
+        callService={callService}
+        getEntityImageUrl={(url) => url}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Till sopskåpet' }));
+
+    await waitFor(() =>
+      expect(callService).toHaveBeenCalledWith('script', 'turn_on', {
+        entity_id: 'script.dammit_till_sopskapet_utan_notis',
+      })
+    );
+    expect(screen.getByRole('button', { name: 'På väg' })).toBeInTheDocument();
+  });
 });

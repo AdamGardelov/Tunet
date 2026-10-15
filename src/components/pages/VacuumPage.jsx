@@ -12,8 +12,11 @@ import {
   Play,
   RefreshCw,
   Sofa,
+  Trash2,
   Utensils,
 } from '../../icons';
+
+const EMPTY_VACUUM_SCRIPT_ID = 'script.dammit_till_sopskapet_utan_notis';
 
 const roomIcon = (name = '') => {
   const value = name.toLowerCase();
@@ -41,6 +44,7 @@ export default function VacuumPage({ vacuumId, entities, conn, callService, getE
   const [selectedAreas, setSelectedAreas] = useState([]);
   const [refreshKey, setRefreshKey] = useState(Date.now());
   const [actionState, setActionState] = useState('idle');
+  const [binActionState, setBinActionState] = useState('idle');
   const vacuum = entities?.[vacuumId];
   const vacuumName = vacuumId?.split('.')[1]?.toLowerCase() || '';
   const friendlyName = vacuum?.attributes?.friendly_name || 'Dammsugare';
@@ -147,6 +151,18 @@ export default function VacuumPage({ vacuumId, entities, conn, callService, getE
       }
       setSelectedAreas([]);
     });
+  };
+
+  const moveToBin = async () => {
+    setBinActionState('pending');
+    try {
+      await callService('script', 'turn_on', { entity_id: EMPTY_VACUUM_SCRIPT_ID });
+      setBinActionState('success');
+    } catch (error) {
+      console.error('Unable to send vacuum to the bin', error);
+      setBinActionState('error');
+    }
+    window.setTimeout(() => setBinActionState('idle'), 1800);
   };
 
   if (!vacuum) return null;
@@ -289,6 +305,28 @@ export default function VacuumPage({ vacuumId, entities, conn, callService, getE
             <Home className="h-4 w-4" /> Hem
           </button>
         </div>
+
+        <button
+          type="button"
+          disabled={binActionState === 'pending'}
+          onClick={moveToBin}
+          className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] text-sm font-bold text-[var(--text-primary)] transition-all active:scale-[0.98] disabled:opacity-50"
+        >
+          {binActionState === 'pending' ? (
+            <RefreshCw className="h-4 w-4 animate-spin" />
+          ) : binActionState === 'success' ? (
+            <Check className="h-4 w-4" />
+          ) : (
+            <Trash2 className="h-4 w-4" />
+          )}
+          {binActionState === 'pending'
+            ? 'Skickar…'
+            : binActionState === 'success'
+              ? 'På väg'
+              : binActionState === 'error'
+                ? 'Försök igen'
+                : 'Till sopskåpet'}
+        </button>
       </section>
     </div>
   );
