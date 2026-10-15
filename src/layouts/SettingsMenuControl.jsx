@@ -22,8 +22,8 @@ export default function SettingsMenuControl({
       style={
         floating
           ? {
-              right: 'max(1rem, env(safe-area-inset-right))',
-              bottom: 'max(1rem, env(safe-area-inset-bottom))',
+              right: 'calc(1rem + env(safe-area-inset-right))',
+              bottom: 'calc(1rem + env(safe-area-inset-bottom))',
             }
           : undefined
       }
@@ -47,9 +47,9 @@ export default function SettingsMenuControl({
       {updateCount > 0 && (
         <div
           data-settings-update-badge
-          className="pointer-events-none absolute -top-2 -right-2 z-10 flex h-5 min-w-5 items-center justify-center rounded-full bg-gray-600 px-1 shadow-sm"
+          className="pointer-events-none absolute -top-1.5 -right-1.5 z-10 flex h-4 min-w-4 items-center justify-center rounded-full bg-gray-600 px-1 shadow-sm"
         >
-          <span className="pt-[1px] text-[11px] leading-none font-bold text-white">
+          <span className="pt-px text-[9px] leading-none font-bold text-white">
             {updateCount}
           </span>
         </div>

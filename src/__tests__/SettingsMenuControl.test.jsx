@@ -36,7 +36,7 @@ describe('SettingsMenuControl', () => {
 
     expect(screen.getByText('3')).toBeInTheDocument();
     const badge = document.querySelector('[data-settings-update-badge]');
-    expect(badge).toHaveClass('-top-2', '-right-2');
+    expect(badge).toHaveClass('-top-1.5', '-right-1.5');
     expect(badge).not.toHaveClass('border-2');
     fireEvent.click(screen.getByTestId('settings-dropdown-trigger'));
     fireEvent.click(screen.getByTestId('settings-menu-system'));
@@ -45,17 +45,16 @@ describe('SettingsMenuControl', () => {
     expect(props.setConfigTab).toHaveBeenCalledWith('connection');
   });
 
-  it('uses the larger fixed trigger for the floating mobile variant', () => {
+  it('uses a compact fixed trigger for the floating mobile variant', () => {
     render(<SettingsMenuControl {...makeProps()} floating onAddCard={vi.fn()} />);
 
     expect(screen.getByTestId('settings-menu-control')).toHaveClass('fixed');
     expect(screen.getByTestId('settings-dropdown-trigger')).toHaveClass(
-      'h-14',
-      'w-14',
-      'rounded-2xl',
-      'bg-[var(--accent-color)]'
+      'h-11',
+      'w-11',
+      'rounded-full',
+      'bg-[var(--card-bg)]/90'
     );
-    expect(screen.getByTestId('settings-dropdown-trigger')).not.toHaveClass('rounded-full');
   });
 
   it('turns the floating trigger into the Done action while editing', () => {
@@ -64,7 +63,7 @@ describe('SettingsMenuControl', () => {
 
     const doneButton = screen.getByTestId('settings-dropdown-trigger');
     expect(doneButton).toHaveAccessibleName('nav.done');
-    expect(doneButton).toHaveClass('rounded-2xl', 'bg-[var(--status-success-fg)]');
+    expect(doneButton).toHaveClass('rounded-full', 'bg-[var(--status-success-bg)]');
     expect(screen.queryByTestId('settings-mobile-done')).not.toBeInTheDocument();
 
     fireEvent.click(doneButton);

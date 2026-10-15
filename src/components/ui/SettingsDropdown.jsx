@@ -70,10 +70,10 @@ function SettingsDropdown({
           onClick={handleTrigger}
           className={`group relative z-50 flex flex-shrink-0 items-center justify-center border transition-all duration-300 focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-primary)] focus-visible:outline-none ${
             floating
-              ? `h-14 w-14 rounded-2xl border-transparent text-white shadow-[0_16px_48px_rgba(0,0,0,0.35)] active:scale-95 ${
+              ? `h-11 w-11 rounded-full border-[var(--glass-border)] shadow-[0_10px_28px_rgba(0,0,0,0.28)] backdrop-blur-xl active:scale-95 ${
                   isFloatingDone
-                    ? 'bg-[var(--status-success-fg)] text-[var(--bg-primary)] hover:brightness-110'
-                    : 'bg-[var(--accent-color)] hover:-translate-y-0.5 hover:brightness-110'
+                    ? 'bg-[var(--status-success-bg)] text-[var(--status-success-fg)] hover:bg-[var(--glass-bg-hover)]'
+                    : 'bg-[var(--card-bg)]/90 text-[var(--accent-color)] hover:-translate-y-0.5 hover:bg-[var(--glass-bg-hover)]'
                 }`
               : isMobile
                 ? 'h-11 w-11 rounded-full border-transparent'
@@ -85,9 +85,9 @@ function SettingsDropdown({
           data-testid="settings-dropdown-trigger"
         >
           {isFloatingDone ? (
-            <Check className="h-6 w-6 transition-transform duration-300 group-hover:scale-110" />
+            <Check className="h-[18px] w-[18px] transition-transform duration-300 group-hover:scale-110" />
           ) : floating ? (
-            <Edit2 className="h-6 w-6 transition-transform duration-300 group-hover:scale-110" />
+            <Edit2 className="h-[18px] w-[18px] transition-transform duration-300 group-hover:scale-110" />
           ) : (
             <Settings
               className={`h-5 w-5 transition-transform duration-500 ${isOpen ? 'rotate-90' : 'group-hover:rotate-45'}`}
