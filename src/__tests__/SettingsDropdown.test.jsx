@@ -56,7 +56,7 @@ describe('SettingsDropdown mobile action menu', () => {
 
     const doneButton = screen.getByRole('button', { name: 'Done' });
     expect(doneButton).not.toHaveAttribute('aria-expanded');
-    expect(doneButton).toHaveClass('rounded-full');
+    expect(doneButton).toHaveClass('rounded-2xl');
 
     fireEvent.click(doneButton);
 

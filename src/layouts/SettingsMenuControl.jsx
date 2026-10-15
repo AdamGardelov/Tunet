@@ -44,7 +44,7 @@ export default function SettingsMenuControl({
         floating={floating}
         t={t}
       />
-      {updateCount > 0 && (
+      {!floating && updateCount > 0 && (
         <div
           data-settings-update-badge
           className="pointer-events-none absolute -top-1.5 -right-1.5 z-10 flex h-4 min-w-4 items-center justify-center rounded-full bg-gray-600 px-1 shadow-sm"
