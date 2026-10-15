@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0-adam.62
+
+- Adds a responsive “Till sopskåpet” shortcut to the vacuum page on phones and tablets.
+- Runs the dedicated no-notification Home Assistant script and confirms the tap with clear progress feedback.
+
 ## 1.23.0-adam.61
 
 - Adds an obvious full-screen control to the camera live-view popup.
