@@ -239,7 +239,7 @@ export default function DashboardLayout(props) {
         style={
           isMobile
             ? {
-                paddingBottom: 'calc(7rem + env(safe-area-inset-bottom))',
+                paddingBottom: 'calc(9rem + env(safe-area-inset-bottom))',
               }
             : undefined
         }
