@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.23.0-adam.65
+
+- Adds more scrollable space below the final mobile dashboard card so it can move clear of the floating edit button.
+
 ## 1.23.0-adam.64
 
 - Refines the mobile edit button with a clearer, compact blue treatment.
