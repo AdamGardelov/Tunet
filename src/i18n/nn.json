@@ -1608,5 +1608,10 @@
   "sensor.action.turnOn": "Slå på",
   "sensor.action.turnOff": "Slå av",
   "sensor.action.press": "Trykk",
-  "room.adjustLight": "Juster"
+  "room.adjustLight": "Juster",
+  "light.warmthPreset.cozy": "Koseleg",
+  "light.warmthPreset.warm": "Varm",
+  "light.warmthPreset.neutral": "Nøytral",
+  "light.warmthPreset.daylight": "Dagslys",
+  "light.warmthPreset.cool": "Kald"
 }

@@ -22,6 +22,14 @@ import {
   inferUnitKind,
 } from '../utils';
 import M3Slider from '../components/ui/M3Slider';
+import ActionFeedbackIndicator from '../components/ui/ActionFeedbackIndicator';
+import useActionFeedback from '../hooks/useActionFeedback';
+import {
+  BRIGHTNESS_STEP_PCT,
+  MAX_BRIGHTNESS_PCT,
+  MIN_BRIGHTNESS_PCT,
+  brightnessToStepPct,
+} from '../utils/lightSteps';
 import AccessibleModalShell from '../components/ui/AccessibleModalShell';
 
 const GROUPED_OTHER_DOMAINS = new Set([
@@ -50,6 +58,9 @@ export default function RoomModal({
 }) {
   const [selectedClimateId, setSelectedClimateId] = useState(settings?.climateEntityId || null);
   const [failedImageMap, setFailedImageMap] = useState({});
+  const { getStatus, runAction } = useActionFeedback();
+  // Brightness the user just sent, per light, shown until the light reports it.
+  const [heldBrightness, setHeldBrightness] = useState({});
   const { unitsMode } = useConfig();
   const { haConfig } = useHomeAssistantMeta();
   const effectiveUnitMode = getEffectiveUnitMode(unitsMode, haConfig);
@@ -272,6 +283,20 @@ export default function RoomModal({
   const moveMediaToRight =
     showPopupMedia && mediaPlayers.length > 0 && leftColumnWeight - rightColumnWeight >= 2;
 
+  useEffect(() => {
+    const settled = Object.keys(heldBrightness).filter(
+      (id) =>
+        entities[id]?.state === 'on' &&
+        brightnessToStepPct(entities[id]?.attributes?.brightness) === heldBrightness[id]
+    );
+    if (settled.length === 0) return;
+    setHeldBrightness((prev) => {
+      const next = { ...prev };
+      settled.forEach((id) => delete next[id]);
+      return next;
+    });
+  }, [entities, heldBrightness]);
+
   if (!show) return null;
 
   const handleToggleEntity = (entityId, domain) => {
@@ -280,20 +305,35 @@ export default function RoomModal({
     if (!entity) return;
     const isOn = entity.state === 'on';
     if (['light', 'switch', 'fan', 'cover', 'input_boolean'].includes(domain)) {
-      callService(domain, isOn ? 'turn_off' : 'turn_on', { entity_id: entityId });
+      if (getStatus(entityId) === 'pending') return;
+      runAction(entityId, () =>
+        callService(domain, isOn ? 'turn_off' : 'turn_on', { entity_id: entityId })
+      );
     }
   };
 
   const handleToggleAllLights = () => {
     if (!conn || !callService) return;
+    if (getStatus('all-lights') === 'pending') return;
     const service = lightsOn > 0 ? 'turn_off' : 'turn_on';
-    lights.forEach(({ id }) => {
-      callService('light', service, { entity_id: id });
-    });
+    runAction('all-lights', () =>
+      Promise.all(lights.map(({ id }) => callService('light', service, { entity_id: id })))
+    );
   };
 
   const handleLightBrightness = (entityId, value) => {
     if (!conn || !callService) return;
+    setHeldBrightness((prev) => ({ ...prev, [entityId]: value }));
+    setTimeout(
+      () =>
+        setHeldBrightness((prev) => {
+          if (prev[entityId] !== value) return prev;
+          const next = { ...prev };
+          delete next[entityId];
+          return next;
+        }),
+      6000
+    );
     if (value <= 0) {
       callService('light', 'turn_off', { entity_id: entityId });
       return;
@@ -793,8 +833,12 @@ export default function RoomModal({
                   {lights.length > 0 && !isSectionCollapsed('lights') && (
                     <button
                       onClick={handleToggleAllLights}
-                      className="popup-surface popup-surface-hover rounded-full px-3 py-1.5 text-[10px] font-bold tracking-widest text-[var(--text-secondary)] uppercase"
+                      aria-busy={getStatus('all-lights') === 'pending'}
+                      className="popup-surface popup-surface-hover flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-bold tracking-widest text-[var(--text-secondary)] uppercase"
                     >
+                      {getStatus('all-lights') !== 'idle' && (
+                        <ActionFeedbackIndicator status={getStatus('all-lights')} className="h-3.5 w-3.5" />
+                      )}
                       {lightsOn > 0 ? t('room.turnOffAll') : t('room.turnOnAll')}
                     </button>
                   )}
@@ -803,13 +847,11 @@ export default function RoomModal({
                 {!isSectionCollapsed('lights') && (
                   <div className="custom-scrollbar max-h-[30vh] space-y-2 overflow-y-auto pr-1">
                     {lights.map(({ id, entity }) => {
-                      const brightness = entity.attributes?.brightness;
-                      const brightnessPct = Number.isFinite(brightness)
-                        ? Math.round((brightness / 255) * 100)
-                        : entity.state === 'on'
-                          ? 100
-                          : 0;
                       const isOn = entity.state === 'on';
+                      const brightnessPct =
+                        heldBrightness[id] ??
+                        (isOn ? brightnessToStepPct(entity.attributes?.brightness ?? 255) : MIN_BRIGHTNESS_PCT);
+                      const toggleStatus = getStatus(id);
                       return (
                         <div key={id} className="px-1 py-2">
                           <div className="mb-2 flex items-center justify-between gap-2" title={id}>
@@ -820,22 +862,29 @@ export default function RoomModal({
                             </div>
                             <button
                               onClick={() => handleToggleEntity(id, 'light')}
+                              aria-label={entity.attributes?.friendly_name || id}
+                              aria-pressed={isOn}
+                              aria-busy={toggleStatus === 'pending'}
                               className={`relative h-5 w-10 rounded-full transition-colors ${isOn ? 'bg-[var(--accent-color)]' : 'bg-[var(--glass-bg-hover)]'}`}
                             >
                               <span
-                                className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${isOn ? 'left-5' : 'left-0.5'}`}
-                              />
+                                className={`absolute top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white transition-all ${isOn ? 'left-5' : 'left-0.5'}`}
+                              >
+                                {toggleStatus !== 'idle' && (
+                                  <ActionFeedbackIndicator status={toggleStatus} className="h-3 w-3" />
+                                )}
+                              </span>
                             </button>
                           </div>
                           <M3Slider
                             variant="thinLg"
-                            min={0}
-                            max={100}
-                            step={1}
+                            min={MIN_BRIGHTNESS_PCT}
+                            max={MAX_BRIGHTNESS_PCT}
+                            step={BRIGHTNESS_STEP_PCT}
                             value={brightnessPct}
-                            onChange={(event) =>
-                              handleLightBrightness(id, Number(event.target.value))
-                            }
+                            onCommit={(value) => handleLightBrightness(id, Number(value))}
+                            ariaLabel={`${entity.attributes?.friendly_name || id} ${t('light.brightness')}`}
+                            ariaValueText={`${brightnessPct}%`}
                             colorClass="bg-amber-500"
                           />
                           <div className="mt-2 h-px bg-[var(--glass-border)]/35" />

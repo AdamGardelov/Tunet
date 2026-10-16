@@ -1608,5 +1608,10 @@
   "sensor.action.turnOn": "Encender",
   "sensor.action.turnOff": "Apagar",
   "sensor.action.press": "Pulsar",
-  "room.adjustLight": "Ajustar"
+  "room.adjustLight": "Ajustar",
+  "light.warmthPreset.cozy": "Acogedor",
+  "light.warmthPreset.warm": "Cálido",
+  "light.warmthPreset.neutral": "Neutro",
+  "light.warmthPreset.daylight": "Luz de día",
+  "light.warmthPreset.cool": "Frío"
 }

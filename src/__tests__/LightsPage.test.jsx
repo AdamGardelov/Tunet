@@ -327,16 +327,17 @@ describe('LightsPage', () => {
     expect(screen.queryByRole('slider', { name: 'Värme Testlampa' })).not.toBeInTheDocument();
 
     fireEvent.click(warmthButton);
-    fireEvent.change(screen.getByRole('slider', { name: 'Värme Testlampa' }), {
-      target: { value: '3200' },
-    });
+    const slider = screen.getByRole('slider', { name: 'Värme Testlampa' });
+    // Steps: Mysig 2200, Varm 2700, Neutral 3500, Dagsljus 4500, Kall 6500.
+    fireEvent.change(slider, { target: { value: '2' } });
+    expect(callService).not.toHaveBeenCalled();
 
-    await waitFor(() =>
-      expect(callService).toHaveBeenCalledWith('light', 'turn_on', {
-        entity_id: 'light.test',
-        color_temp_kelvin: 3200,
-      })
-    );
+    fireEvent.pointerUp(slider);
+    expect(callService).toHaveBeenCalledTimes(1);
+    expect(callService).toHaveBeenCalledWith('light', 'turn_on', {
+      entity_id: 'light.test',
+      color_temp_kelvin: 3500,
+    });
   });
 
   it('never offers warmth for the kitchen window lamp', async () => {
@@ -408,20 +409,17 @@ describe('LightsPage feedback and warmth', () => {
   });
 
   it('lets an off light pick its warmth, turning it on', async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
     getAreas.mockResolvedValue([{ area_id: 'garage', name: 'Garage' }]);
     const callService = vi.fn().mockResolvedValue(undefined);
     renderPage(callService);
 
     fireEvent.click(await screen.findByRole('button', { name: 'light.warmth Garage' }));
-    fireEvent.change(screen.getByRole('slider', { name: 'light.warmth Garage' }), {
-      target: { value: '2700' },
-    });
-    await vi.advanceTimersByTimeAsync(300);
+    const slider = screen.getByRole('slider', { name: 'light.warmth Garage' });
+    fireEvent.change(slider, { target: { value: '1' } });
+    fireEvent.pointerUp(slider);
     expect(callService).toHaveBeenCalledWith('light', 'turn_on', {
       entity_id: 'light.garage',
       color_temp_kelvin: 2700,
     });
-    vi.useRealTimers();
   });
 });
