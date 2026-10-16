@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.23.0-adam.67
+
+- Shows a spinner, then a check or warning, on every lamp button (Lampor page, lamp cards, the light popup and room cards) and ignores extra taps while a lamp is responding.
+- Keeps the warmth control visible for lamps that are off; choosing a warmth turns the lamp on at that colour.
+- Adds an adjust button to lamps in room cards that opens brightness and warmth.
+- Colours sensor and switch cards by what they measure or control, strengthens the category tint, and replaces spaced capitals on climate and quick-control labels.
+
 ## 1.23.0-adam.66
 
 - Adds a bottom tab bar on mobile and moves the settings menu into the person row, so the floating edit button no longer covers cards.
