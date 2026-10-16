@@ -14,6 +14,8 @@ import {
 } from '../../icons';
 import { getIconComponent } from '../../icons';
 import M3Slider from '../ui/M3Slider';
+import ActionFeedbackIndicator from '../ui/ActionFeedbackIndicator';
+import useActionFeedback from '../../hooks/useActionFeedback';
 import { getAreas } from '../../services/haClient';
 import { getLightColor } from '../../utils/lightColor';
 
@@ -40,7 +42,7 @@ const SORT_OPTIONS = [
 // ── Individual Light Tile ────────────────────────────────────────────────
 
 const LightTile = memo(
-  /** @param {{ entity: any, areaName?: string, onToggle: (entityId: string) => void, onBrightness: (entityId: string, value: number) => void, onWarmth: (entityId: string, value: number) => void, optimisticBrightness?: number, optimisticKelvin?: number, t: (key: string) => string }} props */
+  /** @param {{ entity: any, areaName?: string, onToggle: (entityId: string) => void, onBrightness: (entityId: string, value: number) => void, onWarmth: (entityId: string, value: number) => void, optimisticBrightness?: number, optimisticKelvin?: number, toggleStatus?: string, t: (key: string) => string }} props */
   function LightTile({
     entity,
     areaName,
@@ -49,6 +51,7 @@ const LightTile = memo(
     onWarmth,
     optimisticBrightness,
     optimisticKelvin,
+    toggleStatus = 'idle',
     t,
   }) {
     const [showWarmth, setShowWarmth] = useState(false);
@@ -143,7 +146,7 @@ const LightTile = memo(
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
-            {supportsColorTemp && isOn && (
+            {supportsColorTemp && (
               <button
                 type="button"
                 onClick={() => setShowWarmth((visible) => !visible)}
@@ -160,8 +163,10 @@ const LightTile = memo(
               </button>
             )}
             <button
-              onClick={() => !isUnavailable && onToggle(entity_id)}
+              type="button"
+              onClick={() => !isUnavailable && toggleStatus !== 'pending' && onToggle(entity_id)}
               disabled={isUnavailable}
+              aria-busy={toggleStatus === 'pending'}
               className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
                 isOn
                   ? 'hover:opacity-80'
@@ -177,7 +182,11 @@ const LightTile = memo(
               }
               aria-label={`${name}: ${isOn ? t('common.off') || 'Off' : t('common.on') || 'On'}`}
             >
-              <Power className="h-4 w-4" />
+              {toggleStatus === 'idle' ? (
+                <Power className="h-4 w-4" />
+              ) : (
+                <ActionFeedbackIndicator status={toggleStatus} className="h-4 w-4" />
+              )}
             </button>
           </div>
         </div>
@@ -199,7 +208,7 @@ const LightTile = memo(
           </div>
         )}
 
-        {supportsColorTemp && showWarmth && isOn && (
+        {supportsColorTemp && showWarmth && (
           <div className="mt-4 border-t border-[var(--glass-border)] pt-4">
             <div className="mb-2 flex items-center justify-between text-xs font-medium text-[var(--text-secondary)]">
               <span>{t('light.warmth') || 'Värme'}</span>
@@ -240,8 +249,8 @@ const LightTile = memo(
 // ── Confirm Button ───────────────────────────────────────────────────────
 
 const ConfirmButton = memo(
-  /** @param {{ label: string, confirmLabel: string, onConfirm: () => void, t: (key: string) => string }} props */
-  function ConfirmButton({ label, confirmLabel, onConfirm, t }) {
+  /** @param {{ label: string, confirmLabel: string, onConfirm: () => void, status?: string, t: (key: string) => string }} props */
+  function ConfirmButton({ label, confirmLabel, onConfirm, status = 'idle', t }) {
     const [pending, setPending] = useState(false);
     const ref = useRef(null);
     const timerRef = useRef(null);
@@ -262,12 +271,16 @@ const ConfirmButton = memo(
     return (
       <div className="relative" ref={ref}>
         <button
+          type="button"
           onClick={() => setPending(true)}
-          className={`rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] px-4 py-2.5 text-sm font-semibold text-[var(--text-secondary)] transition-all hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-95 ${
+          disabled={status === 'pending'}
+          aria-busy={status === 'pending'}
+          className={`flex items-center gap-2 rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] px-4 py-2.5 text-sm font-semibold text-[var(--text-secondary)] transition-all hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-95 ${
             pending ? 'opacity-60' : ''
           }`}
         >
           {label}
+          {status !== 'idle' && <ActionFeedbackIndicator status={status} className="h-4 w-4" />}
         </button>
 
         {pending && (
@@ -630,11 +643,13 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
   const [optimisticKelvin, setOptimisticKelvin] = useState({});
   const debounceRefs = useRef({});
 
+  const { getStatus, runAction } = useActionFeedback();
+
   const handleToggle = useCallback(
     (entityId) => {
-      callService('light', 'toggle', { entity_id: entityId });
+      runAction(entityId, () => callService('light', 'toggle', { entity_id: entityId }));
     },
-    [callService]
+    [callService, runAction]
   );
 
   const handleBrightness = useCallback(
@@ -664,16 +679,24 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
   );
 
   const handleAllOff = useCallback(() => {
-    displayedLights
-      .filter((e) => e.state === 'on')
-      .forEach((e) => callService('light', 'turn_off', { entity_id: e.entity_id }));
-  }, [displayedLights, callService]);
+    runAction('all-off', () =>
+      Promise.all(
+        displayedLights
+          .filter((e) => e.state === 'on')
+          .map((e) => callService('light', 'turn_off', { entity_id: e.entity_id }))
+      )
+    );
+  }, [displayedLights, callService, runAction]);
 
   const handleAllOn = useCallback(() => {
-    displayedLights
-      .filter((e) => e.state !== 'on' && e.state !== 'unavailable' && e.state !== 'unknown')
-      .forEach((e) => callService('light', 'turn_on', { entity_id: e.entity_id }));
-  }, [displayedLights, callService]);
+    runAction('all-on', () =>
+      Promise.all(
+        displayedLights
+          .filter((e) => e.state !== 'on' && e.state !== 'unavailable' && e.state !== 'unknown')
+          .map((e) => callService('light', 'turn_on', { entity_id: e.entity_id }))
+      )
+    );
+  }, [displayedLights, callService, runAction]);
 
   const renderTile = (entity) => (
     <LightTile
@@ -685,6 +708,7 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
       onWarmth={handleWarmth}
       optimisticBrightness={optimistic[entity.entity_id]}
       optimisticKelvin={optimisticKelvin[entity.entity_id]}
+      toggleStatus={getStatus(entity.entity_id)}
       t={t}
     />
   );
@@ -714,12 +738,14 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
               label={t('lights.allOn') || 'All on'}
               confirmLabel={t('lights.confirmAllOn') || 'Turn on all lights?'}
               onConfirm={handleAllOn}
+              status={getStatus('all-on')}
               t={t}
             />
             <ConfirmButton
               label={t('lights.allOff') || 'All off'}
               confirmLabel={t('lights.confirmAllOff') || 'Turn off all lights?'}
               onConfirm={handleAllOff}
+              status={getStatus('all-off')}
               t={t}
             />
           </div>

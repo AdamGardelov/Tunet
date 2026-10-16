@@ -7,6 +7,7 @@ import {
   Plus,
   Power,
   ShieldCheck,
+  SlidersHorizontal,
   Thermometer,
 } from '../../icons';
 import { useConfig, useHomeAssistantMeta } from '../../contexts';
@@ -54,7 +55,7 @@ export function resolveRoomControls(entityIds, entities, settings = {}) {
 }
 
 /** @param {any} props */
-function DeviceButtonView({ entityId, entity, name, onToggle, status, t }) {
+function DeviceButtonView({ entityId, entity, name, onToggle, onAdjust, status, t }) {
   const domain = entityId.split('.')[0];
   const unavailable = isUnavailable(entity);
   const isOn = entity?.state === 'on';
@@ -66,60 +67,82 @@ function DeviceButtonView({ entityId, entity, name, onToggle, status, t }) {
     : isOn
       ? t('common.on')
       : t('common.off');
+  const colorModes = entity?.attributes?.supported_color_modes || [];
+  const adjustable =
+    domain === 'light' &&
+    typeof onAdjust === 'function' &&
+    !unavailable &&
+    colorModes.some((mode) => mode !== 'onoff');
 
   return (
-    <button
-      type="button"
-      disabled={unavailable || status === 'pending'}
-      aria-pressed={unavailable ? undefined : isOn}
-      onClick={(event) => {
-        event.stopPropagation();
-        onToggle(entityId, domain);
-      }}
-      data-testid={`room-device-${entityId}`}
-      className={`touch-feedback flex min-h-14 min-w-0 items-center gap-2.5 rounded-2xl border px-3 py-2 text-left transition-all active:scale-[0.97] ${
-        unavailable ? 'opacity-55' : ''
-      }`}
-      style={{
-        backgroundColor: isOn
-          ? `color-mix(in srgb, ${accent} 12%, transparent)`
-          : 'var(--glass-bg)',
-        borderColor: isOn
-          ? `color-mix(in srgb, ${accent} 40%, transparent)`
-          : 'var(--glass-border)',
-      }}
-    >
-      <span
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl"
+    <div className="relative min-w-0">
+      <button
+        type="button"
+        disabled={unavailable || status === 'pending'}
+        aria-pressed={unavailable ? undefined : isOn}
+        onClick={(event) => {
+          event.stopPropagation();
+          onToggle(entityId, domain);
+        }}
+        data-testid={`room-device-${entityId}`}
+        className={`touch-feedback flex min-h-14 w-full min-w-0 items-center gap-2.5 rounded-2xl border py-2 pl-3 text-left transition-all active:scale-[0.97] ${
+          adjustable ? 'pr-12' : 'pr-3'
+        } ${unavailable ? 'opacity-55' : ''}`}
         style={{
-          backgroundColor: `color-mix(in srgb, ${accent} ${isOn ? 22 : 8}%, transparent)`,
-          color: isOn ? accent : `color-mix(in srgb, ${accent} 60%, var(--text-muted))`,
+          backgroundColor: isOn
+            ? `color-mix(in srgb, ${accent} 12%, transparent)`
+            : 'var(--glass-bg)',
+          borderColor: isOn
+            ? `color-mix(in srgb, ${accent} 40%, transparent)`
+            : 'var(--glass-border)',
         }}
       >
-        {status === 'idle' ? (
-          <Icon className="h-4 w-4" aria-hidden="true" />
-        ) : (
-          <ActionFeedbackIndicator status={status} className="h-4 w-4" />
-        )}
-      </span>
-      <span className="flex min-w-0 flex-col">
-        <span className="truncate text-[13px] font-semibold text-[var(--text-primary)]">
-          {name}
-        </span>
         <span
-          className="text-xs"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl"
           style={{
-            color: unavailable
-              ? 'var(--status-warning-fg)'
-              : isOn
-                ? accent
-                : 'var(--text-secondary)',
+            backgroundColor: `color-mix(in srgb, ${accent} ${isOn ? 22 : 8}%, transparent)`,
+            color: isOn ? accent : `color-mix(in srgb, ${accent} 60%, var(--text-muted))`,
           }}
         >
-          {stateLabel}
+          {status === 'idle' ? (
+            <Icon className="h-4 w-4" aria-hidden="true" />
+          ) : (
+            <ActionFeedbackIndicator status={status} className="h-4 w-4" />
+          )}
         </span>
-      </span>
-    </button>
+        <span className="flex min-w-0 flex-col">
+          <span className="truncate text-[13px] font-semibold text-[var(--text-primary)]">
+            {name}
+          </span>
+          <span
+            className="text-xs"
+            style={{
+              color: unavailable
+                ? 'var(--status-warning-fg)'
+                : isOn
+                  ? accent
+                  : 'var(--text-secondary)',
+            }}
+          >
+            {stateLabel}
+          </span>
+        </span>
+      </button>
+      {adjustable && (
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            onAdjust(entityId);
+          }}
+          aria-label={`${t('room.adjustLight')} ${name}`}
+          data-testid={`room-device-adjust-${entityId}`}
+          className="absolute top-1/2 right-1.5 flex h-11 w-10 -translate-y-1/2 items-center justify-center rounded-xl text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-95"
+        >
+          <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -141,6 +164,7 @@ const RoomControlsCard = memo(
     editMode,
     customNames,
     onOpen,
+    onOpenLight,
     t,
   }) {
     const { unitsMode } = useConfig();
@@ -386,6 +410,7 @@ const RoomControlsCard = memo(
                 entity={entities[entityId]}
                 name={shortName(entityId)}
                 onToggle={toggleDevice}
+                onAdjust={editMode ? undefined : onOpenLight}
                 status={getStatus(entityId)}
                 t={t}
               />

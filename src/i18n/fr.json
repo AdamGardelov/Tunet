@@ -1608,5 +1608,6 @@
   "sensor.action.toggle": "Basculer",
   "sensor.action.turnOn": "Allumer",
   "sensor.action.turnOff": "Éteindre",
-  "sensor.action.press": "Appuyer"
+  "sensor.action.press": "Appuyer",
+  "room.adjustLight": "Régler"
 }

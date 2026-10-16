@@ -160,6 +160,7 @@ export {
   ArrowDown,
   Plane,
   ShieldCheck,
+  SlidersHorizontal,
 } from './lucide';
 
 export { ICON_MAP, getAllIconKeys, getIconComponent, preloadMdiIcons } from './iconMap';

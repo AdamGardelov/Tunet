@@ -1509,5 +1509,6 @@
   "sensor.action.toggle": "切换",
   "sensor.action.turnOn": "开启",
   "sensor.action.turnOff": "关闭",
-  "sensor.action.press": "按下"
+  "sensor.action.press": "按下",
+  "room.adjustLight": "调节"
 }

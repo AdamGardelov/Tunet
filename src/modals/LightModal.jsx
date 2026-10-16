@@ -13,6 +13,8 @@ import {
 } from '../icons';
 import M3Slider from '../components/ui/M3Slider';
 import AccessibleModalShell from '../components/ui/AccessibleModalShell';
+import ActionFeedbackIndicator from '../components/ui/ActionFeedbackIndicator';
+import useActionFeedback from '../hooks/useActionFeedback';
 import { getIconComponent } from '../icons';
 
 export default function LightModal({
@@ -27,6 +29,7 @@ export default function LightModal({
   customIcons,
   t,
 }) {
+  const { getStatus, runAction } = useActionFeedback();
   const activeLightId = String(lightId || '');
 
   const entity = entities[activeLightId];
@@ -210,9 +213,14 @@ export default function LightModal({
               <button
                 type="button"
                 onClick={() =>
-                  !isUnavailable && callService('light', 'toggle', { entity_id: activeLightId })
+                  !isUnavailable &&
+                  getStatus(activeLightId) !== 'pending' &&
+                  runAction(activeLightId, () =>
+                    callService('light', 'toggle', { entity_id: activeLightId })
+                  )
                 }
                 aria-label={t('light.toggle') || t('common.toggle')}
+                aria-busy={getStatus(activeLightId) === 'pending'}
                 disabled={isUnavailable}
                 className={`relative flex h-24 w-24 items-center justify-center rounded-full transition-all duration-700 md:h-36 md:w-36 ${
                   isUnavailable
@@ -228,6 +236,11 @@ export default function LightModal({
               >
                 {isUnavailable ? (
                   <AlertTriangle className="h-8 w-8 md:h-10 md:w-10" />
+                ) : getStatus(activeLightId) !== 'idle' ? (
+                  <ActionFeedbackIndicator
+                    status={getStatus(activeLightId)}
+                    className="h-10 w-10 md:h-16 md:w-16"
+                  />
                 ) : (
                   <Power className="h-10 w-10 stroke-[1.5px] md:h-16 md:w-16" />
                 )}
@@ -479,8 +492,14 @@ export default function LightModal({
                             {/* Toggle Button - Aligned to bottom (items-end on parent) */}
                             <button
                               type="button"
-                              onClick={() => callService('light', 'toggle', { entity_id: cid })}
+                              onClick={() =>
+                                getStatus(cid) !== 'pending' &&
+                                runAction(cid, () =>
+                                  callService('light', 'toggle', { entity_id: cid })
+                                )
+                              }
                               aria-label={`${subName} ${t('common.toggle')}`}
+                              aria-busy={getStatus(cid) === 'pending'}
                               role="switch"
                               aria-checked={subIsOn}
                               disabled={subUnavail}
@@ -490,6 +509,14 @@ export default function LightModal({
                                 aria-hidden="true"
                                 className={`absolute top-1 left-1 h-5 w-5 rounded-full border transition-all duration-200 ${subIsOn ? 'translate-x-5 bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.3)]' : 'translate-x-0 border-[var(--glass-border)] bg-[var(--text-secondary)] opacity-70'}`}
                               />
+                              {getStatus(cid) !== 'idle' && (
+                                <span className="absolute inset-0 flex items-center justify-center">
+                                  <ActionFeedbackIndicator
+                                    status={getStatus(cid)}
+                                    className="h-4 w-4"
+                                  />
+                                </span>
+                              )}
                             </button>
                           </div>
                         );

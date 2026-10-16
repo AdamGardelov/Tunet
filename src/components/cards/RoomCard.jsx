@@ -19,6 +19,8 @@ import {
   getEffectiveUnitMode,
 } from '../../utils';
 import RoomControlsCard from './RoomControlsCard';
+import ActionFeedbackIndicator from '../ui/ActionFeedbackIndicator';
+import useActionFeedback from '../../hooks/useActionFeedback';
 
 /**
  * RoomCard – shows a summary of a Home Assistant area (room).
@@ -393,14 +395,19 @@ const RoomSummaryCard = memo(/** @param {any} props */ function RoomSummaryCard(
     showDoorChip,
   ]);
 
+  const { getStatus, runAction } = useActionFeedback();
+  const mainLightStatus = mainLightId ? getStatus(mainLightId) : 'idle';
+
   const handleMainLightToggle = useCallback(
     (e) => {
       e.stopPropagation();
-      if (!conn || !mainLightId) return;
+      if (!conn || !mainLightId || mainLightStatus === 'pending') return;
       const isOn = entities[mainLightId]?.state === 'on';
-      callService('light', isOn ? 'turn_off' : 'turn_on', { entity_id: mainLightId });
+      runAction(mainLightId, () =>
+        callService('light', isOn ? 'turn_off' : 'turn_on', { entity_id: mainLightId })
+      );
     },
-    [conn, mainLightId, entities, callService]
+    [conn, mainLightId, mainLightStatus, entities, callService, runAction]
   );
 
   return (
@@ -436,11 +443,19 @@ const RoomSummaryCard = memo(/** @param {any} props */ function RoomSummaryCard(
               onClick={handleMainLightToggle}
               className={`flex flex-shrink-0 items-center justify-center transition-all duration-500 ${isMainLightOn ? 'bg-amber-500/20 text-amber-400' : 'bg-[var(--glass-bg)] text-[var(--text-muted)] hover:bg-[var(--glass-bg-hover)]'} ${isMobile ? 'h-10 w-10 rounded-xl' : 'h-12 w-12 rounded-2xl'} ${hasMainLightToggle ? 'cursor-pointer active:scale-95' : 'cursor-default'}`}
               aria-label={t('room.mainLight')}
+              aria-busy={mainLightStatus === 'pending'}
               disabled={!hasMainLightToggle || !conn}
             >
-              <RoomIcon
-                className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'} stroke-[1.5px] ${isMainLightOn ? 'fill-amber-400/20' : ''} transition-transform duration-300 group-hover:scale-110`}
-              />
+              {mainLightStatus === 'idle' ? (
+                <RoomIcon
+                  className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'} stroke-[1.5px] ${isMainLightOn ? 'fill-amber-400/20' : ''} transition-transform duration-300 group-hover:scale-110`}
+                />
+              ) : (
+                <ActionFeedbackIndicator
+                  status={mainLightStatus}
+                  className={isMobile ? 'h-5 w-5' : 'h-6 w-6'}
+                />
+              )}
             </button>
 
             <div className="mt-2 flex w-full min-w-0 flex-col items-start text-left">

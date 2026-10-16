@@ -2,6 +2,8 @@ import { useRef, useEffect, useCallback, memo } from 'react';
 import { getIconComponent } from '../../icons';
 import { Lightbulb } from '../../icons';
 import M3Slider from '../ui/M3Slider';
+import ActionFeedbackIndicator from '../ui/ActionFeedbackIndicator';
+import useActionFeedback from '../../hooks/useActionFeedback';
 
 const SLIDER_DEBOUNCE_MS = 200;
 
@@ -64,15 +66,18 @@ const LightCard = ({
     [cardId, callService, setOptimisticLightBrightness]
   );
 
+  const { getStatus, runAction } = useActionFeedback();
+  const toggleStatus = getStatus(cardId);
+
   const handleToggleLight = useCallback(
     (event) => {
       event.stopPropagation();
-      if (isUnavailable) return;
+      if (isUnavailable || toggleStatus === 'pending') return;
       clearTimeout(debounceRef.current);
       debounceRef.current = null;
-      callService('light', 'toggle', { entity_id: cardId });
+      runAction(cardId, () => callService('light', 'toggle', { entity_id: cardId }));
     },
-    [cardId, callService, isUnavailable]
+    [cardId, callService, isUnavailable, runAction, toggleStatus]
   );
 
   if (isSmall) {
@@ -104,11 +109,16 @@ const LightCard = ({
           onClick={handleToggleLight}
           className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl transition-all duration-500 ${isOn ? 'bg-amber-500/20 text-amber-400' : 'bg-[var(--glass-bg)] text-[var(--text-muted)] hover:bg-[var(--glass-bg-hover)]'}`}
           disabled={isUnavailable}
+          aria-busy={toggleStatus === 'pending'}
           aria-label={`${name || t('common.light')}: ${isOn ? t('common.off') : t('common.on')}`}
         >
-          <LightIcon
-            className={`h-6 w-6 stroke-[1.5px] ${isOn ? 'fill-amber-400/20' : ''} transition-transform duration-300 group-hover:scale-110`}
-          />
+          {toggleStatus === 'idle' ? (
+            <LightIcon
+              className={`h-6 w-6 stroke-[1.5px] ${isOn ? 'fill-amber-400/20' : ''} transition-transform duration-300 group-hover:scale-110`}
+            />
+          ) : (
+            <ActionFeedbackIndicator status={toggleStatus} className="h-6 w-6" />
+          )}
         </button>
 
         <div className="flex h-full min-w-0 flex-1 flex-col justify-center gap-3 pt-1">
@@ -174,11 +184,19 @@ const LightCard = ({
           onClick={handleToggleLight}
           className={`transition-all duration-500 ${isOn ? 'bg-amber-500/20 text-amber-400' : 'bg-[var(--glass-bg)] text-[var(--text-muted)]'} ${isDenseMobile ? 'rounded-xl p-2.5' : 'rounded-2xl p-3'}`}
           disabled={isUnavailable}
+          aria-busy={toggleStatus === 'pending'}
           aria-label={`${name || t('common.light')}: ${isOn ? t('common.off') : t('common.on')}`}
         >
-          <LightIcon
-            className={`${isDenseMobile ? 'h-4 w-4' : 'h-5 w-5'} stroke-[1.5px] ${isOn ? 'fill-amber-400/20' : ''} transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6`}
-          />
+          {toggleStatus === 'idle' ? (
+            <LightIcon
+              className={`${isDenseMobile ? 'h-4 w-4' : 'h-5 w-5'} stroke-[1.5px] ${isOn ? 'fill-amber-400/20' : ''} transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6`}
+            />
+          ) : (
+            <ActionFeedbackIndicator
+              status={toggleStatus}
+              className={isDenseMobile ? 'h-4 w-4' : 'h-5 w-5'}
+            />
+          )}
         </button>
         <div
           className={`flex items-center rounded-full border transition-all ${isUnavailable ? 'border-[var(--status-error-border)] bg-[var(--status-error-bg)] text-[var(--status-error-fg)]' : isOn ? 'border-amber-500/20 bg-amber-500/10 text-amber-500' : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)]'} ${isDenseMobile ? 'gap-1 px-2.5 py-1' : 'gap-1.5 px-3 py-1'}`}

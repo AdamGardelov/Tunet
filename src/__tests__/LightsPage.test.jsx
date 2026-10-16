@@ -370,3 +370,58 @@ describe('LightsPage', () => {
     expect(screen.queryByRole('button', { name: 'Värme Köksfönster' })).not.toBeInTheDocument();
   });
 });
+
+describe('LightsPage feedback and warmth', () => {
+  const garageLight = {
+    entity_id: 'light.garage',
+    state: 'off',
+    attributes: {
+      friendly_name: 'Garage',
+      area_id: 'garage',
+      supported_color_modes: ['color_temp'],
+      min_color_temp_kelvin: 2200,
+      max_color_temp_kelvin: 6500,
+    },
+  };
+
+  const renderPage = (callService) =>
+    render(
+      <LightsPage
+        entities={{ 'light.garage': garageLight }}
+        callService={callService}
+        conn={{}}
+        pageSettings={{ lights: { lightsSort: 'name-az' } }}
+        pageId="lights"
+        savePageSetting={vi.fn()}
+        t={(key) => key}
+      />
+    );
+
+  it('shows a spinner while a toggle is in flight', async () => {
+    getAreas.mockResolvedValue([{ area_id: 'garage', name: 'Garage' }]);
+    const callService = vi.fn(() => new Promise(() => {}));
+    renderPage(callService);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Garage: common.on' }));
+    expect(callService).toHaveBeenCalledWith('light', 'toggle', { entity_id: 'light.garage' });
+    expect(await screen.findByRole('status', { name: 'Skickar' })).toBeInTheDocument();
+  });
+
+  it('lets an off light pick its warmth, turning it on', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    getAreas.mockResolvedValue([{ area_id: 'garage', name: 'Garage' }]);
+    const callService = vi.fn().mockResolvedValue(undefined);
+    renderPage(callService);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'light.warmth Garage' }));
+    fireEvent.change(screen.getByRole('slider', { name: 'light.warmth Garage' }), {
+      target: { value: '2700' },
+    });
+    await vi.advanceTimersByTimeAsync(300);
+    expect(callService).toHaveBeenCalledWith('light', 'turn_on', {
+      entity_id: 'light.garage',
+      color_temp_kelvin: 2700,
+    });
+    vi.useRealTimers();
+  });
+});
