@@ -27,6 +27,13 @@ import {
   getWarmthPresets,
   nearestWarmthIndex,
 } from '../utils/lightSteps';
+
+// Interior marks for the 10 % brightness steps (10 → 100 % is nine steps).
+const BRIGHTNESS_STEP_MARKS = Array.from(
+  { length: (MAX_BRIGHTNESS_PCT - MIN_BRIGHTNESS_PCT) / BRIGHTNESS_STEP_PCT - 1 },
+  (_, index) =>
+    ((index + 1) * BRIGHTNESS_STEP_PCT * 100) / (MAX_BRIGHTNESS_PCT - MIN_BRIGHTNESS_PCT)
+);
 import { getIconComponent } from '../icons';
 
 export default function LightModal({
@@ -340,6 +347,7 @@ export default function LightModal({
                             min={MIN_BRIGHTNESS_PCT}
                             max={MAX_BRIGHTNESS_PCT}
                             step={BRIGHTNESS_STEP_PCT}
+                            showSteps
                             value={brightnessPct}
                             disabled={isUnavailable}
                             onChange={(e) => setDragBrightnessPct(parseInt(e.target.value, 10))}
@@ -447,9 +455,24 @@ export default function LightModal({
                                 <div
                                   className={`absolute top-0 left-0 h-full transition-all duration-300 ${subIsOn ? 'bg-amber-500 opacity-80' : 'bg-black/20 opacity-30'}`}
                                   style={{
-                                    width: `${subIsOn ? brightnessToStepPct(subBrightness) : 0}%`,
+                                    width: `${
+                                      subIsOn
+                                        ? ((brightnessToStepPct(subBrightness) -
+                                            MIN_BRIGHTNESS_PCT) /
+                                            (MAX_BRIGHTNESS_PCT - MIN_BRIGHTNESS_PCT)) *
+                                          100
+                                        : 0
+                                    }%`,
                                   }}
                                 />
+                                {BRIGHTNESS_STEP_MARKS.map((position) => (
+                                  <span
+                                    key={position}
+                                    aria-hidden="true"
+                                    className="pointer-events-none absolute top-0 bottom-0 w-0.5 -translate-x-1/2 bg-black/25"
+                                    style={{ left: `${position}%` }}
+                                  />
+                                ))}
                                 {/* Invisible stepped slider; sends once on release */}
                                 <input
                                   type="range"

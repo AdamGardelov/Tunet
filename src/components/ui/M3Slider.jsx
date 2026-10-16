@@ -7,6 +7,7 @@ export default function M3Slider({
   value,
   onChange = undefined,
   onCommit = undefined,
+  showSteps = false,
   colorClass: propColorClass = 'bg-[var(--accent-color)]',
   disabled = false,
   variant = 'default',
@@ -45,6 +46,23 @@ export default function M3Slider({
       if (frameRef.current) cancelAnimationFrame(frameRef.current);
     };
   }, []);
+
+  // Interior step marks for coarse sliders (e.g. brightness in 10 % steps).
+  const stepCount = step > 0 ? Math.round((max - min) / step) : 0;
+  const stepMarks =
+    showSteps && stepCount > 1 && stepCount <= 20
+      ? Array.from({ length: stepCount - 1 }, (_, index) => ((index + 1) / stepCount) * 100)
+      : [];
+  const renderStepMarks = () =>
+    stepMarks.map((position) => (
+      <span
+        key={position}
+        aria-hidden="true"
+        data-testid="m3-slider-step"
+        className="pointer-events-none absolute top-0 bottom-0 w-0.5 -translate-x-1/2 bg-black/25"
+        style={{ left: `${position}%` }}
+      />
+    ));
 
   const percentage =
     max === min ? 0 : Math.min(100, Math.max(0, ((internalValue - min) / (max - min)) * 100));
@@ -121,6 +139,7 @@ export default function M3Slider({
             className={`h-full ${colorClass} transition-all duration-150 ease-out`}
             style={{ width: `${percentage}%` }}
           />
+          {renderStepMarks()}
         </div>
         <input {...commonInputProps} />
         <div
@@ -138,11 +157,16 @@ export default function M3Slider({
         style={{ touchAction: 'pan-y' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="absolute h-2 w-full overflow-hidden rounded-full bg-white/10 transition-all duration-300 group-hover:h-2.5">
+        <div
+          className={`absolute w-full overflow-hidden rounded-full bg-white/10 transition-all duration-300 ${
+            stepMarks.length ? 'h-3' : 'h-2 group-hover:h-2.5'
+          }`}
+        >
           <div
             className={`h-full ${colorClass} transition-all duration-150 ease-out`}
             style={{ width: `${percentage}%` }}
           />
+          {renderStepMarks()}
         </div>
         <input {...commonInputProps} />
         <div
@@ -195,6 +219,7 @@ export default function M3Slider({
             className={`h-full ${colorClass} transition-all duration-150 ease-out`}
             style={{ width: `${percentage}%` }}
           />
+          {renderStepMarks()}
         </div>
       ) : (
         <div
@@ -212,6 +237,7 @@ export default function M3Slider({
               boxShadow: !height ? '0_0_15px_rgba(0,0,0,0.2)' : 'none',
             }}
           />
+          {renderStepMarks()}
         </div>
       )}
 

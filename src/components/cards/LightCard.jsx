@@ -152,6 +152,7 @@ const LightCard = ({
                 min={MIN_BRIGHTNESS_PCT}
                 max={MAX_BRIGHTNESS_PCT}
                 step={BRIGHTNESS_STEP_PCT}
+                showSteps
                 value={brightnessPct}
                 disabled={isUnavailable}
                 onChange={handleBrightnessChange}
@@ -269,6 +270,7 @@ const LightCard = ({
               min={MIN_BRIGHTNESS_PCT}
               max={MAX_BRIGHTNESS_PCT}
               step={BRIGHTNESS_STEP_PCT}
+              showSteps
               value={brightnessPct}
               disabled={isUnavailable}
               onChange={handleBrightnessChange}
