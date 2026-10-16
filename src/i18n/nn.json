@@ -1608,5 +1608,6 @@
   "sensor.action.toggle": "Slå av/på",
   "sensor.action.turnOn": "Slå på",
   "sensor.action.turnOff": "Slå av",
-  "sensor.action.press": "Trykk"
+  "sensor.action.press": "Trykk",
+  "room.adjustLight": "Juster"
 }

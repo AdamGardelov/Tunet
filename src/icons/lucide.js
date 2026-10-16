@@ -159,4 +159,5 @@ export {
   ArrowDown,
   Plane,
   ShieldCheck,
+  SlidersHorizontal,
 } from 'lucide-react';

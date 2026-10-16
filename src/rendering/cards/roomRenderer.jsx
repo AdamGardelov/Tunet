@@ -11,6 +11,7 @@ export function renderRoomCard(cardId, dragProps, getControls, cardStyle, settin
     customIcons,
     callService,
     setShowRoomModal,
+    setShowLightModal,
     setShowEditCardModal,
     setEditCardSettingsKey,
     setActivePage,
@@ -32,6 +33,9 @@ export function renderRoomCard(cardId, dragProps, getControls, cardStyle, settin
       customNames={customNames}
       customIcons={customIcons}
       isMobile={isMobile}
+      onOpenLight={(entityId) => {
+        if (!editMode && setShowLightModal) setShowLightModal(entityId);
+      }}
       onOpen={() => {
         if (editMode) {
           setShowEditCardModal(cardId);

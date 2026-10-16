@@ -1608,5 +1608,6 @@
   "sensor.action.toggle": "Alternar",
   "sensor.action.turnOn": "Encender",
   "sensor.action.turnOff": "Apagar",
-  "sensor.action.press": "Pulsar"
+  "sensor.action.press": "Pulsar",
+  "room.adjustLight": "Ajustar"
 }

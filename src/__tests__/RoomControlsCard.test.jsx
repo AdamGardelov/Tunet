@@ -89,3 +89,22 @@ describe('RoomCard controls layout', () => {
     });
   });
 });
+
+describe('RoomCard controls layout light adjustment', () => {
+  it('offers brightness and warmth for adjustable lights only', () => {
+    const onOpenLight = vi.fn();
+    const adjustableEntities = {
+      ...entities,
+      'light.sofflampa': {
+        state: 'off',
+        attributes: { friendly_name: 'Sofflampa', supported_color_modes: ['color_temp'] },
+      },
+    };
+    renderCard({ entities: adjustableEntities, onOpenLight });
+
+    fireEvent.click(screen.getByTestId('room-device-adjust-light.sofflampa'));
+    expect(onOpenLight).toHaveBeenCalledWith('light.sofflampa');
+    expect(screen.queryByTestId('room-device-adjust-light.vardagsrum_fonster')).toBeNull();
+    expect(screen.queryByTestId('room-device-adjust-light.dorrlampa')).toBeNull();
+  });
+});
