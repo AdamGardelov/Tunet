@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.23.0-adam.70
+
+- Shows a mark between each 10 % brightness step on lamp sliders, so the steps are visible before you drag.
+
 ## 1.23.0-adam.69
 
 - Moves brightness in 10 % steps from 10 to 100 %, so a slider can no longer switch a light off by accident.
