@@ -110,10 +110,7 @@ const QuickControlsCard = ({
         style={tileStyle}
       >
         {showEntityIcon && (
-          <span
-            className={compactIconTile}
-            data-testid={`quick-control-entity-icon-${entityId}`}
-          >
+          <span className={compactIconTile} data-testid={`quick-control-entity-icon-${entityId}`}>
             <Icon className="h-[22px] w-[22px] stroke-[1.7px]" />
           </span>
         )}
@@ -123,7 +120,7 @@ const QuickControlsCard = ({
           >
             {getCompactName(entityId, entity)}
           </span>
-          <span className="mt-0.5 flex min-h-4 items-center justify-center gap-1 text-[10px] font-bold tracking-wide text-[var(--text-secondary)] uppercase">
+          <span className="mt-0.5 flex min-h-4 items-center justify-center gap-1 text-xs font-medium text-[var(--text-secondary)]">
             <span className="truncate">{stateLabel}</span>
             {useFullTile && !unavailable && actionStatus !== 'idle' && (
               <ActionFeedbackIndicator status={actionStatus} className="h-3.5 w-3.5" />

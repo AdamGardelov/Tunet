@@ -245,12 +245,12 @@ export function useCardRendering({
       } = dragAndDrop;
 
       const dragProps = getDragProps({ cardId, index, colIndex });
+      const settingsKey = getCardSettingsKey(cardId);
       const cardStyle = applyCategoryTint(
         getCardStyle({ cardId, isHidden, isDragging }),
-        getCardCategory(cardId),
+        getCardCategory(cardId, cardSettings[settingsKey] || cardSettings[cardId], entities),
         { editMode, isDragging }
       );
-      const settingsKey = getCardSettingsKey(cardId);
 
       const getControls = (targetId) => {
         if (!editMode) return null;
