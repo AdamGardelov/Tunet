@@ -96,3 +96,28 @@ describe('M3Slider onCommit', () => {
     expect(onCommit).not.toHaveBeenCalled();
   });
 });
+
+describe('M3Slider step marks', () => {
+  it('shows a mark between each brightness step when asked', () => {
+    render(
+      <M3Slider
+        min={10}
+        max={100}
+        step={10}
+        value={30}
+        showSteps
+        variant="thinLg"
+        ariaLabel="Ljus"
+      />
+    );
+    expect(screen.getAllByTestId('m3-slider-step')).toHaveLength(8);
+  });
+
+  it('shows no marks by default or for fine-grained sliders', () => {
+    const { unmount } = render(<M3Slider min={10} max={100} step={10} value={30} ariaLabel="A" />);
+    expect(screen.queryAllByTestId('m3-slider-step')).toHaveLength(0);
+    unmount();
+    render(<M3Slider min={0} max={255} step={1} value={30} showSteps ariaLabel="B" />);
+    expect(screen.queryAllByTestId('m3-slider-step')).toHaveLength(0);
+  });
+});

@@ -221,6 +221,7 @@ const LightTile = memo(
               min={MIN_BRIGHTNESS_PCT}
               max={MAX_BRIGHTNESS_PCT}
               step={BRIGHTNESS_STEP_PCT}
+              showSteps
               value={brightnessPct}
               disabled={isUnavailable}
               onChange={(e) => setDragBrightnessPct(parseInt(e.target.value, 10))}
