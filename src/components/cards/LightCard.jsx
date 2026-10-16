@@ -1,11 +1,16 @@
-import { useRef, useEffect, useCallback, memo } from 'react';
+import { useState, useCallback, memo } from 'react';
 import { getIconComponent } from '../../icons';
 import { Lightbulb } from '../../icons';
 import M3Slider from '../ui/M3Slider';
 import ActionFeedbackIndicator from '../ui/ActionFeedbackIndicator';
 import useActionFeedback from '../../hooks/useActionFeedback';
-
-const SLIDER_DEBOUNCE_MS = 200;
+import useHeldValue from '../../hooks/useHeldValue';
+import {
+  BRIGHTNESS_STEP_PCT,
+  MAX_BRIGHTNESS_PCT,
+  MIN_BRIGHTNESS_PCT,
+  brightnessToStepPct,
+} from '../../utils/lightSteps';
 
 /** @param {any} props */
 const LightCard = ({
@@ -23,8 +28,8 @@ const LightCard = ({
   callService,
   onOpen,
   isMobile,
-  optimisticLightBrightness,
-  setOptimisticLightBrightness,
+  optimisticLightBrightness: _optimisticLightBrightness,
+  setOptimisticLightBrightness: _setOptimisticLightBrightness,
   t,
 }) => {
   const entity = entities[cardId];
@@ -50,20 +55,26 @@ const LightCard = ({
   const isSmall = sizeSetting === 'small';
   const isDenseMobile = isMobile && !isSmall;
 
-  // Debounced brightness service call
-  const debounceRef = useRef(null);
-  useEffect(() => () => clearTimeout(debounceRef.current), []);
+  // Brightness in 10 % steps, sent once on release and held until the light
+  // reports it back, so slow (cloud) lights don't make the slider jump.
+  const [brightnessPct, holdBrightnessPct] = useHeldValue(
+    brightnessToStepPct(br)
+  );
+  const [dragBrightnessPct, setDragBrightnessPct] = useState(null);
+  const shownBrightnessPct = dragBrightnessPct ?? brightnessPct;
 
-  const handleBrightnessChange = useCallback(
-    (e) => {
-      const val = parseInt(e.target.value);
-      setOptimisticLightBrightness((prev) => ({ ...prev, [cardId]: val }));
-      clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => {
-        callService('light', 'turn_on', { entity_id: cardId, brightness: val });
-      }, SLIDER_DEBOUNCE_MS);
+  const handleBrightnessChange = useCallback((e) => {
+    setDragBrightnessPct(parseInt(e.target.value, 10));
+  }, []);
+
+  const handleBrightnessCommit = useCallback(
+    (pct) => {
+      setDragBrightnessPct(null);
+      if (pct === brightnessPct && isOn) return;
+      holdBrightnessPct(pct);
+      callService('light', 'turn_on', { entity_id: cardId, brightness_pct: pct });
     },
-    [cardId, callService, setOptimisticLightBrightness]
+    [brightnessPct, isOn, holdBrightnessPct, cardId, callService]
   );
 
   const { getStatus, runAction } = useActionFeedback();
@@ -73,8 +84,6 @@ const LightCard = ({
     (event) => {
       event.stopPropagation();
       if (isUnavailable || toggleStatus === 'pending') return;
-      clearTimeout(debounceRef.current);
-      debounceRef.current = null;
       runAction(cardId, () => callService('light', 'toggle', { entity_id: cardId }));
     },
     [cardId, callService, isUnavailable, runAction, toggleStatus]
@@ -140,12 +149,14 @@ const LightCard = ({
             {isDimmable && (
               <M3Slider
                 variant="thinLg"
-                min={0}
-                max={255}
-                step={1}
-                value={optimisticLightBrightness[cardId] ?? br}
+                min={MIN_BRIGHTNESS_PCT}
+                max={MAX_BRIGHTNESS_PCT}
+                step={BRIGHTNESS_STEP_PCT}
+                value={brightnessPct}
                 disabled={isUnavailable}
                 onChange={handleBrightnessChange}
+                onCommit={handleBrightnessCommit}
+                ariaValueText={`${shownBrightnessPct}%`}
                 colorClass="bg-amber-500"
                 ariaLabel={t('light.brightness')}
               />
@@ -229,7 +240,7 @@ const LightCard = ({
                 {isUnavailable
                   ? '--'
                   : isOn
-                    ? Math.round(((optimisticLightBrightness[cardId] ?? br) / 255) * 100)
+                    ? shownBrightnessPct
                     : '0'}
               </span>
               <span className={`${isDenseMobile ? 'text-lg' : 'ml-1 text-xl'} font-light text-[var(--text-muted)]`}>
@@ -255,12 +266,14 @@ const LightCard = ({
           {isDimmable && (
             <M3Slider
               variant={isDenseMobile ? 'thinLg' : 'default'}
-              min={0}
-              max={255}
-              step={1}
-              value={optimisticLightBrightness[cardId] ?? br}
+              min={MIN_BRIGHTNESS_PCT}
+              max={MAX_BRIGHTNESS_PCT}
+              step={BRIGHTNESS_STEP_PCT}
+              value={brightnessPct}
               disabled={isUnavailable}
               onChange={handleBrightnessChange}
+              onCommit={handleBrightnessCommit}
+              ariaValueText={`${shownBrightnessPct}%`}
               colorClass="bg-amber-500"
               ariaLabel={t('light.brightness')}
             />

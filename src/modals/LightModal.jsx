@@ -15,6 +15,18 @@ import M3Slider from '../components/ui/M3Slider';
 import AccessibleModalShell from '../components/ui/AccessibleModalShell';
 import ActionFeedbackIndicator from '../components/ui/ActionFeedbackIndicator';
 import useActionFeedback from '../hooks/useActionFeedback';
+import useHeldValue from '../hooks/useHeldValue';
+import WarmthStepSlider from '../components/ui/WarmthStepSlider';
+import {
+  BRIGHTNESS_STEP_PCT,
+  MAX_BRIGHTNESS_PCT,
+  MIN_BRIGHTNESS_PCT,
+  brightnessToStepPct,
+  getEntityKelvin,
+  getEntityKelvinRange,
+  getWarmthPresets,
+  nearestWarmthIndex,
+} from '../utils/lightSteps';
 import { getIconComponent } from '../icons';
 
 export default function LightModal({
@@ -62,58 +74,82 @@ export default function LightModal({
   const LightIcon = lightIconName ? getIconComponent(lightIconName) || DefaultIcon : DefaultIcon;
 
   // --- Values & Ranges ---
-  const minKelvin =
-    entity?.attributes?.min_color_temp_kelvin ||
-    (entity?.attributes?.max_mireds ? Math.round(1000000 / entity.attributes.max_mireds) : 2000);
-  const maxKelvin =
-    entity?.attributes?.max_color_temp_kelvin ||
-    (entity?.attributes?.min_mireds ? Math.round(1000000 / entity.attributes.min_mireds) : 6500);
-
-  // Current values from Entity
+  // Brightness moves in 10 % steps and warmth in named presets; each change is
+  // sent once, on release, and held on screen until the light reports it back.
+  const kelvinRange = getEntityKelvinRange(entity?.attributes);
+  const warmthPresets = getWarmthPresets(kelvinRange.min, kelvinRange.max);
   const remoteKelvin =
-    entity?.attributes?.color_temp_kelvin ||
-    (entity?.attributes?.color_temp
-      ? Math.round(1000000 / entity.attributes.color_temp)
-      : Math.round((minKelvin + maxKelvin) / 2));
+    getEntityKelvin(entity?.attributes) ?? Math.round((kelvinRange.min + kelvinRange.max) / 2);
+  const [warmthIndex, holdWarmthIndex] = useHeldValue(
+    nearestWarmthIndex(remoteKelvin, warmthPresets)
+  );
+  const [brightnessPct, holdBrightnessPct] = useHeldValue(
+    brightnessToStepPct(getA(activeLightId, 'brightness'))
+  );
+  const [dragBrightnessPct, setDragBrightnessPct] = useState(null);
+  const shownBrightnessPct = dragBrightnessPct ?? brightnessPct;
   const remoteHue = entity?.attributes?.hs_color?.[0] ?? 0;
 
-  // --- Local State for Optimistic UI ---
+  // --- Local State ---
   const [activeTab, setActiveTab] = useState('brightness');
-  const [localKelvin, setLocalKelvin] = useState(remoteKelvin);
   const [localHue, setLocalHue] = useState(remoteHue);
-  const isDraggingRef = useRef(false);
+  const hueDirtyRef = useRef(false);
 
   // Reset tab on open
   useEffect(() => {
     if (show) setActiveTab('brightness');
   }, [show]);
 
-  // Sync remote -> local when NOT dragging
+  // Sync remote -> local when the hue isn't being changed
   useEffect(() => {
-    if (!isDraggingRef.current && remoteKelvin) {
-      setLocalKelvin(remoteKelvin);
-    }
-  }, [remoteKelvin]);
-
-  useEffect(() => {
-    if (!isDraggingRef.current && remoteHue !== undefined) {
+    if (!hueDirtyRef.current && remoteHue !== undefined) {
       setLocalHue(remoteHue);
     }
   }, [remoteHue]);
 
   // --- Handlers ---
-  const handleTempChange = (e) => {
-    if (!activeLightId) return;
-    const val = parseInt(e.target.value, 10);
-    setLocalKelvin(val);
-    callService('light', 'turn_on', { entity_id: activeLightId, color_temp_kelvin: val });
+  const commitBrightness = (pct) => {
+    setDragBrightnessPct(null);
+    if (!activeLightId || (pct === brightnessPct && isOn)) return;
+    holdBrightnessPct(pct);
+    callService('light', 'turn_on', { entity_id: activeLightId, brightness_pct: pct });
+  };
+
+  const commitWarmth = (index) => {
+    if (!activeLightId || !warmthPresets[index]) return;
+    if (index === warmthIndex && isOn) return;
+    holdWarmthIndex(index);
+    callService('light', 'turn_on', {
+      entity_id: activeLightId,
+      color_temp_kelvin: warmthPresets[index].kelvin,
+    });
+  };
+
+  // Group members: one command per release, deduplicated across the
+  // pointer/mouse/touch events a single gesture fires.
+  const lastSubCommitRef = useRef({});
+  const commitSubBrightness = (entityId, rawValue) => {
+    const pct = parseInt(rawValue, 10);
+    if (!Number.isFinite(pct) || lastSubCommitRef.current[entityId] === pct) return;
+    const member = entities[entityId];
+    if (member?.state === 'on' && brightnessToStepPct(member.attributes?.brightness) === pct)
+      return;
+    lastSubCommitRef.current[entityId] = pct;
+    setTimeout(() => {
+      if (lastSubCommitRef.current[entityId] === pct) delete lastSubCommitRef.current[entityId];
+    }, 400);
+    callService('light', 'turn_on', { entity_id: entityId, brightness_pct: pct });
   };
 
   const handleHueChange = (e) => {
-    if (!activeLightId) return;
-    const val = parseInt(e.target.value, 10);
-    setLocalHue(val);
-    callService('light', 'turn_on', { entity_id: activeLightId, hs_color: [val, 100] });
+    hueDirtyRef.current = true;
+    setLocalHue(parseInt(e.target.value, 10));
+  };
+
+  const commitHue = () => {
+    if (!activeLightId || !hueDirtyRef.current) return;
+    hueDirtyRef.current = false;
+    callService('light', 'turn_on', { entity_id: activeLightId, hs_color: [localHue, 100] });
   };
 
   // Determine glow color
@@ -123,8 +159,9 @@ export default function LightModal({
       return `hsl(${localHue}, 100%, 50%)`;
     }
     if (activeTab === 'warmth' && supportsColorTemp) {
-      if (localKelvin < 3000) return '#f59e0b'; // Warm/Orange
-      if (localKelvin > 5000) return '#93c5fd'; // Cool/Blue
+      const kelvin = warmthPresets[warmthIndex]?.kelvin ?? remoteKelvin;
+      if (kelvin < 3000) return '#f59e0b'; // Warm/Orange
+      if (kelvin > 5000) return '#93c5fd'; // Cool/Blue
       return '#fbbf24'; // Neutral
     }
     return '#fbbf24'; // Default amber
@@ -195,13 +232,7 @@ export default function LightModal({
                   </span>
                   {isOn && (
                     <span className="border-l border-[var(--glass-border)] pl-2 text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase italic">
-                      {Math.round(
-                        ((optimisticLightBrightness[activeLightId] ??
-                          (getA(activeLightId, 'brightness') || 0)) /
-                          255) *
-                          100
-                      )}
-                      %
+                      {shownBrightnessPct}%
                     </span>
                   )}
                 </div>
@@ -301,37 +332,20 @@ export default function LightModal({
                             {t('light.brightness')}
                           </label>
                           <span className="font-mono text-lg font-medium text-[var(--text-primary)]">
-                            {Math.round(
-                              ((optimisticLightBrightness[activeLightId] ??
-                                (getA(activeLightId, 'brightness') || 0)) /
-                                255) *
-                                100
-                            )}
-                            %
+                            {shownBrightnessPct}%
                           </span>
                         </div>
                         <div className="h-10">
                           <M3Slider
-                            min={0}
-                            max={255}
-                            step={1}
-                            value={
-                              optimisticLightBrightness[activeLightId] ??
-                              (getA(activeLightId, 'brightness') || 0)
-                            }
+                            min={MIN_BRIGHTNESS_PCT}
+                            max={MAX_BRIGHTNESS_PCT}
+                            step={BRIGHTNESS_STEP_PCT}
+                            value={brightnessPct}
                             disabled={isUnavailable}
-                            onChange={(e) => {
-                              const val = parseInt(e.target.value);
-                              setOptimisticLightBrightness((prev) => ({
-                                ...prev,
-                                [activeLightId]: val,
-                              }));
-                              callService('light', 'turn_on', {
-                                entity_id: activeLightId,
-                                brightness: val,
-                              });
-                            }}
+                            onChange={(e) => setDragBrightnessPct(parseInt(e.target.value, 10))}
+                            onCommit={commitBrightness}
                             ariaLabel={t('light.brightness')}
+                            ariaValueText={`${shownBrightnessPct}%`}
                             colorClass="bg-amber-500"
                             variant="fat" // Keep fat for touch, but in smaller container
                           />
@@ -339,50 +353,18 @@ export default function LightModal({
                       </div>
                     )}
 
-                    {/* Warmth Slider - Re-styled */}
+                    {/* Warmth: named steps */}
                     {activeTab === 'warmth' && (
-                      <div className="space-y-2 md:space-y-4">
-                        <div className="flex items-end justify-between px-1">
-                          <label className="text-xs font-bold tracking-widest text-[var(--text-secondary)] uppercase">
-                            {t('light.colorTemperature')}
-                          </label>
-                          <span className="font-mono text-lg font-medium text-[var(--text-primary)]">
-                            {localKelvin}K
-                          </span>
-                        </div>
-                        <div className="relative h-10 w-full touch-none overflow-hidden rounded-xl shadow-inner">
-                          <input
-                            type="range"
-                            min={minKelvin}
-                            max={maxKelvin}
-                            step={50}
-                            value={localKelvin}
-                            aria-label={t('light.colorTemperature')}
-                            aria-valuetext={`${localKelvin}K`}
-                            disabled={isUnavailable}
-                            onPointerDown={() => (isDraggingRef.current = true)}
-                            onPointerUp={() => (isDraggingRef.current = false)}
-                            onChange={handleTempChange}
-                            className="absolute inset-0 z-20 h-full w-full cursor-pointer opacity-0"
-                          />
-                          {/* Gradient Background */}
-                          <div
-                            className="absolute inset-0"
-                            style={{
-                              background:
-                                'linear-gradient(90deg, #ffb14e 0%, #fffbe6 50%, #9cb8ff 100%)',
-                            }}
-                          />
-                          {/* Thumb Indicator */}
-                          <div
-                            className="pointer-events-none absolute top-0 bottom-0 w-1.5 border-x border-[var(--glass-border)] bg-black/40 backdrop-blur-sm transition-transform duration-75"
-                            style={{
-                              left: `${((localKelvin - minKelvin) / (maxKelvin - minKelvin)) * 100}%`,
-                              transform: 'translateX(-50%)', // Fixed transform
-                            }}
-                          />
-                        </div>
-                      </div>
+                      <WarmthStepSlider
+                        presets={warmthPresets}
+                        valueIndex={warmthIndex}
+                        onCommit={commitWarmth}
+                        disabled={isUnavailable}
+                        label={t('light.colorTemperature')}
+                        ariaLabel={t('light.colorTemperature')}
+                        height="md"
+                        t={t}
+                      />
                     )}
 
                     {/* Color Slider - Re-styled */}
@@ -408,9 +390,11 @@ export default function LightModal({
                             aria-label={t('light.hue')}
                             aria-valuetext={`${localHue} degrees`}
                             disabled={isUnavailable}
-                            onPointerDown={() => (isDraggingRef.current = true)}
-                            onPointerUp={() => (isDraggingRef.current = false)}
                             onChange={handleHueChange}
+                            onPointerUp={commitHue}
+                            onMouseUp={commitHue}
+                            onTouchEnd={commitHue}
+                            onKeyUp={commitHue}
                             className="absolute inset-0 z-20 h-full w-full cursor-pointer opacity-0"
                           />
                           <div
@@ -462,28 +446,35 @@ export default function LightModal({
                                 {/* Mini Progress Bar for Brightness */}
                                 <div
                                   className={`absolute top-0 left-0 h-full transition-all duration-300 ${subIsOn ? 'bg-amber-500 opacity-80' : 'bg-black/20 opacity-30'}`}
-                                  style={{ width: `${(subBrightness / 255) * 100}%` }}
+                                  style={{
+                                    width: `${subIsOn ? brightnessToStepPct(subBrightness) : 0}%`,
+                                  }}
                                 />
-                                {/* Invisible Slider overlay */}
+                                {/* Invisible stepped slider; sends once on release */}
                                 <input
                                   type="range"
-                                  min="0"
-                                  max="255"
-                                  step="1"
-                                  value={subBrightness}
+                                  min={MIN_BRIGHTNESS_PCT}
+                                  max={MAX_BRIGHTNESS_PCT}
+                                  step={BRIGHTNESS_STEP_PCT}
+                                  value={brightnessToStepPct(subBrightness)}
                                   aria-label={`${subName} ${t('light.brightness')}`}
+                                  aria-valuetext={`${brightnessToStepPct(subBrightness)}%`}
                                   disabled={subUnavail}
                                   onChange={(e) => {
-                                    const val = parseInt(e.target.value);
+                                    const pct = parseInt(e.target.value, 10);
                                     setOptimisticLightBrightness((prev) => ({
                                       ...prev,
-                                      [cid]: val,
+                                      [cid]: Math.round((pct / 100) * 255),
                                     }));
-                                    callService('light', 'turn_on', {
-                                      entity_id: cid,
-                                      brightness: val,
-                                    });
                                   }}
+                                  onPointerUp={(e) =>
+                                    commitSubBrightness(cid, e.currentTarget.value)
+                                  }
+                                  onMouseUp={(e) => commitSubBrightness(cid, e.currentTarget.value)}
+                                  onTouchEnd={(e) =>
+                                    commitSubBrightness(cid, e.currentTarget.value)
+                                  }
+                                  onKeyUp={(e) => commitSubBrightness(cid, e.currentTarget.value)}
                                   className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
                                 />
                               </div>

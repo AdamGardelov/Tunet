@@ -5,7 +5,8 @@ export default function M3Slider({
   max,
   step,
   value,
-  onChange,
+  onChange = undefined,
+  onCommit = undefined,
   colorClass: propColorClass = 'bg-[var(--accent-color)]',
   disabled = false,
   variant = 'default',
@@ -27,6 +28,7 @@ export default function M3Slider({
   const timeoutRef = useRef(null);
   const frameRef = useRef(null);
   const pendingValueRef = useRef(value);
+  const dirtyRef = useRef(false);
 
   useEffect(() => {
     if (!isInteracting) setInternalValue(value);
@@ -52,7 +54,15 @@ export default function M3Slider({
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
   };
 
+  // onCommit fires once per gesture (or key press), with the value the user let go at.
+  const commit = () => {
+    if (!dirtyRef.current || typeof onCommit !== 'function') return;
+    dirtyRef.current = false;
+    onCommit(pendingValueRef.current);
+  };
+
   const endInteraction = () => {
+    commit();
     timeoutRef.current = setTimeout(() => setIsInteracting(false), 120);
   };
 
@@ -60,8 +70,9 @@ export default function M3Slider({
     const nextValue = parseFloat(e.target.value);
     setInternalValue(nextValue);
     pendingValueRef.current = nextValue;
+    dirtyRef.current = true;
 
-    if (frameRef.current) return;
+    if (frameRef.current || typeof onChange !== 'function') return;
 
     frameRef.current = requestAnimationFrame(() => {
       frameRef.current = null;
@@ -93,6 +104,7 @@ export default function M3Slider({
     onTouchEnd: endInteraction,
     onInput: handleInputChange,
     onChange: handleInputChange,
+    onKeyUp: commit,
     className: 'absolute w-full h-full opacity-0 cursor-pointer z-20 select-none',
     style: { touchAction: 'pan-y', WebkitTapHighlightColor: 'transparent' },
   };

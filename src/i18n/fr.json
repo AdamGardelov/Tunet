@@ -1608,5 +1608,10 @@
   "sensor.action.turnOn": "Allumer",
   "sensor.action.turnOff": "Éteindre",
   "sensor.action.press": "Appuyer",
-  "room.adjustLight": "Régler"
+  "room.adjustLight": "Régler",
+  "light.warmthPreset.cozy": "Douillet",
+  "light.warmthPreset.warm": "Chaud",
+  "light.warmthPreset.neutral": "Neutre",
+  "light.warmthPreset.daylight": "Lumière du jour",
+  "light.warmthPreset.cool": "Froid"
 }

@@ -16,10 +16,21 @@ import { getIconComponent } from '../../icons';
 import M3Slider from '../ui/M3Slider';
 import ActionFeedbackIndicator from '../ui/ActionFeedbackIndicator';
 import useActionFeedback from '../../hooks/useActionFeedback';
+import useHeldValue from '../../hooks/useHeldValue';
+import WarmthStepSlider from '../ui/WarmthStepSlider';
+import {
+  BRIGHTNESS_STEP_PCT,
+  MAX_BRIGHTNESS_PCT,
+  MIN_BRIGHTNESS_PCT,
+  brightnessToStepPct,
+  getEntityKelvin,
+  getEntityKelvinRange,
+  getWarmthPresets,
+  nearestWarmthIndex,
+} from '../../utils/lightSteps';
 import { getAreas } from '../../services/haClient';
 import { getLightColor } from '../../utils/lightColor';
 
-const SLIDER_DEBOUNCE_MS = 200;
 const DEFAULT_COLLAPSED_LIGHT_AREAS = ['Hall'];
 const WARMTH_DISABLED_LIGHT_NAMES = new Set(['Köksfönster']);
 const DEFAULT_AREA_LIGHT_ALLOWLIST = {
@@ -42,15 +53,13 @@ const SORT_OPTIONS = [
 // ── Individual Light Tile ────────────────────────────────────────────────
 
 const LightTile = memo(
-  /** @param {{ entity: any, areaName?: string, onToggle: (entityId: string) => void, onBrightness: (entityId: string, value: number) => void, onWarmth: (entityId: string, value: number) => void, optimisticBrightness?: number, optimisticKelvin?: number, toggleStatus?: string, t: (key: string) => string }} props */
+  /** @param {{ entity: any, areaName?: string, onToggle: (entityId: string) => void, onBrightness: (entityId: string, pct: number) => void, onWarmth: (entityId: string, kelvin: number) => void, toggleStatus?: string, t: (key: string) => string }} props */
   function LightTile({
     entity,
     areaName,
     onToggle,
     onBrightness,
     onWarmth,
-    optimisticBrightness,
-    optimisticKelvin,
     toggleStatus = 'idle',
     t,
   }) {
@@ -59,8 +68,13 @@ const LightTile = memo(
     const isOn = state === 'on';
     const isUnavailable = state === 'unavailable' || state === 'unknown';
     const name = attributes?.friendly_name || entity_id.split('.')[1];
-    const brightness = attributes?.brightness || 0;
-    const brightnessPercent = Math.round(((optimisticBrightness ?? brightness) / 255) * 100);
+    // Brightness in 10 % steps, warmth in named presets; each sent once on
+    // release and held until the light reports it back.
+    const [brightnessPct, holdBrightnessPct] = useHeldValue(
+      brightnessToStepPct(attributes?.brightness)
+    );
+    const [dragBrightnessPct, setDragBrightnessPct] = useState(null);
+    const brightnessPercent = dragBrightnessPct ?? brightnessPct;
 
     const supportedColorModes = attributes?.supported_color_modes;
     const isDimmable = supportedColorModes
@@ -69,19 +83,27 @@ const LightTile = memo(
     const supportsColorTemp =
       !WARMTH_DISABLED_LIGHT_NAMES.has(name) &&
       supportedColorModes?.some((mode) => ['color_temp', 'color_temp_kelvin'].includes(mode));
-    const minKelvin =
-      attributes?.min_color_temp_kelvin ||
-      (attributes?.max_mireds ? Math.round(1000000 / attributes.max_mireds) : 2000);
-    const maxKelvin =
-      attributes?.max_color_temp_kelvin ||
-      (attributes?.min_mireds ? Math.round(1000000 / attributes.min_mireds) : 6500);
-    const currentKelvin =
-      optimisticKelvin ??
-      attributes?.color_temp_kelvin ??
-      (attributes?.color_temp
-        ? Math.round(1000000 / attributes.color_temp)
-        : Math.round((minKelvin + maxKelvin) / 2));
-    const warmthPosition = ((currentKelvin - minKelvin) / (maxKelvin - minKelvin)) * 100;
+    const kelvinRange = getEntityKelvinRange(attributes);
+    const warmthPresets = getWarmthPresets(kelvinRange.min, kelvinRange.max);
+    const [warmthIndex, holdWarmthIndex] = useHeldValue(
+      nearestWarmthIndex(
+        getEntityKelvin(attributes) ?? Math.round((kelvinRange.min + kelvinRange.max) / 2),
+        warmthPresets
+      )
+    );
+
+    const commitBrightness = (pct) => {
+      setDragBrightnessPct(null);
+      if (pct === brightnessPct && isOn) return;
+      holdBrightnessPct(pct);
+      onBrightness(entity_id, pct);
+    };
+
+    const commitWarmth = (index) => {
+      if (!warmthPresets[index] || (index === warmthIndex && isOn)) return;
+      holdWarmthIndex(index);
+      onWarmth(entity_id, warmthPresets[index].kelvin);
+    };
 
     const lightColor = getLightColor(entity);
     const iconName = attributes?.icon;
@@ -196,12 +218,14 @@ const LightTile = memo(
           <div className="mt-4">
             <M3Slider
               variant="thinLg"
-              min={0}
-              max={255}
-              step={1}
-              value={optimisticBrightness ?? brightness}
+              min={MIN_BRIGHTNESS_PCT}
+              max={MAX_BRIGHTNESS_PCT}
+              step={BRIGHTNESS_STEP_PCT}
+              value={brightnessPct}
               disabled={isUnavailable}
-              onChange={(e) => onBrightness(entity_id, parseInt(e.target.value))}
+              onChange={(e) => setDragBrightnessPct(parseInt(e.target.value, 10))}
+              onCommit={commitBrightness}
+              ariaValueText={`${brightnessPercent}%`}
               colorClass={isOn ? 'bg-amber-400' : 'bg-[var(--text-muted)]'}
               ariaLabel={t('light.brightness') || 'Brightness'}
             />
@@ -210,35 +234,15 @@ const LightTile = memo(
 
         {supportsColorTemp && showWarmth && (
           <div className="mt-4 border-t border-[var(--glass-border)] pt-4">
-            <div className="mb-2 flex items-center justify-between text-xs font-medium text-[var(--text-secondary)]">
-              <span>{t('light.warmth') || 'Värme'}</span>
-              <span className="font-mono text-[var(--text-secondary)]">{currentKelvin} K</span>
-            </div>
-            <div className="relative h-10 overflow-hidden rounded-2xl border border-white/10 shadow-inner">
-              <div
-                className="absolute inset-0"
-                style={{
-                  background:
-                    'linear-gradient(90deg, #ff9f43 0%, #ffe5b4 35%, #fffdf5 58%, #a9c7ff 100%)',
-                }}
-              />
-              <div
-                className="pointer-events-none absolute top-1/2 z-10 h-7 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_1px_8px_rgba(0,0,0,0.55)]"
-                style={{ left: `${Math.min(100, Math.max(0, warmthPosition))}%` }}
-              />
-              <input
-                type="range"
-                min={minKelvin}
-                max={maxKelvin}
-                step={50}
-                value={currentKelvin}
-                disabled={isUnavailable}
-                onChange={(event) => onWarmth(entity_id, parseInt(event.target.value, 10))}
-                className="absolute inset-0 z-20 h-full w-full cursor-pointer opacity-0"
-                aria-label={`${t('light.warmth') || 'Värme'} ${name}`}
-                aria-valuetext={`${currentKelvin} K`}
-              />
-            </div>
+            <WarmthStepSlider
+              presets={warmthPresets}
+              valueIndex={warmthIndex}
+              onCommit={commitWarmth}
+              disabled={isUnavailable}
+              label={t('light.warmth') || 'Värme'}
+              ariaLabel={`${t('light.warmth') || 'Värme'} ${name}`}
+              t={t}
+            />
           </div>
         )}
       </div>
@@ -638,11 +642,6 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
   const onCount = displayedLights.filter((e) => e.state === 'on').length;
   const totalCount = displayedLights.length;
 
-  // Debounce state for brightness
-  const [optimistic, setOptimistic] = useState({});
-  const [optimisticKelvin, setOptimisticKelvin] = useState({});
-  const debounceRefs = useRef({});
-
   const { getStatus, runAction } = useActionFeedback();
 
   const handleToggle = useCallback(
@@ -652,28 +651,17 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
     [callService, runAction]
   );
 
+  // Sliders call these once per release, with an already stepped value.
   const handleBrightness = useCallback(
-    (entityId, val) => {
-      setOptimistic((prev) => ({ ...prev, [entityId]: val }));
-      clearTimeout(debounceRefs.current[entityId]);
-      debounceRefs.current[entityId] = setTimeout(() => {
-        callService('light', 'turn_on', { entity_id: entityId, brightness: val });
-      }, SLIDER_DEBOUNCE_MS);
+    (entityId, pct) => {
+      callService('light', 'turn_on', { entity_id: entityId, brightness_pct: pct });
     },
     [callService]
   );
 
   const handleWarmth = useCallback(
-    (entityId, val) => {
-      setOptimisticKelvin((prev) => ({ ...prev, [entityId]: val }));
-      const debounceKey = `${entityId}:warmth`;
-      clearTimeout(debounceRefs.current[debounceKey]);
-      debounceRefs.current[debounceKey] = setTimeout(() => {
-        callService('light', 'turn_on', {
-          entity_id: entityId,
-          color_temp_kelvin: val,
-        });
-      }, SLIDER_DEBOUNCE_MS);
+    (entityId, kelvin) => {
+      callService('light', 'turn_on', { entity_id: entityId, color_temp_kelvin: kelvin });
     },
     [callService]
   );
@@ -706,8 +694,6 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
       onToggle={handleToggle}
       onBrightness={handleBrightness}
       onWarmth={handleWarmth}
-      optimisticBrightness={optimistic[entity.entity_id]}
-      optimisticKelvin={optimisticKelvin[entity.entity_id]}
       toggleStatus={getStatus(entity.entity_id)}
       t={t}
     />

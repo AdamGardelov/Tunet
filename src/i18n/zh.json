@@ -1509,5 +1509,10 @@
   "sensor.action.turnOn": "开启",
   "sensor.action.turnOff": "关闭",
   "sensor.action.press": "按下",
-  "room.adjustLight": "调节"
+  "room.adjustLight": "调节",
+  "light.warmthPreset.cozy": "温馨",
+  "light.warmthPreset.warm": "暖光",
+  "light.warmthPreset.neutral": "中性",
+  "light.warmthPreset.daylight": "日光",
+  "light.warmthPreset.cool": "冷光"
 }
