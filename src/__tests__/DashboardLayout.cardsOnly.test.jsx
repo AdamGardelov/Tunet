@@ -39,7 +39,9 @@ vi.mock('../layouts/SettingsMenuControl', () => ({
 }));
 
 vi.mock('../components', () => ({
-  PageNavigation: () => <nav data-testid="page-navigation" />,
+  PageNavigation: ({ variant = 'top' }) => (
+    <nav data-testid={variant === 'bottom' ? 'bottom-page-navigation' : 'page-navigation'} />
+  ),
 }));
 
 vi.mock('../rendering/DashboardGrid', () => ({
@@ -127,12 +129,25 @@ describe('DashboardLayout cards-only mode', () => {
     expect(screen.getByTestId('edit-toolbar')).toHaveAttribute('data-settings-visible', 'true');
   });
 
-  it('moves the settings control to a floating mobile action menu', () => {
+  it('puts the mobile settings menu in the header and the pages in a bottom bar', () => {
     renderLayout({ isMobile: true });
 
     expect(screen.getByTestId('settings-menu-control')).toHaveAttribute('data-mobile', 'true');
-    expect(screen.getByTestId('settings-menu-control')).toHaveAttribute('data-floating', 'true');
+    expect(screen.getByTestId('settings-menu-control')).not.toHaveAttribute(
+      'data-floating',
+      'true'
+    );
+    expect(screen.getByTestId('bottom-page-navigation')).toBeInTheDocument();
+    expect(screen.queryByTestId('page-navigation')).not.toBeInTheDocument();
     expect(screen.queryByTestId('edit-toolbar')).not.toBeInTheDocument();
+  });
+
+  it('uses a floating Done control and top page pills while editing on mobile', () => {
+    renderLayout({ isMobile: true, editMode: true });
+
+    expect(screen.getByTestId('settings-menu-control')).toHaveAttribute('data-floating', 'true');
+    expect(screen.getByTestId('page-navigation')).toBeInTheDocument();
+    expect(screen.queryByTestId('bottom-page-navigation')).not.toBeInTheDocument();
   });
 
   it('adds bottom clearance only on mobile', () => {

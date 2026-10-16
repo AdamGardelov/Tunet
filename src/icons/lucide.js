@@ -157,4 +157,6 @@ export {
   RotateCcw,
   ArrowUp,
   ArrowDown,
+  Plane,
+  ShieldCheck,
 } from 'lucide-react';

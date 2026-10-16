@@ -58,3 +58,4 @@ export {
   resolveStatusGroupCandidates,
   resolveStatusGroupPill,
 } from './statusGroupPills';
+export { getCardCategory, getCategoryColor, applyCategoryTint } from './cardCategory';

@@ -18,12 +18,18 @@ import {
   getEffectiveRoomEntityIds,
   getEffectiveUnitMode,
 } from '../../utils';
+import RoomControlsCard from './RoomControlsCard';
 
 /**
  * RoomCard – shows a summary of a Home Assistant area (room).
  * Redesigned with elegant glass styling and animated control switching.
  */
-const RoomCard = memo(/** @param {any} props */ function RoomCard({
+const RoomCard = memo(/** @param {any} props */ function RoomCard(props) {
+  if (props.settings?.layout === 'controls') return <RoomControlsCard {...props} />;
+  return <RoomSummaryCard {...props} />;
+});
+
+const RoomSummaryCard = memo(/** @param {any} props */ function RoomSummaryCard({
   cardId,
   settings,
   entities,

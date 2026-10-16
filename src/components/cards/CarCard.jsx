@@ -126,6 +126,9 @@ const CarCard = ({
         fromUnit: sourceRangeUnit || 'km',
         unitMode: effectiveUnitMode,
       });
+  // A zero/negative range next to a charged battery is almost always a stale
+  // sensor, so hide it rather than showing a misleading "0 km".
+  const hasRange = displayRangeValue !== null && Number(displayRangeValue) > 0;
   const locationLabel = locationId ? getS(locationId) : null;
 
   const chargingState = getSafeState(entities, effectiveChargingId);
@@ -184,12 +187,12 @@ const CarCard = ({
         {controls}
         <div className="flex min-w-0 flex-1 items-center gap-4">
           <div
-            className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl transition-all group-hover:scale-110 ${isCharging ? 'bg-[var(--status-success-bg)] text-[var(--status-success-fg)]' : 'bg-[var(--glass-bg)] text-[var(--text-secondary)]'}`}
+            className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl transition-all group-hover:scale-110 ${isCharging ? 'bg-[var(--status-success-bg)] text-[var(--status-success-fg)]' : 'bg-[color-mix(in_srgb,var(--cat-car)_16%,transparent)] text-[var(--cat-car)]'}`}
           >
             <Icon className="h-6 w-6 stroke-[1.5px]" />
           </div>
           <div className="flex min-w-0 flex-col">
-            <p className="mb-1.5 truncate text-xs leading-none font-bold tracking-widest text-[var(--text-secondary)] uppercase opacity-60">
+            <p className="mb-1.5 truncate text-sm leading-none font-semibold text-[var(--text-primary)]">
               {name}
             </p>
             <div className="flex flex-col gap-0.5 leading-tight">
@@ -205,7 +208,7 @@ const CarCard = ({
                   >
                     {batteryValue !== null ? `${formatValue(batteryValue)}%` : '--'}
                   </span>
-                  {displayRangeValue !== null && (
+                  {hasRange && (
                     <span className="text-xs text-[var(--text-secondary)]">
                       {formatUnitValue(displayRangeValue, { fallback: '--' })} {rangeUnit}
                     </span>
@@ -245,7 +248,9 @@ const CarCard = ({
       }}
     >
       {controls}
-      <div className={`flex items-start justify-between font-sans ${isDenseMobile ? 'gap-3' : 'gap-4'}`}>
+      <div
+        className={`flex items-start justify-between font-sans ${isDenseMobile ? 'gap-3' : 'gap-4'}`}
+      >
         <div className={`flex min-w-0 flex-col items-start ${isDenseMobile ? 'gap-2' : 'gap-2.5'}`}>
           <div
             className={`flex-shrink-0 transition-all group-hover:scale-110 ${isCharging ? 'bg-[var(--status-success-bg)] text-[var(--status-success-fg)]' : 'bg-[var(--glass-bg)] text-[var(--text-secondary)]'} ${isDenseMobile ? 'rounded-xl p-2.5' : 'rounded-2xl p-3'}`}
@@ -259,13 +264,17 @@ const CarCard = ({
             {name}
           </p>
         </div>
-        <div className={`flex max-w-[62%] flex-col items-end ${isDenseMobile ? 'gap-1.5' : 'gap-2'}`}>
+        <div
+          className={`flex max-w-[62%] flex-col items-end ${isDenseMobile ? 'gap-1.5' : 'gap-2'}`}
+        >
           {isUnavailable ? (
             <div
               className={`flex max-w-full items-center border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-muted)] ${isDenseMobile ? 'gap-1.5 rounded-xl px-2.5 py-1' : 'gap-2 rounded-2xl px-3 py-1.5'}`}
             >
               <WifiOff className={`${isDenseMobile ? 'h-3 w-3' : 'h-3.5 w-3.5'} shrink-0`} />
-              <span className={`${isDenseMobile ? 'text-[10px]' : 'text-xs'} font-bold tracking-widest uppercase`}>
+              <span
+                className={`${isDenseMobile ? 'text-[10px]' : 'text-xs'} font-bold tracking-widest uppercase`}
+              >
                 {t('status.unavailable')}
               </span>
             </div>
@@ -273,7 +282,9 @@ const CarCard = ({
             <div
               className={`flex max-w-full items-start border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] ${isDenseMobile ? 'gap-1 rounded-xl px-2.5 py-1' : 'gap-1.5 rounded-2xl px-3 py-1.5'}`}
             >
-              <MapPin className={`${isDenseMobile ? 'mt-0 h-2.5 w-2.5' : 'mt-0.5 h-3 w-3'} flex-shrink-0`} />
+              <MapPin
+                className={`${isDenseMobile ? 'mt-0 h-2.5 w-2.5' : 'mt-0.5 h-3 w-3'} flex-shrink-0`}
+              />
               <span
                 className={`${isDenseMobile ? 'text-[10px]' : 'text-xs'} leading-tight font-bold tracking-widest break-words whitespace-normal uppercase`}
               >
@@ -289,7 +300,9 @@ const CarCard = ({
                   aria-label={t('car.heating')}
                   title={t('car.heating')}
                 >
-                  <Flame className={`${isDenseMobile ? 'h-3 w-3' : 'h-3.5 w-3.5'} stroke-[1.75px]`} />
+                  <Flame
+                    className={`${isDenseMobile ? 'h-3 w-3' : 'h-3.5 w-3.5'} stroke-[1.75px]`}
+                  />
                 </div>
               )}
               {isPlugged && (
@@ -298,7 +311,9 @@ const CarCard = ({
                   aria-label={t('car.pluggedIn')}
                   title={t('car.pluggedIn')}
                 >
-                  <Plug className={`${isDenseMobile ? 'h-3 w-3' : 'h-3.5 w-3.5'} stroke-[1.75px]`} />
+                  <Plug
+                    className={`${isDenseMobile ? 'h-3 w-3' : 'h-3.5 w-3.5'} stroke-[1.75px]`}
+                  />
                 </div>
               )}
             </div>
@@ -307,7 +322,9 @@ const CarCard = ({
       </div>
       <div className={`flex items-start justify-between ${useCompactMetrics ? 'gap-3' : 'gap-4'}`}>
         <div className="min-w-0 flex-1">
-          <div className={`flex min-w-0 items-baseline font-sans leading-none ${useCompactMetrics ? 'gap-1.5' : 'gap-2'}`}>
+          <div
+            className={`flex min-w-0 items-baseline font-sans leading-none ${useCompactMetrics ? 'gap-1.5' : 'gap-2'}`}
+          >
             <span
               className={`${useCompactMetrics ? 'text-[2rem]' : 'text-4xl'} leading-none font-thin ${isCharging ? 'text-[var(--status-success-fg)]' : 'text-[var(--text-primary)]'}`}
             >
@@ -320,7 +337,7 @@ const CarCard = ({
               />
             )}
           </div>
-          {displayRangeValue !== null && (
+          {hasRange && (
             <p
               className={`${useCompactMetrics ? 'mt-1 text-xs' : 'mt-1.5 text-sm'} font-medium text-[var(--text-secondary)]`}
             >

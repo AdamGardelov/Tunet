@@ -133,21 +133,16 @@ const MedicationCard = ({
         <Cat className="h-6 w-6 stroke-[1.7px]" />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[12px] leading-tight font-extrabold text-[var(--text-primary)]">
-          {hasDoseValue
-            ? `${doses % 2 === 0 ? days : `ca ${days}`} dagar kvar`
-            : 'Dosantal saknas'}
+        <p className="line-clamp-2 text-[13px] leading-tight font-bold text-[var(--text-primary)]">
+          {hasDoseValue ? `${doses % 2 === 0 ? days : `ca ${days}`} dagar kvar` : 'Dosantal saknas'}
         </p>
         {hasDoseValue && (
-          <p className="mt-1 truncate text-[9px] font-bold tracking-wide text-[var(--text-secondary)] uppercase">
+          <p className="mt-1 truncate text-[11px] font-medium text-[var(--text-secondary)]">
             {doses} doser
           </p>
         )}
       </div>
-      <div
-        className="grid min-w-[164px] grid-cols-2 gap-2"
-        data-testid="medication-dose-actions"
-      >
+      <div className="grid min-w-[164px] grid-cols-2 gap-2" data-testid="medication-dose-actions">
         <DoseButton entityId={mapping.morningId} label="Morgon" />
         <DoseButton entityId={mapping.eveningId} label="Kväll" />
       </div>

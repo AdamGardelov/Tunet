@@ -254,7 +254,7 @@ describe('GenericClimateCard', () => {
       );
       expect(button).toHaveAttribute('aria-busy', 'false');
       expect(button).toHaveAttribute('aria-pressed', 'false');
-      expect(button).toHaveClass('text-[var(--text-muted)]');
+      expect(button).toHaveClass('text-[var(--cat-climate)]');
       expect(button).toBeEnabled();
     }
   );
@@ -270,5 +270,21 @@ describe('GenericClimateCard', () => {
       entity_id: 'climate.living_room',
       hvac_mode: 'off',
     });
+  });
+});
+
+describe('GenericClimateCard off state', () => {
+  it('shows a turn-on action instead of the target stepper when off', () => {
+    const callService = vi.fn();
+    const props = baseProps({ hvac_action: 'off', temperature: 0 });
+    props.entity.state = 'off';
+    render(<GenericClimateCard {...props} callService={callService} isMobile />);
+
+    expect(
+      screen.queryByRole('button', { name: 'climate.increaseTemperature' })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('0°C')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'climate.offTapToTurnOn' }));
+    expect(callService).toHaveBeenCalledTimes(1);
   });
 });

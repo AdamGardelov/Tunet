@@ -158,6 +158,8 @@ export {
   RotateCcw,
   ArrowUp,
   ArrowDown,
+  Plane,
+  ShieldCheck,
 } from './lucide';
 
 export { ICON_MAP, getAllIconKeys, getIconComponent, preloadMdiIcons } from './iconMap';
