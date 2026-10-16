@@ -828,6 +828,8 @@ export function AppContent({ showOnboarding, setShowOnboarding }) {
         guardedSetShowThemeSidebar={guardedSetShowThemeSidebar}
         guardedSetShowLayoutSidebar={guardedSetShowLayoutSidebar}
         guardedSetShowHeaderEditModal={guardedSetShowHeaderEditModal}
+        entities={entities}
+        callService={callService}
         connected={connected}
         updateCount={updateCount}
         dashboardGridPage={dashboardGridPage}

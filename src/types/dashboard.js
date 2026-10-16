@@ -188,6 +188,8 @@
  * @property {boolean} showClockOnMobile
  * @property {boolean} showDate
  * @property {boolean} showPagePillLabelsOnMobile
+ * @property {boolean} [showAwayMode]
+ * @property {string} [awayModeEntityId]
  * @property {'left' | 'center' | 'right'} mobileAlignment
  */
 

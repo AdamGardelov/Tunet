@@ -89,7 +89,7 @@ const LightTile = memo(
 
     return (
       <div
-        className={`group relative overflow-hidden rounded-3xl border p-5 font-sans transition-all duration-500 ${
+        className={`group relative overflow-hidden rounded-3xl border font-sans transition-all duration-500 ${isOn ? 'p-5' : 'px-5 py-3.5'} ${
           isUnavailable ? 'opacity-50' : ''
         }`}
         style={{
@@ -109,7 +109,9 @@ const LightTile = memo(
           <div className="flex min-w-0 items-center gap-3">
             <div
               className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl transition-all duration-500 ${
-                isOn ? '' : 'bg-[var(--glass-bg)] text-[var(--text-muted)]'
+                isOn
+                  ? ''
+                  : 'bg-[color-mix(in_srgb,var(--cat-light)_10%,transparent)] text-[color-mix(in_srgb,var(--cat-light)_70%,var(--text-muted))]'
               }`}
               style={
                 isOn && lightColor
@@ -141,7 +143,7 @@ const LightTile = memo(
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
-            {supportsColorTemp && (
+            {supportsColorTemp && isOn && (
               <button
                 type="button"
                 onClick={() => setShowWarmth((visible) => !visible)}
@@ -181,7 +183,7 @@ const LightTile = memo(
         </div>
 
         {/* Brightness slider */}
-        {isDimmable && (
+        {isDimmable && isOn && (
           <div className="mt-4">
             <M3Slider
               variant="thinLg"
@@ -197,13 +199,11 @@ const LightTile = memo(
           </div>
         )}
 
-        {supportsColorTemp && showWarmth && (
+        {supportsColorTemp && showWarmth && isOn && (
           <div className="mt-4 border-t border-[var(--glass-border)] pt-4">
-            <div className="mb-2 flex items-center justify-between text-[11px] font-semibold tracking-wider text-[var(--text-muted)] uppercase">
+            <div className="mb-2 flex items-center justify-between text-xs font-medium text-[var(--text-secondary)]">
               <span>{t('light.warmth') || 'Värme'}</span>
-              <span className="font-mono tracking-normal text-[var(--text-secondary)] normal-case">
-                {currentKelvin} K
-              </span>
+              <span className="font-mono text-[var(--text-secondary)]">{currentKelvin} K</span>
             </div>
             <div className="relative h-10 overflow-hidden rounded-2xl border border-white/10 shadow-inner">
               <div
@@ -263,7 +263,7 @@ const ConfirmButton = memo(
       <div className="relative" ref={ref}>
         <button
           onClick={() => setPending(true)}
-          className={`rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] px-4 py-2.5 text-[11px] font-bold tracking-widest text-[var(--text-secondary)] uppercase transition-all hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-95 ${
+          className={`rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] px-4 py-2.5 text-sm font-semibold text-[var(--text-secondary)] transition-all hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-95 ${
             pending ? 'opacity-60' : ''
           }`}
         >
@@ -281,7 +281,7 @@ const ConfirmButton = memo(
             <div className="flex gap-2 px-4 pb-4">
               <button
                 onClick={() => setPending(false)}
-                className="flex-1 rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] px-3 py-2 text-[11px] font-bold tracking-wider text-[var(--text-secondary)] uppercase transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95"
+                className="flex-1 rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] px-3 py-2 text-sm font-semibold text-[var(--text-secondary)] transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95"
               >
                 {t('common.cancel') || 'Cancel'}
               </button>
@@ -290,7 +290,7 @@ const ConfirmButton = memo(
                   setPending(false);
                   onConfirm();
                 }}
-                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[var(--accent-color)] px-3 py-2 text-[11px] font-bold tracking-wider text-white uppercase transition-all hover:opacity-90 active:scale-95"
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[var(--accent-color)] px-3 py-2 text-sm font-semibold text-white transition-all hover:opacity-90 active:scale-95"
               >
                 <Check className="h-3.5 w-3.5" />
                 {t('common.confirm') || 'Confirm'}
@@ -329,7 +329,7 @@ const SortDropdown = memo(
           className="group popup-surface popup-surface-hover flex items-center gap-2 rounded-2xl px-4 py-2.5 transition-all active:scale-95"
         >
           <ArrowUpDown className="h-3.5 w-3.5 text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent-color)]" />
-          <span className="text-xs font-bold tracking-widest text-[var(--text-secondary)] uppercase italic">
+          <span className="text-sm font-semibold text-[var(--text-secondary)]">
             {t(`lights.sort.${current.key}`) || current.key}
           </span>
           <ChevronDown
@@ -351,7 +351,7 @@ const SortDropdown = memo(
                     onSortChange(key);
                     setOpen(false);
                   }}
-                  className={`w-full px-5 py-3 text-left text-xs font-bold tracking-widest uppercase transition-all ${
+                  className={`w-full px-5 py-3 text-left text-sm font-medium transition-all ${
                     active
                       ? 'text-[var(--accent-color)]'
                       : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
@@ -700,7 +700,7 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
       {/* ── Header ──────────────────────────────────────────────────── */}
       <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-light tracking-widest text-[var(--text-primary)] uppercase">
+          <h2 className="text-2xl font-semibold tracking-tight text-[var(--text-primary)]">
             {t('lights.pageTitle') || t('addCard.type.light') || 'Lights'}
           </h2>
           <p className="mt-1 text-sm text-[var(--text-secondary)]">
@@ -777,7 +777,7 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
           {groups.length > 0 && (
             <button
               onClick={handleToggleGroups}
-              className={`rounded-2xl border px-3 py-2.5 text-[11px] font-bold tracking-widest uppercase transition-all active:scale-95 ${
+              className={`rounded-2xl border px-3 py-2.5 text-sm font-semibold transition-all active:scale-95 ${
                 showGroups
                   ? 'border-[var(--accent-color)] bg-[var(--accent-bg)] text-[var(--accent-color)]'
                   : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)]'
@@ -792,7 +792,7 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
           {unavailableCount > 0 && (
             <button
               onClick={handleToggleUnavailable}
-              className={`flex items-center gap-1.5 rounded-2xl border px-3 py-2.5 text-[11px] font-bold tracking-widest uppercase transition-all active:scale-95 ${
+              className={`flex items-center gap-1.5 rounded-2xl border px-3 py-2.5 text-sm font-semibold transition-all active:scale-95 ${
                 hideUnavailable
                   ? 'border-[var(--accent-color)] bg-[var(--accent-bg)] text-[var(--accent-color)]'
                   : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)]'
@@ -826,7 +826,7 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
               return (
                 <div key={areaName}>
                   <div className="mb-3 flex items-center gap-3">
-                    <h3 className="text-xs font-bold tracking-widest text-[var(--text-muted)] uppercase">
+                    <h3 className="text-sm font-semibold text-[var(--text-secondary)]">
                       {areaName}
                     </h3>
                     <div className="h-px flex-1 bg-[var(--glass-border)]" />

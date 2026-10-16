@@ -204,6 +204,17 @@ function MediaPage({
   const powerAction = currentMp ? getMediaPlayerPowerAction(currentMp) : null;
   const canTogglePower = Boolean(powerAction);
   const isPowerOffAction = powerAction === 'turn_off';
+  // Nothing to control: show a calm idle state instead of an empty player.
+  const isIdlePlayer =
+    !isPlaying &&
+    !mpTitle &&
+    ['off', 'standby', 'idle', 'unavailable', 'unknown'].includes(String(mpState));
+  const idleStatusLabel =
+    mpState === 'idle'
+      ? t('media.idle.ready')
+      : mpState === 'unavailable' || mpState === 'unknown'
+        ? t('status.unavailable')
+        : t('media.idle.off');
 
   const duration = mpId ? getA(mpId, 'media_duration') : null;
   const position = mpId ? getA(mpId, 'media_position') : null;
@@ -770,7 +781,7 @@ function MediaPage({
       {mediaEntities.length > 0 && (
         <div className="grid w-full grid-cols-1 items-stretch gap-8 lg:grid-cols-[1.35fr_0.85fr]">
           <div
-            className={`popup-surface relative flex min-h-[480px] w-full min-w-0 flex-col overflow-hidden rounded-3xl border p-8 ${
+            className={`popup-surface relative flex w-full min-w-0 flex-col overflow-hidden rounded-3xl border ${isIdlePlayer ? 'p-6' : 'min-h-[480px] p-8'} ${
               isSonosMode
                 ? 'border-[var(--status-info-fg)]/35 shadow-[0_0_0_1px_rgba(125,211,252,0.08),0_20px_60px_rgba(59,130,246,0.15)]'
                 : 'border-[var(--glass-border)]'
@@ -807,7 +818,13 @@ function MediaPage({
 
             <div className="flex flex-1 flex-col items-center gap-8 md:flex-row md:gap-12">
               <div className="flex flex-shrink-0 justify-center md:justify-start">
-                <div className="flex h-52 w-52 items-center justify-center rounded-2xl bg-[var(--glass-bg)] lg:h-56 lg:w-56 xl:h-72 xl:w-72">
+                <div
+                  className={`flex items-center justify-center rounded-2xl ${
+                    isIdlePlayer
+                      ? 'h-24 w-24 bg-[color-mix(in_srgb,var(--cat-media)_14%,transparent)] text-[var(--cat-media)]'
+                      : 'h-52 w-52 bg-[var(--glass-bg)] lg:h-56 lg:w-56 xl:h-72 xl:w-72'
+                  }`}
+                >
                   {isImageAvailable(currentArtworkUrl) ? (
                     <img
                       src={currentArtworkUrl}
@@ -817,9 +834,13 @@ function MediaPage({
                       onError={() => markImageFailed(currentArtworkUrl)}
                     />
                   ) : isTV ? (
-                    <Tv className="h-24 w-24 text-[var(--text-muted)]" />
+                    <Tv
+                      className={isIdlePlayer ? 'h-10 w-10' : 'h-24 w-24 text-[var(--text-muted)]'}
+                    />
                   ) : (
-                    <Speaker className="h-24 w-24 text-[var(--text-muted)]" />
+                    <Speaker
+                      className={isIdlePlayer ? 'h-10 w-10' : 'h-24 w-24 text-[var(--text-muted)]'}
+                    />
                   )}
                 </div>
               </div>
@@ -827,209 +848,226 @@ function MediaPage({
               <div className="flex w-full min-w-0 flex-1 flex-col justify-center gap-4 md:justify-between lg:gap-5 xl:gap-6">
                 <div className="space-y-2 text-center md:text-left">
                   {mpName && (
-                    <p className="text-xs font-bold tracking-[0.2em] text-[var(--text-secondary)] uppercase">
-                      {mpName}
-                    </p>
+                    <p className="text-sm font-semibold text-[var(--text-secondary)]">{mpName}</p>
                   )}
                   <h2 className="truncate text-lg leading-none font-bold text-[var(--text-primary)] md:text-xl">
-                    {mpTitle || t('common.unknown')}
+                    {isIdlePlayer ? idleStatusLabel : mpTitle || t('common.unknown')}
                   </h2>
                   <p className="truncate text-base font-medium text-[var(--text-secondary)] lg:text-lg xl:text-xl">
                     {mpSeries || ''}
                   </p>
                 </div>
 
-                <div className="space-y-3">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-xs font-bold tracking-widest text-[var(--text-secondary)]">
-                      <span>{formatDuration(effectivePosition)}</span>
-                      <span>{formatDuration(duration)}</span>
-                    </div>
-                    <M3Slider
-                      variant="thin"
-                      min={0}
-                      max={duration || 100}
-                      step={1}
-                      value={effectivePosition || 0}
-                      disabled={!duration}
-                      onChange={(e) =>
-                        callService('media_player', 'media_seek', {
-                          entity_id: mpId,
-                          seek_position: parseFloat(e.target.value),
-                        })
-                      }
-                      colorClass="bg-[var(--text-primary)]"
-                    />
+                {isIdlePlayer ? (
+                  <div className="flex justify-center md:justify-start">
+                    {canTogglePower && !isPowerOffAction ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          callService('media_player', powerAction, { entity_id: mpId })
+                        }
+                        className="flex min-h-12 items-center gap-2 rounded-2xl border border-[color-mix(in_srgb,var(--cat-media)_45%,transparent)] bg-[color-mix(in_srgb,var(--cat-media)_16%,transparent)] px-6 text-sm font-semibold text-[var(--cat-media)] transition-all active:scale-95"
+                      >
+                        <Power className="h-4 w-4" aria-hidden="true" />
+                        {t('media.idle.turnOn')}
+                      </button>
+                    ) : null}
                   </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs font-bold tracking-widest text-[var(--text-secondary)]">
+                        <span>{formatDuration(effectivePosition)}</span>
+                        <span>{formatDuration(duration)}</span>
+                      </div>
+                      <M3Slider
+                        variant="thin"
+                        min={0}
+                        max={duration || 100}
+                        step={1}
+                        value={effectivePosition || 0}
+                        disabled={!duration}
+                        onChange={(e) =>
+                          callService('media_player', 'media_seek', {
+                            entity_id: mpId,
+                            seek_position: parseFloat(e.target.value),
+                          })
+                        }
+                        colorClass="bg-[var(--text-primary)]"
+                      />
+                    </div>
 
-                  <div className="grid grid-cols-[auto_1fr_auto] items-center gap-[clamp(0.25rem,1vw,0.75rem)]">
-                    <button
-                      onClick={() =>
-                        callService('media_player', 'shuffle_set', {
-                          entity_id: mpId,
-                          shuffle: !shuffle,
-                        })
-                      }
-                      className={`rounded-full p-[clamp(0.25rem,1vw,0.5rem)] transition-all active:scale-95 ${shuffle ? '' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)]'}`}
-                      style={
-                        shuffle
-                          ? {
-                              color: 'var(--text-primary)',
-                              backgroundColor: 'var(--glass-bg-hover)',
-                            }
-                          : undefined
-                      }
-                      type="button"
-                      aria-pressed={shuffle}
-                      aria-label={t('media.shuffle') || 'Shuffle'}
-                      title={t('media.shuffle') || 'Shuffle'}
-                    >
-                      <Shuffle className="h-[clamp(0.9rem,2vw,1rem)] w-[clamp(0.9rem,2vw,1rem)]" />
-                    </button>
-                    <div className="flex min-w-0 items-center justify-center gap-[clamp(0.2rem,1.3vw,1rem)]">
+                    <div className="grid grid-cols-[auto_1fr_auto] items-center gap-[clamp(0.25rem,1vw,0.75rem)]">
                       <button
                         onClick={() =>
-                          callService('media_player', 'media_previous_track', { entity_id: mpId })
+                          callService('media_player', 'shuffle_set', {
+                            entity_id: mpId,
+                            shuffle: !shuffle,
+                          })
                         }
-                        className="rounded-full p-[clamp(0.2rem,1vw,0.5rem)] transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95"
-                      >
-                        <SkipBack className="h-[clamp(1.1rem,2.6vw,1.5rem)] w-[clamp(1.1rem,2.6vw,1.5rem)] text-[var(--text-secondary)]" />
-                      </button>
-                      <button
-                        onClick={() =>
-                          callService('media_player', 'media_play_pause', { entity_id: mpId })
+                        className={`rounded-full p-[clamp(0.25rem,1vw,0.5rem)] transition-all active:scale-95 ${shuffle ? '' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)]'}`}
+                        style={
+                          shuffle
+                            ? {
+                                color: 'var(--text-primary)',
+                                backgroundColor: 'var(--glass-bg-hover)',
+                              }
+                            : undefined
                         }
-                        className="rounded-full bg-[var(--text-primary)] p-[clamp(0.3rem,1.2vw,0.75rem)] shadow-lg transition-all hover:scale-105 hover:shadow-xl active:scale-95"
+                        type="button"
+                        aria-pressed={shuffle}
+                        aria-label={t('media.shuffle') || 'Shuffle'}
+                        title={t('media.shuffle') || 'Shuffle'}
                       >
-                        {isPlaying ? (
-                          <Pause
-                            className="h-[clamp(1.1rem,2.8vw,1.75rem)] w-[clamp(1.1rem,2.8vw,1.75rem)]"
-                            color="var(--bg-primary)"
-                            fill="var(--bg-primary)"
-                          />
-                        ) : (
-                          <Play
-                            className="ml-0.5 h-[clamp(1.1rem,2.8vw,1.75rem)] w-[clamp(1.1rem,2.8vw,1.75rem)]"
-                            color="var(--bg-primary)"
-                            fill="var(--bg-primary)"
-                          />
-                        )}
+                        <Shuffle className="h-[clamp(0.9rem,2vw,1rem)] w-[clamp(0.9rem,2vw,1rem)]" />
                       </button>
-                      <button
-                        onClick={() =>
-                          callService('media_player', 'media_next_track', { entity_id: mpId })
-                        }
-                        className="rounded-full p-[clamp(0.2rem,1vw,0.5rem)] transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95"
-                      >
-                        <SkipForward className="h-[clamp(1.1rem,2.6vw,1.5rem)] w-[clamp(1.1rem,2.6vw,1.5rem)] text-[var(--text-secondary)]" />
-                      </button>
-                      {canTogglePower && (
+                      <div className="flex min-w-0 items-center justify-center gap-[clamp(0.2rem,1.3vw,1rem)]">
                         <button
                           onClick={() =>
-                            callService('media_player', powerAction, { entity_id: mpId })
+                            callService('media_player', 'media_previous_track', { entity_id: mpId })
                           }
-                          className={`rounded-full p-[clamp(0.2rem,1vw,0.5rem)] transition-all active:scale-95 ${isPowerOffAction ? 'text-[var(--status-error-fg)] hover:bg-[var(--status-error-bg)]' : 'text-[var(--status-success-fg)] hover:bg-[var(--status-success-bg)]'}`}
-                          title={isPowerOffAction ? t('status.off') : t('status.on')}
+                          className="rounded-full p-[clamp(0.2rem,1vw,0.5rem)] transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95"
                         >
-                          <Power className="h-[clamp(1.1rem,2.6vw,1.5rem)] w-[clamp(1.1rem,2.6vw,1.5rem)]" />
+                          <SkipBack className="h-[clamp(1.1rem,2.6vw,1.5rem)] w-[clamp(1.1rem,2.6vw,1.5rem)] text-[var(--text-secondary)]" />
                         </button>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => {
-                        const modes = ['off', 'one', 'all'];
-                        const nextMode = modes[(modes.indexOf(repeat) + 1) % modes.length];
-                        callService('media_player', 'repeat_set', {
-                          entity_id: mpId,
-                          repeat: nextMode,
-                        });
-                      }}
-                      className={`rounded-full p-[clamp(0.25rem,1vw,0.5rem)] transition-all active:scale-95 ${repeat !== 'off' ? '' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)]'}`}
-                      style={
-                        repeat !== 'off'
-                          ? {
-                              color: 'var(--text-primary)',
-                              backgroundColor: 'var(--glass-bg-hover)',
+                        <button
+                          onClick={() =>
+                            callService('media_player', 'media_play_pause', { entity_id: mpId })
+                          }
+                          className="rounded-full bg-[var(--text-primary)] p-[clamp(0.3rem,1.2vw,0.75rem)] shadow-lg transition-all hover:scale-105 hover:shadow-xl active:scale-95"
+                        >
+                          {isPlaying ? (
+                            <Pause
+                              className="h-[clamp(1.1rem,2.8vw,1.75rem)] w-[clamp(1.1rem,2.8vw,1.75rem)]"
+                              color="var(--bg-primary)"
+                              fill="var(--bg-primary)"
+                            />
+                          ) : (
+                            <Play
+                              className="ml-0.5 h-[clamp(1.1rem,2.8vw,1.75rem)] w-[clamp(1.1rem,2.8vw,1.75rem)]"
+                              color="var(--bg-primary)"
+                              fill="var(--bg-primary)"
+                            />
+                          )}
+                        </button>
+                        <button
+                          onClick={() =>
+                            callService('media_player', 'media_next_track', { entity_id: mpId })
+                          }
+                          className="rounded-full p-[clamp(0.2rem,1vw,0.5rem)] transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95"
+                        >
+                          <SkipForward className="h-[clamp(1.1rem,2.6vw,1.5rem)] w-[clamp(1.1rem,2.6vw,1.5rem)] text-[var(--text-secondary)]" />
+                        </button>
+                        {canTogglePower && (
+                          <button
+                            onClick={() =>
+                              callService('media_player', powerAction, { entity_id: mpId })
                             }
-                          : undefined
-                      }
-                      type="button"
-                      aria-pressed={repeat !== 'off'}
-                      aria-label={`${t('media.repeat') || 'Repeat'} (${repeat})`}
-                      title={t('media.repeat') || 'Repeat'}
-                    >
-                      {repeat === 'one' ? (
-                        <Repeat1 className="h-[clamp(0.9rem,2vw,1rem)] w-[clamp(0.9rem,2vw,1rem)]" />
-                      ) : (
-                        <Repeat className="h-[clamp(0.9rem,2vw,1rem)] w-[clamp(0.9rem,2vw,1rem)]" />
-                      )}
-                    </button>
+                            className={`rounded-full p-[clamp(0.2rem,1vw,0.5rem)] transition-all active:scale-95 ${isPowerOffAction ? 'text-[var(--status-error-fg)] hover:bg-[var(--status-error-bg)]' : 'text-[var(--status-success-fg)] hover:bg-[var(--status-success-bg)]'}`}
+                            title={isPowerOffAction ? t('status.off') : t('status.on')}
+                          >
+                            <Power className="h-[clamp(1.1rem,2.6vw,1.5rem)] w-[clamp(1.1rem,2.6vw,1.5rem)]" />
+                          </button>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => {
+                          const modes = ['off', 'one', 'all'];
+                          const nextMode = modes[(modes.indexOf(repeat) + 1) % modes.length];
+                          callService('media_player', 'repeat_set', {
+                            entity_id: mpId,
+                            repeat: nextMode,
+                          });
+                        }}
+                        className={`rounded-full p-[clamp(0.25rem,1vw,0.5rem)] transition-all active:scale-95 ${repeat !== 'off' ? '' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)]'}`}
+                        style={
+                          repeat !== 'off'
+                            ? {
+                                color: 'var(--text-primary)',
+                                backgroundColor: 'var(--glass-bg-hover)',
+                              }
+                            : undefined
+                        }
+                        type="button"
+                        aria-pressed={repeat !== 'off'}
+                        aria-label={`${t('media.repeat') || 'Repeat'} (${repeat})`}
+                        title={t('media.repeat') || 'Repeat'}
+                      >
+                        {repeat === 'one' ? (
+                          <Repeat1 className="h-[clamp(0.9rem,2vw,1rem)] w-[clamp(0.9rem,2vw,1rem)]" />
+                        ) : (
+                          <Repeat className="h-[clamp(0.9rem,2vw,1rem)] w-[clamp(0.9rem,2vw,1rem)]" />
+                        )}
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
 
-                <div className="flex items-center gap-2 border-t border-[var(--glass-border)] px-1 pt-2">
-                  <button
-                    onClick={() => changeVolumeByStep(-VOLUME_STEP)}
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-95"
-                    aria-label="Volume down"
-                    title="Volume down"
-                  >
-                    <Minus className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() =>
-                      callService('media_player', 'volume_mute', {
-                        entity_id: mpId,
-                        is_volume_muted: !isMuted,
-                      })
-                    }
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-95"
-                    type="button"
-                    aria-pressed={isMuted}
-                    aria-label={
-                      isMuted
-                        ? t('media.volume.unmute') || 'Unmute'
-                        : t('media.volume.mute') || 'Mute'
-                    }
-                    title={
-                      isMuted
-                        ? t('media.volume.unmute') || 'Unmute'
-                        : t('media.volume.mute') || 'Mute'
-                    }
-                  >
-                    {isMuted ? (
-                      <VolumeX className="h-4 w-4" />
-                    ) : volume < 0.5 ? (
-                      <Volume1 className="h-4 w-4" />
-                    ) : (
-                      <Volume2 className="h-4 w-4" />
-                    )}
-                  </button>
-                  <div className="flex-1 px-1">
-                    <M3Slider
-                      variant="volume"
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={volume * 100}
-                      onChange={(e) =>
-                        callService('media_player', 'volume_set', {
+                {!isIdlePlayer && (
+                  <div className="flex items-center gap-2 border-t border-[var(--glass-border)] px-1 pt-2">
+                    <button
+                      onClick={() => changeVolumeByStep(-VOLUME_STEP)}
+                      className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-95"
+                      aria-label="Volume down"
+                      title="Volume down"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() =>
+                        callService('media_player', 'volume_mute', {
                           entity_id: mpId,
-                          volume_level: parseFloat(e.target.value) / 100,
+                          is_volume_muted: !isMuted,
                         })
                       }
-                      colorClass="bg-[var(--text-primary)]"
-                    />
+                      className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-95"
+                      type="button"
+                      aria-pressed={isMuted}
+                      aria-label={
+                        isMuted
+                          ? t('media.volume.unmute') || 'Unmute'
+                          : t('media.volume.mute') || 'Mute'
+                      }
+                      title={
+                        isMuted
+                          ? t('media.volume.unmute') || 'Unmute'
+                          : t('media.volume.mute') || 'Mute'
+                      }
+                    >
+                      {isMuted ? (
+                        <VolumeX className="h-4 w-4" />
+                      ) : volume < 0.5 ? (
+                        <Volume1 className="h-4 w-4" />
+                      ) : (
+                        <Volume2 className="h-4 w-4" />
+                      )}
+                    </button>
+                    <div className="flex-1 px-1">
+                      <M3Slider
+                        variant="volume"
+                        min={0}
+                        max={100}
+                        step={1}
+                        value={volume * 100}
+                        onChange={(e) =>
+                          callService('media_player', 'volume_set', {
+                            entity_id: mpId,
+                            volume_level: parseFloat(e.target.value) / 100,
+                          })
+                        }
+                        colorClass="bg-[var(--text-primary)]"
+                      />
+                    </div>
+                    <button
+                      onClick={() => changeVolumeByStep(VOLUME_STEP)}
+                      className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-95"
+                      aria-label="Volume up"
+                      title="Volume up"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
                   </div>
-                  <button
-                    onClick={() => changeVolumeByStep(VOLUME_STEP)}
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-95"
-                    aria-label="Volume up"
-                    title="Volume up"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
-                </div>
+                )}
               </div>
             </div>
           </div>
@@ -1124,7 +1162,13 @@ function MediaPage({
                       const isSelf = p.entity_id === mpId;
                       const isSonos = isSonosMediaEntity(p);
                       const isActivePlayer = isSonos ? isSonosActive(p) : p?.state === 'playing';
-                      const pTitle = getA(p.entity_id, 'media_title', t('common.unknown'));
+                      const pTitle =
+                        getA(p.entity_id, 'media_title') ||
+                        (p?.state === 'off' || p?.state === 'standby'
+                          ? t('media.idle.off')
+                          : p?.state === 'idle'
+                            ? t('media.idle.ready')
+                            : t('common.unknown'));
                       const pArtworkUrl = resolveMediaImageUrl(
                         p?.attributes?.entity_picture ||
                           p?.attributes?.media_image_url ||

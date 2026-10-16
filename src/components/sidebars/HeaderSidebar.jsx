@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Maximize2, Eye, AlignLeft, Battery } from '../../icons';
 import M3Slider from '../ui/M3Slider';
 import SidebarContainer from './SidebarContainer';
+import { listAwayModeCandidates, resolveAwayModeEntityId } from '../../utils/awayMode';
 import {
   SidebarAccordion,
   SidebarNavigation,
@@ -54,6 +55,7 @@ export default function HeaderSidebar({
   updateCardsOnlyMode,
   onSwitchToTheme,
   onSwitchToLayout,
+  entities = {},
   t,
 }) {
   const [sections, setSections] = useState({
@@ -438,6 +440,54 @@ export default function HeaderSidebar({
               value={Boolean(cardsOnlyMode)}
               onChange={updateCardsOnlyMode}
             />
+          </div>
+
+          <div
+            className="mt-4 space-y-2 border-t pt-4"
+            style={{ borderColor: 'var(--glass-border)' }}
+          >
+            <Toggle
+              label={t('away.showInHeader')}
+              value={setting('showAwayMode', true)}
+              onChange={(v) => update('showAwayMode', v)}
+            />
+            {setting('showAwayMode', true) && (
+              <div className="space-y-1.5 px-1">
+                <label
+                  htmlFor="header-away-entity"
+                  className="text-xs font-medium"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
+                  {t('away.entityLabel')}
+                </label>
+                <select
+                  id="header-away-entity"
+                  value={setting('awayModeEntityId', '')}
+                  onChange={(e) => update('awayModeEntityId', e.target.value || undefined)}
+                  className="w-full rounded-xl border px-3 py-2 text-sm focus:outline-none"
+                  style={{
+                    backgroundColor: 'var(--glass-bg)',
+                    borderColor: 'var(--glass-border)',
+                    color: 'var(--text-primary)',
+                  }}
+                >
+                  <option value="">
+                    {t('away.entityAuto')}
+                    {!setting('awayModeEntityId', '') && resolveAwayModeEntityId(entities)
+                      ? ` (${resolveAwayModeEntityId(entities)})`
+                      : ''}
+                  </option>
+                  {listAwayModeCandidates(entities).map((entityId) => (
+                    <option key={entityId} value={entityId}>
+                      {entities[entityId]?.attributes?.friendly_name || entityId}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                  {t('away.entityHint')}
+                </p>
+              </div>
+            )}
           </div>
 
           <div

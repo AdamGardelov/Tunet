@@ -6,6 +6,7 @@ import {
 } from '../utils/gridLayout';
 import { createDragAndDropHandlers } from '../utils/dragAndDrop';
 import { dispatchCardRender } from '../rendering/registry';
+import { applyCategoryTint, getCardCategory } from '../utils/cardCategory';
 import EditOverlay from '../components/ui/EditOverlay';
 
 /** @param {any} params */
@@ -244,7 +245,11 @@ export function useCardRendering({
       } = dragAndDrop;
 
       const dragProps = getDragProps({ cardId, index, colIndex });
-      const cardStyle = getCardStyle({ cardId, isHidden, isDragging });
+      const cardStyle = applyCategoryTint(
+        getCardStyle({ cardId, isHidden, isDragging }),
+        getCardCategory(cardId),
+        { editMode, isDragging }
+      );
       const settingsKey = getCardSettingsKey(cardId);
 
       const getControls = (targetId) => {

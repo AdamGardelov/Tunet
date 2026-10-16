@@ -244,6 +244,7 @@ export function ModalSettingsSlice({
               setShowHeaderEditModal(false);
               setShowLayoutSidebar(true);
             }}
+            entities={entities}
             t={t}
           />
         </ModalSuspense>

@@ -78,6 +78,13 @@ export const getCardGridSpan = (
     return sizeSetting === 'small' ? 1 : 2;
   }
 
+  // Room cards in the "controls" layout hold a thermostat row and device
+  // buttons, so they need more height than the summary layout.
+  if (cardId.startsWith('room_card_') && settings?.layout === 'controls') {
+    const rows = Number(settings.heightRows);
+    return Number.isFinite(rows) && rows >= 1 ? Math.round(rows) : 3;
+  }
+
   // Table-driven lookup for prefix-matched card types
   for (const rule of CARD_SPAN_RULES) {
     if (cardId.startsWith(rule.prefix)) {

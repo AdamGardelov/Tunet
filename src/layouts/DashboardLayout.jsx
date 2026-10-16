@@ -10,6 +10,8 @@ import SettingsMenuControl from './SettingsMenuControl';
 import { PageNavigation } from '../components';
 import DashboardGrid from '../rendering/DashboardGrid';
 import PinLockModal from '../components/ui/PinLockModal';
+import { AwayModeBanner, AwayModeChip } from '../components/ui/AwayModeControl';
+import { resolveAwayModeEntityId } from '../utils/awayMode';
 
 const MemoStatusBar = memo(StatusBar);
 const MemoDashboardGrid = memo(DashboardGrid);
@@ -78,6 +80,8 @@ export default function DashboardLayout(props) {
     dashboardGridActions,
     showPinLockModal,
     closePinLockModal,
+    entities = {},
+    callService,
     handlePinSubmit,
     pinLockError,
   } = props;
@@ -168,11 +172,19 @@ export default function DashboardLayout(props) {
     [profilingEnabled, onProfileRender]
   );
 
+  const awayEnabled = headerSettings?.showAwayMode !== false;
+  const awayEntityId = awayEnabled
+    ? resolveAwayModeEntityId(entities, headerSettings?.awayModeEntityId)
+    : null;
+  const awayEntity = awayEntityId ? entities[awayEntityId] : null;
+  const awayProps = { entityId: awayEntityId, entity: awayEntity, callService, t };
+
   const personHeader = (
     <div
-      className={`flex min-w-0 flex-wrap items-center gap-2.5 ${isMobile ? 'w-full justify-center gap-4 empty:hidden' : ''}`}
+      className={`flex min-w-0 flex-wrap items-center gap-2.5 ${isMobile ? 'w-full justify-start gap-2 empty:hidden' : ''}`}
     >
       {(pagesConfig.header || []).map((id) => personStatus(id))}
+      {awayEntityId && <AwayModeChip {...awayProps} />}
       {editMode && (
         <button
           onClick={() => {
@@ -267,7 +279,24 @@ export default function DashboardLayout(props) {
               }}
             >
               {isMobile ? (
-                <div className="flex w-full min-w-0 items-center justify-center">{personHeader}</div>
+                <div className="flex w-full min-w-0 items-center gap-2">
+                  <div className="min-w-0 flex-1">{personHeader}</div>
+                  {!editMode && (
+                    <SettingsMenuControl
+                      setShowConfigModal={guardedSetShowConfigModal}
+                      setConfigTab={setConfigTab}
+                      setShowThemeSidebar={guardedSetShowThemeSidebar}
+                      setShowLayoutSidebar={guardedSetShowLayoutSidebar}
+                      setShowHeaderEditModal={guardedSetShowHeaderEditModal}
+                      onAddCard={handleAddCard}
+                      onToggleEdit={handleToggleEdit}
+                      editMode={editMode}
+                      updateCount={updateCount}
+                      isMobile
+                      t={t}
+                    />
+                  )}
+                </div>
               ) : (
                 personHeader
               )}
@@ -291,7 +320,9 @@ export default function DashboardLayout(props) {
 
         <ConnectionBanner t={t} setConfigTab={setConfigTab} />
 
-        {showDashboardChrome && (
+        {awayEntityId && <AwayModeBanner {...awayProps} />}
+
+        {showDashboardChrome && (!isMobile || editMode) && (
           <div
             className={`flex flex-nowrap items-center justify-between ${
               isMobile ? 'gap-2' : 'gap-4'
@@ -347,7 +378,20 @@ export default function DashboardLayout(props) {
         />
       </div>
 
-      {showDashboardChrome && isMobile && (
+      {showDashboardChrome && isMobile && !editMode && (
+        <PageNavigation
+          pages={pages}
+          activePage={activePage}
+          setActivePage={setActivePage}
+          editMode={false}
+          setEditingPage={setEditingPage}
+          variant="bottom"
+          t={t}
+        />
+      )}
+
+      {/* Floating control only while editing on mobile (Done button). */}
+      {showDashboardChrome && isMobile && editMode && (
         <SettingsMenuControl
           setShowConfigModal={guardedSetShowConfigModal}
           setConfigTab={setConfigTab}

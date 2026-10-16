@@ -169,6 +169,7 @@ export default function PageNavigation({
   setActivePage,
   editMode,
   setEditingPage,
+  variant = 'top',
   t,
 }) {
   const { pagesConfig, persistConfig, pageSettings, headerSettings } = usePages();
@@ -209,63 +210,122 @@ export default function PageNavigation({
     persistConfig({ ...pagesConfig, pages: nextPages });
   };
 
+  if (variant === 'bottom') {
+    const visiblePages = navigationPages.filter((page) => {
+      const settings = pageSettings[page.id] || {};
+      if (settings.hidden) return false;
+      if (isSinglePage && settings.hideSinglePagePill === true) return false;
+      return true;
+    });
+    if (visiblePages.length < 2) return null;
+
+    return (
+      <nav
+        aria-label={t('nav.pages')}
+        data-testid="bottom-page-navigation"
+        className="fixed inset-x-0 bottom-0 z-[70] border-t border-[var(--glass-border)] backdrop-blur-xl"
+        style={{
+          backgroundColor: 'color-mix(in srgb, var(--bg-primary) 88%, transparent)',
+          paddingBottom: 'env(safe-area-inset-bottom)',
+        }}
+      >
+        <div className="scrollbar-hide mx-auto flex max-w-xl overflow-x-auto px-2 py-1.5">
+          {visiblePages.map((page) => {
+            const settings = pageSettings[page.id] || {};
+            const label = settings.label || page.label;
+            const Icon = settings.icon ? getIconComponent(settings.icon) || page.icon : page.icon;
+            const isActive = activePage === page.id;
+            return (
+              <button
+                key={page.id}
+                type="button"
+                onClick={() => setActivePage(page.id)}
+                aria-current={isActive ? 'page' : undefined}
+                className={`flex min-h-14 min-w-16 flex-1 flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[11px] font-semibold transition-colors ${
+                  isActive
+                    ? 'text-[var(--accent-color)]'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                }`}
+              >
+                <span
+                  className={`flex h-7 w-12 items-center justify-center rounded-full transition-colors ${
+                    isActive ? 'bg-[var(--accent-bg)]' : ''
+                  }`}
+                >
+                  <Icon className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <span className="max-w-[4.5rem] truncate">{label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+    );
+  }
+
   return (
     <div className="flex min-w-0 flex-1 items-center gap-2">
       {/* Scrollable page pills */}
       <div className="scrollbar-hide min-w-0 flex-1 overflow-x-auto pb-2">
         <div className="flex w-max min-w-full items-center justify-center gap-4 sm:justify-start">
           {navigationPages.map((page) => {
-          const settings = pageSettings[page.id] || {};
-          const label = settings.label || page.label;
-          const isHidden = settings.hidden;
-          const hideSinglePagePill = settings.hideSinglePagePill === true;
-          const Icon = settings.icon ? getIconComponent(settings.icon) || page.icon : page.icon;
-          const isDragOver = dragOverId === page.id;
+            const settings = pageSettings[page.id] || {};
+            const label = settings.label || page.label;
+            const isHidden = settings.hidden;
+            const hideSinglePagePill = settings.hideSinglePagePill === true;
+            const Icon = settings.icon ? getIconComponent(settings.icon) || page.icon : page.icon;
+            const isDragOver = dragOverId === page.id;
 
-          if (!editMode && isHidden) return null;
-          if (!editMode && isSinglePage && hideSinglePagePill) return null;
+            if (!editMode && isHidden) return null;
+            if (!editMode && isSinglePage && hideSinglePagePill) return null;
 
-          return (
-            <button
-              key={page.id}
-              aria-label={label}
-              draggable={editMode}
-              onClick={() => (editMode ? setEditingPage(page.id) : setActivePage(page.id))}
-              onDragStart={(event) => {
-                if (!editMode) return;
-                event.dataTransfer.effectAllowed = 'move';
-                event.dataTransfer.setData('text/plain', page.id);
-              }}
-              onDragOver={(event) => {
-                if (!editMode) return;
-                event.preventDefault();
-                event.dataTransfer.dropEffect = 'move';
-                setDragOverId(page.id);
-              }}
-              onDragLeave={() => {
-                if (!editMode) return;
-                setDragOverId(null);
-              }}
-              onDrop={(event) => {
-                if (!editMode) return;
-                event.preventDefault();
-                const sourceId = event.dataTransfer.getData('text/plain');
-                setDragOverId(null);
-                movePage(sourceId, page.id);
-              }}
-              onDragEnd={() => setDragOverId(null)}
-              className={`flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-2xl border px-3 py-2.5 text-[11px] font-bold tracking-wide whitespace-nowrap transition-all sm:min-h-0 sm:min-w-0 sm:rounded-full sm:px-5 sm:py-2.5 sm:text-xs ${
-                activePage === page.id
-                  ? 'border-[var(--glass-border)] bg-[var(--glass-bg-hover)] text-[var(--text-primary)]'
-                  : 'border-transparent bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
-              } ${editMode && isHidden ? 'scale-95 border-gray-500 opacity-50' : ''} ${editMode ? 'cursor-move' : ''} ${isDragOver ? 'border-[var(--accent-color)]' : ''}`}
-            >
-              <Icon
-                className={`h-5 w-5 sm:h-4 sm:w-4 ${editMode && isHidden ? 'animate-pulse' : ''}`}
-              />
-              <span className={showLabelsOnMobile ? undefined : 'hidden sm:inline'}>{label}</span>
-            </button>
-          );
+            return (
+              <button
+                key={page.id}
+                aria-label={label}
+                draggable={editMode}
+                onClick={() => (editMode ? setEditingPage(page.id) : setActivePage(page.id))}
+                onDragStart={(event) => {
+                  if (!editMode) return;
+                  event.dataTransfer.effectAllowed = 'move';
+                  event.dataTransfer.setData('text/plain', page.id);
+                }}
+                onDragOver={(event) => {
+                  if (!editMode) return;
+                  event.preventDefault();
+                  event.dataTransfer.dropEffect = 'move';
+                  setDragOverId(page.id);
+                }}
+                onDragLeave={() => {
+                  if (!editMode) return;
+                  setDragOverId(null);
+                }}
+                onDrop={(event) => {
+                  if (!editMode) return;
+                  event.preventDefault();
+                  const sourceId = event.dataTransfer.getData('text/plain');
+                  setDragOverId(null);
+                  movePage(sourceId, page.id);
+                }}
+                onDragEnd={() => setDragOverId(null)}
+                className={`flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-2xl border px-3 py-2.5 text-[11px] font-bold tracking-wide whitespace-nowrap transition-all sm:min-h-0 sm:min-w-0 sm:rounded-full sm:px-5 sm:py-2.5 sm:text-xs ${
+                  activePage === page.id
+                    ? 'border-[color-mix(in_srgb,var(--accent-color)_40%,transparent)] bg-[var(--accent-bg)] text-[var(--accent-color)]'
+                    : 'border-transparent bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
+                } ${editMode && isHidden ? 'scale-95 border-gray-500 opacity-50' : ''} ${editMode ? 'cursor-move' : ''} ${isDragOver ? 'border-[var(--accent-color)]' : ''}`}
+              >
+                <Icon
+                  className={`h-5 w-5 sm:h-4 sm:w-4 ${editMode && isHidden ? 'animate-pulse' : ''}`}
+                />
+                <span
+                  className={
+                    showLabelsOnMobile || activePage === page.id ? undefined : 'hidden sm:inline'
+                  }
+                >
+                  {label}
+                </span>
+              </button>
+            );
           })}
         </div>
       </div>

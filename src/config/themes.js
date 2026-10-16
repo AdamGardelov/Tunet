@@ -30,6 +30,28 @@ const STATUS_TOKENS_LIGHT = {
   '--status-info-border': 'rgba(37, 99, 235, 0.26)',
 };
 
+// Muted per-category accents so different card types are easy to tell apart
+// without shouting. Used for a faint card tint, border and icon tile.
+const CATEGORY_TOKENS_DARK = {
+  '--cat-climate': '#e39a78',
+  '--cat-light': '#e3bf6a',
+  '--cat-media': '#b39ddb',
+  '--cat-cleaning': '#9cc48a',
+  '--cat-health': '#6cc0b0',
+  '--cat-car': '#7ab0e0',
+  '--cat-security': '#9aa6e0',
+};
+
+const CATEGORY_TOKENS_LIGHT = {
+  '--cat-climate': '#c2410c',
+  '--cat-light': '#a16207',
+  '--cat-media': '#7c3aed',
+  '--cat-cleaning': '#4d7c0f',
+  '--cat-health': '#0f766e',
+  '--cat-car': '#1d4ed8',
+  '--cat-security': '#4338ca',
+};
+
 export const themes = {
   contextual: {
     label: 'Smart',
@@ -41,8 +63,9 @@ export const themes = {
       '--bg-gradient-to': '#020617',
       '--text-primary': '#f8fafc',
       '--text-secondary': '#94a3b8',
-      '--text-muted': 'rgba(148, 163, 184, 0.6)',
+      '--text-muted': '#8494ab',
       ...STATUS_TOKENS_DARK,
+      ...CATEGORY_TOKENS_DARK,
       '--card-bg': 'rgba(15, 23, 42, 0.3)',
       '--card-border': 'rgba(255, 255, 255, 0.06)',
       '--glass-bg': 'rgba(255, 255, 255, 0.07)',
@@ -71,8 +94,9 @@ export const themes = {
       '--bg-gradient-to': '#0a0a0c',
       '--text-primary': '#f4f4f5',
       '--text-secondary': '#a1a1aa',
-      '--text-muted': 'rgba(161, 161, 170, 0.65)',
+      '--text-muted': '#8b8b94',
       ...STATUS_TOKENS_DARK,
+      ...CATEGORY_TOKENS_DARK,
       '--card-bg': 'rgba(15, 23, 42, 0.55)',
       '--card-border': 'rgba(255, 255, 255, 0.05)',
       '--glass-bg': 'rgba(255, 255, 255, 0.05)',
@@ -103,6 +127,7 @@ export const themes = {
       '--text-secondary': '#475569',
       '--text-muted': '#94a3b8',
       ...STATUS_TOKENS_LIGHT,
+      ...CATEGORY_TOKENS_LIGHT,
       '--card-bg': '#ffffff',
       '--card-border': '#e2e8f0',
       '--glass-bg': '#f1f5f9',
@@ -133,6 +158,7 @@ export const themes = {
       '--text-secondary': '#a1a1aa',
       '--text-muted': '#71717a',
       ...STATUS_TOKENS_DARK,
+      ...CATEGORY_TOKENS_DARK,
       '--card-bg': 'rgba(24, 24, 31, 0.7)',
       '--card-border': 'rgba(255, 255, 255, 0.06)',
       '--glass-bg': 'rgba(24, 24, 31, 0.6)',
@@ -163,6 +189,7 @@ export const themes = {
       '--text-secondary': '#b8a0d4',
       '--text-muted': '#7e6c8f',
       ...STATUS_TOKENS_DARK,
+      ...CATEGORY_TOKENS_DARK,
       '--card-bg': 'rgba(45, 42, 66, 0.55)',
       '--card-border': 'rgba(216, 180, 254, 0.1)',
       '--glass-bg': 'rgba(45, 42, 66, 0.4)',
@@ -193,6 +220,7 @@ export const themes = {
       '--text-secondary': '#8b949e',
       '--text-muted': 'rgba(139, 148, 158, 0.7)',
       ...STATUS_TOKENS_DARK,
+      ...CATEGORY_TOKENS_DARK,
       '--card-bg': '#111820',
       '--card-border': 'transparent',
       '--glass-bg': '#141c26',

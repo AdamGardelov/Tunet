@@ -346,6 +346,61 @@ export function RoomSettingsSection({
         </button>
       </div>
 
+      <div className="popup-surface space-y-3 rounded-2xl p-4" data-testid="room-layout-setting">
+        <div className="text-sm font-semibold text-[var(--text-primary)]">
+          {t('room.layout.title')}
+        </div>
+        <div
+          className="grid grid-cols-2 gap-2"
+          role="radiogroup"
+          aria-label={t('room.layout.title')}
+        >
+          {[
+            {
+              value: 'summary',
+              label: t('room.layout.summary'),
+              hint: t('room.layout.summaryHint'),
+            },
+            {
+              value: 'controls',
+              label: t('room.layout.controls'),
+              hint: t('room.layout.controlsHint'),
+            },
+          ].map((option) => {
+            const active = (editSettings.layout || 'summary') === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                onClick={() =>
+                  saveCardSetting(
+                    editSettingsKey,
+                    'layout',
+                    option.value === 'summary' ? null : option.value
+                  )
+                }
+                className={`rounded-xl border px-3 py-2.5 text-left transition-colors ${
+                  active
+                    ? 'border-[var(--accent-color)] bg-[var(--accent-bg)]'
+                    : 'border-[var(--glass-border)] bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-hover)]'
+                }`}
+              >
+                <span
+                  className={`block text-sm font-semibold ${active ? 'text-[var(--accent-color)]' : 'text-[var(--text-primary)]'}`}
+                >
+                  {option.label}
+                </span>
+                <span className="mt-0.5 block text-xs text-[var(--text-secondary)]">
+                  {option.hint}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="popup-surface space-y-4 rounded-2xl p-4">
         <button
           type="button"

@@ -169,12 +169,9 @@ const GenericClimateCard = memo(
     };
 
     const activeTheme = themeClasses[clTheme];
-    const powerIconBg =
-      optimisticIsOn && clTheme === 'gray'
-        ? 'bg-[var(--accent-bg)] text-[var(--accent-color)]'
-        : optimisticIsOn
-          ? activeTheme.iconBg
-          : 'bg-[var(--glass-bg)] text-[var(--text-muted)]';
+    const categoryIconBg =
+      'bg-[color-mix(in_srgb,var(--cat-climate)_14%,transparent)] text-[var(--cat-climate)]';
+    const powerIconBg = optimisticIsOn && clTheme !== 'gray' ? activeTheme.iconBg : categoryIconBg;
     const isTapToggle = settings?.tapAction === 'toggle';
 
     const handleTogglePower = (e) => {
@@ -263,7 +260,7 @@ const GenericClimateCard = memo(
                   : undefined
               }
             >
-              <p className="mb-1.5 text-xs leading-none font-bold tracking-widest break-words whitespace-normal text-[var(--text-secondary)] uppercase opacity-60">
+              <p className="mb-1.5 text-sm leading-tight font-semibold break-words whitespace-normal text-[var(--text-primary)]">
                 {name}
               </p>
               <div className="flex items-baseline gap-2">
@@ -271,33 +268,35 @@ const GenericClimateCard = memo(
                   {displayCurrentTemp.text}
                 </span>
                 <span className="text-xs text-[var(--text-secondary)]">
-                  → {displayTargetTemp.text}
+                  {optimisticIsOn ? `→ ${displayTargetTemp.text}` : translate('climate.action.off')}
                 </span>
               </div>
             </div>
           </div>
-          <div className="card-controls card-controls--temp invisible shrink-0 group-hover:visible">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                stepTemp(1);
-              }}
-              aria-label={translate('climate.increaseTemperature')}
-              className="control-plus flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--glass-bg)] text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-90"
-            >
-              <Plus className="h-4 w-4" />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                stepTemp(-1);
-              }}
-              aria-label={translate('climate.decreaseTemperature')}
-              className="control-minus flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--glass-bg)] text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-90"
-            >
-              <Minus className="h-4 w-4" />
-            </button>
-          </div>
+          {optimisticIsOn && (
+            <div className="card-controls card-controls--temp invisible shrink-0 group-hover:visible">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  stepTemp(1);
+                }}
+                aria-label={translate('climate.increaseTemperature')}
+                className="control-plus flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--glass-bg)] text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-90"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  stepTemp(-1);
+                }}
+                aria-label={translate('climate.decreaseTemperature')}
+                className="control-minus flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--glass-bg)] text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-90"
+              >
+                <Minus className="h-4 w-4" />
+              </button>
+            </div>
+          )}
         </div>
       );
     }
@@ -373,69 +372,79 @@ const GenericClimateCard = memo(
         <div className={isDenseMobile ? 'mt-1.5' : 'mt-2'}>
           <div className={`flex items-center gap-2 ${isDenseMobile ? 'mb-2' : 'mb-3'}`}>
             <p
-              className={`${isDenseMobile ? 'text-[10px]' : 'text-xs'} leading-none font-bold text-[var(--text-secondary)] uppercase opacity-60`}
-              style={{ letterSpacing: '0.05em' }}
+              className={`${isDenseMobile ? 'text-sm' : 'text-base'} leading-tight font-semibold text-[var(--text-primary)]`}
             >
               {name}
             </p>
           </div>
-          <div className={`flex items-stretch ${isDenseMobile ? 'gap-2' : 'gap-3'}`}>
-            <div
-              className={`flex flex-1 items-center justify-between bg-[var(--glass-bg)] ${isDenseMobile ? 'rounded-xl p-0.5' : 'rounded-2xl p-1'}`}
+          {!optimisticIsOn ? (
+            <button
+              type="button"
+              onClick={handleTogglePower}
+              disabled={editMode || isPending || isUnavailable}
+              className={`flex w-full items-center justify-center text-sm font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] ${isDenseMobile ? 'min-h-11 rounded-xl' : 'min-h-12 rounded-2xl'} bg-[var(--glass-bg)]`}
             >
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  stepTemp(-1);
-                }}
-                aria-label={translate('climate.decreaseTemperature')}
-                className={`flex items-center justify-center text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-90 ${isDenseMobile ? 'h-7 w-5 rounded-lg' : 'h-8 w-6 rounded-xl'}`}
+              {translate('climate.offTapToTurnOn')}
+            </button>
+          ) : (
+            <div className={`flex items-stretch ${isDenseMobile ? 'gap-2' : 'gap-3'}`}>
+              <div
+                className={`flex flex-1 items-center justify-between bg-[var(--glass-bg)] ${isDenseMobile ? 'rounded-xl p-0.5' : 'rounded-2xl p-1'}`}
               >
-                <Minus className="h-4 w-4" />
-              </button>
-              <div className="flex flex-col items-center">
-                <span
-                  className={`${isDenseMobile ? 'text-lg' : 'text-xl'} leading-none font-medium text-[var(--text-primary)]`}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    stepTemp(-1);
+                  }}
+                  aria-label={translate('climate.decreaseTemperature')}
+                  className={`flex items-center justify-center text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-90 ${isDenseMobile ? 'h-11 w-11 rounded-lg' : 'h-10 w-10 rounded-xl'}`}
                 >
-                  {displayTargetTemp.text}
-                </span>
-              </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  stepTemp(1);
-                }}
-                aria-label={translate('climate.increaseTemperature')}
-                className={`flex items-center justify-center text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-90 ${isDenseMobile ? 'h-7 w-5 rounded-lg' : 'h-8 w-6 rounded-xl'}`}
-              >
-                <Plus className="h-4 w-4" />
-              </button>
-            </div>
-            {showFan && !isDenseMobile && (
-              <div className="flex w-20 items-center justify-center gap-2 rounded-2xl bg-[var(--glass-bg)] pr-2">
-                <Fan className="h-4 w-4 text-[var(--text-secondary)]" />
-                {fanSpeedLevel === 0 ? (
-                  <span className="text-[10px] font-bold tracking-wider text-[var(--text-secondary)]">
-                    {translate('climate.fanAuto')}
+                  <Minus className="h-4 w-4" />
+                </button>
+                <div className="flex flex-col items-center">
+                  <span
+                    className={`${isDenseMobile ? 'text-lg' : 'text-xl'} leading-none font-medium text-[var(--text-primary)]`}
+                  >
+                    {displayTargetTemp.text}
                   </span>
-                ) : (
-                  <div className="flex h-4 items-end gap-[2px]">
-                    {[1, 2, 3, 4, 5].map((level) => (
-                      <div
-                        key={level}
-                        className={`w-1 rounded-sm transition-all duration-300 ${
-                          level <= fanSpeedLevel
-                            ? activeTheme.fanActive
-                            : 'bg-[var(--glass-bg-hover)]'
-                        }`}
-                        style={{ height: `${30 + level * 14}%` }}
-                      />
-                    ))}
-                  </div>
-                )}
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    stepTemp(1);
+                  }}
+                  aria-label={translate('climate.increaseTemperature')}
+                  className={`flex items-center justify-center text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-90 ${isDenseMobile ? 'h-11 w-11 rounded-lg' : 'h-10 w-10 rounded-xl'}`}
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
               </div>
-            )}
-          </div>
+              {showFan && !isDenseMobile && (
+                <div className="flex w-20 items-center justify-center gap-2 rounded-2xl bg-[var(--glass-bg)] pr-2">
+                  <Fan className="h-4 w-4 text-[var(--text-secondary)]" />
+                  {fanSpeedLevel === 0 ? (
+                    <span className="text-[10px] font-bold tracking-wider text-[var(--text-secondary)]">
+                      {translate('climate.fanAuto')}
+                    </span>
+                  ) : (
+                    <div className="flex h-4 items-end gap-[2px]">
+                      {[1, 2, 3, 4, 5].map((level) => (
+                        <div
+                          key={level}
+                          className={`w-1 rounded-sm transition-all duration-300 ${
+                            level <= fanSpeedLevel
+                              ? activeTheme.fanActive
+                              : 'bg-[var(--glass-bg-hover)]'
+                          }`}
+                          style={{ height: `${30 + level * 14}%` }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     );
