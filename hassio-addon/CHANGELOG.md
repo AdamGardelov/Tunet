@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0-adam.68
+
+- Shows people at a known place such as the cabin or work in full colour, and only mutes the avatar when someone is away somewhere unknown; the green dot now only marks someone at home.
+- Removes the away-mode banner from every page; the header chip now reads "Away mode on" while it is active.
+
 ## 1.23.0-adam.67
 
 - Shows a spinner, then a check or warning, on every lamp button (Lampor page, lamp cards, the light popup and room cards) and ignores extra taps while a lamp is responding.
