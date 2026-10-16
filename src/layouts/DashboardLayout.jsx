@@ -279,22 +279,24 @@ export default function DashboardLayout(props) {
               }}
             >
               {isMobile ? (
-                <div className="flex w-full min-w-0 items-center gap-2">
+                <div className="flex w-full min-w-0 items-start gap-2">
                   <div className="min-w-0 flex-1">{personHeader}</div>
                   {!editMode && (
-                    <SettingsMenuControl
-                      setShowConfigModal={guardedSetShowConfigModal}
-                      setConfigTab={setConfigTab}
-                      setShowThemeSidebar={guardedSetShowThemeSidebar}
-                      setShowLayoutSidebar={guardedSetShowLayoutSidebar}
-                      setShowHeaderEditModal={guardedSetShowHeaderEditModal}
-                      onAddCard={handleAddCard}
-                      onToggleEdit={handleToggleEdit}
-                      editMode={editMode}
-                      updateCount={updateCount}
-                      isMobile
-                      t={t}
-                    />
+                    <div className="flex h-12 shrink-0 items-center">
+                      <SettingsMenuControl
+                        setShowConfigModal={guardedSetShowConfigModal}
+                        setConfigTab={setConfigTab}
+                        setShowThemeSidebar={guardedSetShowThemeSidebar}
+                        setShowLayoutSidebar={guardedSetShowLayoutSidebar}
+                        setShowHeaderEditModal={guardedSetShowHeaderEditModal}
+                        onAddCard={handleAddCard}
+                        onToggleEdit={handleToggleEdit}
+                        editMode={editMode}
+                        updateCount={updateCount}
+                        isMobile
+                        t={t}
+                      />
+                    </div>
                   )}
                 </div>
               ) : (

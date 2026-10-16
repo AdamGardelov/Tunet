@@ -345,9 +345,7 @@ const GenericClimateCard = memo(
           <div
             className={`flex flex-shrink-0 items-center rounded-full border ${activeTheme.badge} ${isDenseMobile ? 'gap-1 px-2.5 py-1' : 'gap-1.5 px-3 py-1'}`}
           >
-            <span
-              className={`${isDenseMobile ? 'text-[10px]' : 'text-xs'} font-bold tracking-widest uppercase`}
-            >
+            <span className={`${isDenseMobile ? 'text-xs' : 'text-sm'} font-semibold`}>
               {actionLabel}
             </span>
           </div>

@@ -76,10 +76,12 @@ function SettingsDropdown({
                     : 'border-[var(--accent-color)]/25 bg-[var(--accent-color)]/15 text-[var(--accent-color)] hover:-translate-y-0.5 hover:bg-[var(--accent-color)]/20'
                 }`
               : isMobile
-                ? 'h-11 w-11 rounded-full border-transparent'
+                ? 'h-11 w-11 rounded-full border-[var(--glass-border)] bg-[var(--glass-bg)]'
                 : 'rounded-full border-transparent p-2'
           } ${!floating ? (isOpen ? 'scale-105 border-[var(--accent-color)] bg-[var(--accent-color)] text-white shadow-lg' : 'text-[var(--text-secondary)] hover:border-[var(--glass-border)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]') : ''} ${floating && isOpen ? 'scale-105' : ''}`}
-          aria-label={isFloatingDone ? t('nav.done') : floating ? t('menu.edit') : t('menu.settings')}
+          aria-label={
+            isFloatingDone ? t('nav.done') : floating ? t('menu.edit') : t('menu.settings')
+          }
           aria-expanded={isFloatingDone ? undefined : isOpen}
           aria-controls={isFloatingDone ? undefined : 'settings-dropdown-menu'}
           data-testid="settings-dropdown-trigger"
