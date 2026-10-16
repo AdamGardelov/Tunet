@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.23.0-adam.66
+
+- Adds a bottom tab bar on mobile and moves the settings menu into the person row, so the floating edit button no longer covers cards.
+- Tints cards with muted per-category colours (climate, lights, media, cleaning, health, car, security) so card types are easier to tell apart.
+- Adds an away-mode chip in the header with a confirmation step, and a banner on every page while away mode is on.
+- Adds a "Controls" layout for room cards with temperature, radiator, toggles for lights and plugs, and a smoke-detector chip.
+- Calms idle states: climate cards that are off show a single turn-on action, idle media players show a Turn on button, and lights that are off render as compact rows.
+
 ## 1.23.0-adam.65
 
 - Adds more scrollable space below the final mobile dashboard card so it can move clear of the floating edit button.
