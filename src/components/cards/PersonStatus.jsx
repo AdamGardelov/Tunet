@@ -55,6 +55,10 @@ const PersonStatus = ({
     });
     return matchedEntry?.[1] || null;
   })();
+  // Somewhere known (a named zone like the cabin or work) is a place, not "offline":
+  // only plain not_home/unknown gets the muted avatar.
+  const isInKnownZone = !isHome && Boolean(matchedZoneEntity);
+  const isAway = !isHome && !isInKnownZone;
   const zoneIconName = matchedZoneEntity?.attributes?.icon;
   const ZoneIcon = zoneIconName ? getIconComponent(zoneIconName) : null;
 
@@ -100,7 +104,7 @@ const PersonStatus = ({
       <div className="relative">
         <div
           className="h-9 w-9 overflow-hidden rounded-full bg-gray-800 transition-all duration-500 sm:h-10 sm:w-10"
-          style={{ filter: isHome ? 'grayscale(0%)' : 'grayscale(100%) opacity(0.7)' }}
+          style={{ filter: isAway ? 'saturate(0.35) opacity(0.85)' : 'none' }}
         >
           {useIcon ? (
             <div className="flex h-full w-full items-center justify-center text-[var(--text-secondary)]">
@@ -125,10 +129,12 @@ const PersonStatus = ({
           </div>
         )}
 
-        <div
-          className="absolute right-0 bottom-0 h-3 w-3 rounded-full border-2 border-[var(--card-bg)] transition-colors duration-500"
-          style={{ backgroundColor: isHome ? 'var(--status-success-fg)' : '#52525b' }}
-        />
+        {isHome && (
+          <div
+            className="absolute right-0 bottom-0 h-3 w-3 rounded-full border-2 border-[var(--card-bg)] transition-colors duration-500"
+            style={{ backgroundColor: 'var(--status-success-fg)' }}
+          />
+        )}
       </div>
 
       {(showName || showState) && (

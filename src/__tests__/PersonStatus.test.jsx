@@ -59,3 +59,20 @@ describe('PersonStatus', () => {
     expect(screen.queryByText('Heime')).not.toBeInTheDocument();
   });
 });
+
+describe('PersonStatus presence', () => {
+  it('only shows the presence dot when home, and keeps colour in a named zone', () => {
+    const zoneProps = {
+      ...baseProps,
+      entities: {
+        ...baseProps.entities,
+        'person.ola': { state: 'Stugan', attributes: { friendly_name: 'Ola Nordmann' } },
+        'zone.stugan': { state: '0', attributes: { friendly_name: 'Stugan', icon: 'mdi:pine-tree' } },
+      },
+      getS: () => 'Stugan',
+    };
+    const { container } = render(<PersonStatus {...zoneProps} id="person.ola" />);
+    expect(container.querySelector('.rounded-full.h-3.w-3')).toBeNull();
+    expect(container.querySelector('.overflow-hidden.rounded-full')).toHaveStyle({ filter: 'none' });
+  });
+});

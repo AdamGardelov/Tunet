@@ -10,7 +10,7 @@ import SettingsMenuControl from './SettingsMenuControl';
 import { PageNavigation } from '../components';
 import DashboardGrid from '../rendering/DashboardGrid';
 import PinLockModal from '../components/ui/PinLockModal';
-import { AwayModeBanner, AwayModeChip } from '../components/ui/AwayModeControl';
+import { AwayModeChip } from '../components/ui/AwayModeControl';
 import { resolveAwayModeEntityId } from '../utils/awayMode';
 
 const MemoStatusBar = memo(StatusBar);
@@ -321,8 +321,6 @@ export default function DashboardLayout(props) {
         )}
 
         <ConnectionBanner t={t} setConfigTab={setConfigTab} />
-
-        {awayEntityId && <AwayModeBanner {...awayProps} />}
 
         {showDashboardChrome && (!isMobile || editMode) && (
           <div

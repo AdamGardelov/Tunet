@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { listAwayModeCandidates, resolveAwayModeEntityId } from '../utils/awayMode';
-import { AwayModeBanner, AwayModeChip } from '../components/ui/AwayModeControl';
+import { AwayModeChip } from '../components/ui/AwayModeControl';
 
 const t = (key) => key;
 
@@ -66,21 +66,10 @@ describe('AwayModeChip', () => {
 
     const chip = screen.getByTestId('away-mode-chip');
     expect(chip).toHaveAttribute('aria-pressed', 'true');
+    expect(chip).toHaveTextContent('away.onLabel');
     fireEvent.click(chip);
     expect(callService).toHaveBeenCalledWith('input_boolean', 'turn_off', {
       entity_id: 'input_boolean.bortalage',
     });
-  });
-});
-
-describe('AwayModeBanner', () => {
-  it('only shows while away mode is on', () => {
-    const { rerender } = render(
-      <AwayModeBanner entityId="input_boolean.bortalage" entity={{ state: 'off' }} t={t} />
-    );
-    expect(screen.queryByTestId('away-mode-banner')).not.toBeInTheDocument();
-
-    rerender(<AwayModeBanner entityId="input_boolean.bortalage" entity={{ state: 'on' }} t={t} />);
-    expect(screen.getByTestId('away-mode-banner')).toBeInTheDocument();
   });
 });

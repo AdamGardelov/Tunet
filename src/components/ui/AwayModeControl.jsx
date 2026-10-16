@@ -100,42 +100,9 @@ function AwayModeChipView({ entityId, entity, callService, t }) {
       ) : (
         <ActionFeedbackIndicator status={status} className="h-4 w-4" />
       )}
-      <span>{t('away.label')}</span>
-      {isOn && <span className="sr-only">{t('common.on')}</span>}
+      <span>{isOn ? t('away.onLabel') : t('away.label')}</span>
     </button>
   );
 }
 
 export const AwayModeChip = memo(AwayModeChipView);
-
-/** Full-width reminder shown on every page while away mode is on. */
-/** @param {AwayModeProps} props */
-function AwayModeBannerView({ entityId, entity, callService, t }) {
-  const { isOn, status, setAway } = useAwayToggle(entityId, entity, callService);
-  if (!entityId || !isOn) return null;
-
-  return (
-    <div
-      role="status"
-      data-testid="away-mode-banner"
-      className="mb-4 flex items-center gap-3 rounded-2xl border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-4 py-3"
-    >
-      <Plane className="h-5 w-5 shrink-0 text-[var(--status-warning-fg)]" aria-hidden="true" />
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-[var(--text-primary)]">{t('away.bannerTitle')}</p>
-        <p className="text-xs text-[var(--text-secondary)]">{t('away.bannerSubtitle')}</p>
-      </div>
-      <button
-        type="button"
-        onClick={() => setAway(false)}
-        disabled={status === 'pending'}
-        className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border border-[var(--status-warning-border)] px-3 text-sm font-semibold text-[var(--status-warning-fg)] hover:bg-[var(--glass-bg-hover)] active:scale-95 disabled:opacity-50"
-      >
-        {status !== 'idle' && <ActionFeedbackIndicator status={status} className="h-4 w-4" />}
-        {t('away.turnOff')}
-      </button>
-    </div>
-  );
-}
-
-export const AwayModeBanner = memo(AwayModeBannerView);
