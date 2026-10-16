@@ -53,7 +53,8 @@ export function resolveRoomControls(entityIds, entities, settings = {}) {
   return { climateId, tempId, smokeIds, deviceIds };
 }
 
-const DeviceButton = memo(function DeviceButton({ entityId, entity, name, onToggle, status, t }) {
+/** @param {any} props */
+function DeviceButtonView({ entityId, entity, name, onToggle, status, t }) {
   const domain = entityId.split('.')[0];
   const unavailable = isUnavailable(entity);
   const isOn = entity?.state === 'on';
@@ -120,7 +121,9 @@ const DeviceButton = memo(function DeviceButton({ entityId, entity, name, onTogg
       </span>
     </button>
   );
-});
+}
+
+const DeviceButton = memo(DeviceButtonView);
 
 /**
  * Room card, "controls" layout: everything in one room on one card — room
