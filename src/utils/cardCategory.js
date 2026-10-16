@@ -50,6 +50,7 @@ export function getCategoryColor(category) {
 export function applyCategoryTint(style, category, { editMode = false, isDragging = false } = {}) {
   if (!category) return style;
   const color = getCategoryColor(category);
+  /** @type {Record<string, any>} */
   const next = { ...style, '--card-accent': color };
   if (editMode || isDragging) return next;
   next.backgroundColor = `color-mix(in srgb, ${color} 6%, var(--card-bg))`;

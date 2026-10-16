@@ -5,6 +5,13 @@ import ActionFeedbackIndicator from './ActionFeedbackIndicator';
 
 const CONFIRM_TIMEOUT_MS = 5000;
 
+/**
+ * @typedef {object} AwayModeProps
+ * @property {string} [entityId]
+ * @property {any} [entity]
+ * @property {(domain: string, service: string, data?: object) => any} [callService]
+ * @property {(key: string) => string} t
+ */
 const useAwayToggle = (entityId, entity, callService) => {
   const { getStatus, runAction } = useActionFeedback();
   const domain = entityId ? entityId.split('.')[0] : null;
@@ -23,7 +30,8 @@ const useAwayToggle = (entityId, entity, callService) => {
  * Header chip for away mode. Turning it on asks for a quick confirmation,
  * since it pauses automations across the house; turning it off is one tap.
  */
-export const AwayModeChip = memo(function AwayModeChip({ entityId, entity, callService, t }) {
+/** @param {AwayModeProps} props */
+function AwayModeChipView({ entityId, entity, callService, t }) {
   const { isOn, unavailable, status, setAway } = useAwayToggle(entityId, entity, callService);
   const [confirming, setConfirming] = useState(false);
 
@@ -96,10 +104,13 @@ export const AwayModeChip = memo(function AwayModeChip({ entityId, entity, callS
       {isOn && <span className="sr-only">{t('common.on')}</span>}
     </button>
   );
-});
+}
+
+export const AwayModeChip = memo(AwayModeChipView);
 
 /** Full-width reminder shown on every page while away mode is on. */
-export const AwayModeBanner = memo(function AwayModeBanner({ entityId, entity, callService, t }) {
+/** @param {AwayModeProps} props */
+function AwayModeBannerView({ entityId, entity, callService, t }) {
   const { isOn, status, setAway } = useAwayToggle(entityId, entity, callService);
   if (!entityId || !isOn) return null;
 
@@ -125,4 +136,6 @@ export const AwayModeBanner = memo(function AwayModeBanner({ entityId, entity, c
       </button>
     </div>
   );
-});
+}
+
+export const AwayModeBanner = memo(AwayModeBannerView);
