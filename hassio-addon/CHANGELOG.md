@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.23.0-adam.69
+
+- Moves brightness in 10 % steps from 10 to 100 %, so a slider can no longer switch a light off by accident.
+- Snaps warmth to five named steps (Cozy, Warm, Neutral, Daylight, Cool) within each light's range.
+- Sends each slider change once, when it is released, and keeps the new value on screen until the light confirms it. Cloud-backed lights such as Tuya no longer replay a queue of values and swing the slider back and forth.
+- Adds spinners to the lamp toggles and "all on/off" in the room popup.
+
 ## 1.23.0-adam.68
 
 - Shows people at a known place such as the cabin or work in full colour, and only mutes the avatar when someone is away somewhere unknown; the green dot now only marks someone at home.
