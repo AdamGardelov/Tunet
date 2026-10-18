@@ -33,12 +33,15 @@ import { getLightColor } from '../../utils/lightColor';
 
 const DEFAULT_COLLAPSED_LIGHT_AREAS = ['Hall'];
 const WARMTH_DISABLED_LIGHT_NAMES = new Set(['Köksfönster']);
+// Lights shown per area by default. A name may be a Hue zone or other light
+// group (e.g. "Fönster" in Vardagsrum covers Fönster1 and Fönster2): it is
+// then shown as one light and its members stay hidden.
 const DEFAULT_AREA_LIGHT_ALLOWLIST = {
   Kontor: new Set(['Jordglob', 'Tak', 'Skrivbord']),
   Kök: new Set(['Köksfönster']),
   Matsal: new Set(['Tak']),
   Sovrum: new Set(['Adam sänglampa', 'Emma sänglampa', 'Tak']),
-  Vardagsrum: new Set(['Tak', 'Fönster']),
+  Vardagsrum: new Set(['Tak', 'Fönster', 'LP']),
 };
 
 const SORT_OPTIONS = [
@@ -505,15 +508,44 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
     return { groups: grps, individuals: indiv };
   }, [allLights]);
 
+  // A group named in an area's allowlist (e.g. a Hue zone) stands in for its
+  // member lamps, unless a member is already shown on its own under that name
+  // (a zone "Tak" around the lamp "Tak" stays hidden).
+  const isAllowlistedGroup = useCallback(
+    (entity) => {
+      const members = entity.attributes?.entity_id;
+      if (!Array.isArray(members) || members.length === 0) return false;
+      const allowed = DEFAULT_AREA_LIGHT_ALLOWLIST[getAreaName(entity)];
+      if (!allowed?.has(entity.attributes?.friendly_name || entity.entity_id)) return false;
+      return !members.some((memberId) => {
+        const member = entities[memberId];
+        const memberMembers = member?.attributes?.entity_id;
+        const memberIsGroup = Array.isArray(memberMembers) && memberMembers.length > 0;
+        return (
+          member && !memberIsGroup && allowed.has(member.attributes?.friendly_name || memberId)
+        );
+      });
+    },
+    [entities, getAreaName]
+  );
+
+  const visibleBase = useMemo(
+    () =>
+      showGroups
+        ? allLights
+        : [...individuals, ...groups.filter((entity) => isAllowlistedGroup(entity))],
+    [allLights, individuals, groups, showGroups, isAllowlistedGroup]
+  );
+
   // Count unavailable before filtering
   const unavailableCount = useMemo(() => {
-    const base = showGroups ? allLights : individuals;
+    const base = visibleBase;
     return base.filter((e) => e.state === 'unavailable' || e.state === 'unknown').length;
-  }, [allLights, individuals, showGroups]);
+  }, [visibleBase]);
 
   // Filter by search + unavailable toggle
   const filteredLights = useMemo(() => {
-    let base = showGroups ? allLights : individuals;
+    let base = visibleBase;
     if (hideUnavailable) {
       base = base.filter((e) => e.state !== 'unavailable' && e.state !== 'unknown');
     }
@@ -524,7 +556,7 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
       const area = (getAreaName(e) || '').toLowerCase();
       return name.includes(term) || area.includes(term) || e.entity_id.toLowerCase().includes(term);
     });
-  }, [allLights, individuals, showGroups, hideUnavailable, searchTerm, getAreaName]);
+  }, [visibleBase, hideUnavailable, searchTerm, getAreaName]);
 
   // Sort lights
   const sortedLights = useMemo(() => {
@@ -607,7 +639,10 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
         const name = entity.attributes?.friendly_name || entity.entity_id;
         const members = entity.attributes?.entity_id;
         const isGroup = Array.isArray(members) && members.length > 0;
-        if (!allowedNames.has(name) || isGroup) hidden.add(entity.entity_id);
+        // Allowlisted lamps stay; groups only when they stand in for their members.
+        if (isGroup ? !isAllowlistedGroup(entity) : !allowedNames.has(name)) {
+          hidden.add(entity.entity_id);
+        }
       });
     });
 
@@ -621,7 +656,15 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
       });
     });
     return hidden;
-  }, [collapsedAreas, sortedLights, getAreaName, findAreaGroup, searchTerm, sortMode]);
+  }, [
+    collapsedAreas,
+    sortedLights,
+    getAreaName,
+    findAreaGroup,
+    isAllowlistedGroup,
+    searchTerm,
+    sortMode,
+  ]);
 
   const displayedLights = useMemo(
     () => sortedLights.filter((entity) => !collapsedEntityIds.has(entity.entity_id)),
