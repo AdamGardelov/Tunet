@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0-adam.71
+
+- Shows the living-room window as one light, the Hue zone "Fönster", instead of its two lamps, and adds the renamed lamp LP.
+- Lets the Lampor page's per-room list name a Hue zone or light group, which then stands in for its member lamps.
+
 ## 1.23.0-adam.70
 
 - Shows a mark between each 10 % brightness step on lamp sliders, so the steps are visible before you drag.
