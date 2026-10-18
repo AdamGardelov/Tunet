@@ -423,3 +423,50 @@ describe('LightsPage feedback and warmth', () => {
     });
   });
 });
+
+describe('LightsPage area zones', () => {
+  it('shows a Hue zone named in the area allowlist instead of its member lamps', async () => {
+    getAreas.mockResolvedValue([{ area_id: 'vardagsrum', name: 'Vardagsrum' }]);
+    const lamp = (entityId, name, extra = {}) => ({
+      entity_id: entityId,
+      state: 'off',
+      attributes: {
+        friendly_name: name,
+        area_id: 'vardagsrum',
+        supported_color_modes: ['color_temp'],
+        ...extra,
+      },
+    });
+
+    render(
+      <LightsPage
+        entities={{
+          'light.tak': lamp('light.tak', 'Tak'),
+          'light.lp': lamp('light.lp', 'LP', { supported_color_modes: ['onoff'] }),
+          'light.fonster1': lamp('light.fonster1', 'Fönster1'),
+          'light.fonster2': lamp('light.fonster2', 'Fönster2'),
+          'light.fonster_zone': lamp('light.fonster_zone', 'Fönster', {
+            entity_id: ['light.fonster1', 'light.fonster2'],
+          }),
+          'light.vardagsrum_room': lamp('light.vardagsrum_room', 'Vardagsrum', {
+            entity_id: ['light.tak', 'light.lp', 'light.fonster1', 'light.fonster2'],
+          }),
+        }}
+        callService={vi.fn()}
+        conn={{}}
+        pageSettings={{ lights: { lightsSort: 'area', lightsShowGroups: false } }}
+        pageId="lights"
+        savePageSetting={vi.fn()}
+        t={(key) => key}
+      />
+    );
+
+    await screen.findByRole('heading', { name: 'Vardagsrum' });
+    expect(screen.getByText('Tak')).toBeInTheDocument();
+    expect(screen.getByText('LP')).toBeInTheDocument();
+    expect(screen.getByText('Fönster')).toBeInTheDocument();
+    expect(screen.queryByText('Fönster1')).not.toBeInTheDocument();
+    expect(screen.queryByText('Fönster2')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Vardagsrum:/ })).not.toBeInTheDocument();
+  });
+});
