@@ -161,6 +161,7 @@ export {
   Plane,
   ShieldCheck,
   SlidersHorizontal,
+  EllipsisVertical,
 } from './lucide';
 
 export { ICON_MAP, getAllIconKeys, getIconComponent, preloadMdiIcons } from './iconMap';
