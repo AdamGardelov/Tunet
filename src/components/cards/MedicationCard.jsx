@@ -53,7 +53,9 @@ const MedicationCard = ({
   // "Ny inhalator köpt" sits behind the cat icon so it can't be hit by mistake:
   // tap the icon, then confirm. Resets via a script when one is configured
   // (it can also clear reminders), otherwise sets the dose counter directly.
-  const [refillOpen, setRefillOpen] = useState(false);
+  // null = normal row, 'menu' = shows "Ny inhalator köpt", 'confirm' = asks before resetting.
+  const [refillStep, setRefillStep] = useState(/** @type {null | 'menu' | 'confirm'} */ (null));
+  const refillOpen = refillStep !== null;
   const refillDoses =
     Number(settings.refillDoses) > 0 ? Number(settings.refillDoses) : DEFAULT_REFILL_DOSES;
   const refillScriptId =
@@ -75,7 +77,7 @@ const MedicationCard = ({
               value: refillDoses,
             })
       );
-      if (ok) setRefillOpen(false);
+      if (ok) setRefillStep(null);
     },
     [callService, canRefill, editMode, mapping.doseId, refillDoses, refillScriptId, runAction]
   );
@@ -165,46 +167,50 @@ const MedicationCard = ({
         <Cat className="h-6 w-6 stroke-[1.7px]" />
       </span>
       {refillOpen && !editMode ? (
-        <>
-          <div className="min-w-0 flex-1">
-            <p className="text-[13px] leading-tight font-bold text-[var(--text-primary)]">
-              Ny inhalator köpt?
-            </p>
-            <p className="mt-1 text-[11px] font-medium text-[var(--text-secondary)]">
-              Räknaren sätts till {refillDoses} doser.
-            </p>
-          </div>
-          <div
-            className="grid min-w-[164px] grid-cols-2 gap-2"
-            data-testid="medication-refill-actions"
-          >
+        <div className="flex min-w-0 flex-1 gap-2" data-testid="medication-refill-actions">
+          {refillStep === 'menu' ? (
             <button
               type="button"
               onClick={(event) => {
                 event.stopPropagation();
-                setRefillOpen(false);
+                setRefillStep('confirm');
               }}
-              className={`touch-feedback flex h-11 items-center justify-center rounded-2xl border px-2 text-[11px] font-bold active:scale-[0.97] ${compactControlTone.idle}`}
+              data-testid="medication-refill-start"
+              className={`touch-feedback flex h-11 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-2xl border px-3 text-[12px] font-bold active:scale-[0.97] ${compactControlTone.idle}`}
             >
-              Avbryt
+              Ny inhalator köpt
             </button>
-            <button
-              type="button"
-              onClick={confirmRefill}
-              disabled={refillStatus === 'pending'}
-              aria-busy={refillStatus === 'pending'}
-              data-testid="medication-refill-confirm"
-              className={`touch-feedback flex h-11 items-center justify-center gap-1.5 rounded-2xl border px-2 text-[11px] font-bold active:scale-[0.97] ${
-                refillStatus === 'error' ? compactControlTone.error : compactControlTone.success
-              }`}
-            >
-              {refillStatus !== 'idle' && (
-                <ActionFeedbackIndicator status={refillStatus} className="h-4 w-4" />
-              )}
-              Ny inhalator
-            </button>
-          </div>
-        </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setRefillStep(null);
+                }}
+                className={`touch-feedback flex h-11 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-2xl border px-3 text-[12px] font-bold active:scale-[0.97] ${compactControlTone.idle}`}
+              >
+                Avbryt
+              </button>
+              <button
+                type="button"
+                onClick={confirmRefill}
+                disabled={refillStatus === 'pending'}
+                aria-busy={refillStatus === 'pending'}
+                aria-label={`Ja, sätt räknaren till ${refillDoses} doser`}
+                data-testid="medication-refill-confirm"
+                className={`touch-feedback flex h-11 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-2xl border px-3 text-[12px] font-bold active:scale-[0.97] ${
+                  refillStatus === 'error' ? compactControlTone.error : compactControlTone.success
+                }`}
+              >
+                {refillStatus !== 'idle' && (
+                  <ActionFeedbackIndicator status={refillStatus} className="h-4 w-4" />
+                )}
+                <span className="truncate">Ja, {refillDoses} doser</span>
+              </button>
+            </>
+          )}
+        </div>
       ) : (
         <>
           <div className="min-w-0 flex-1">
@@ -233,7 +239,7 @@ const MedicationCard = ({
           type="button"
           onClick={(event) => {
             event.stopPropagation();
-            setRefillOpen((open) => !open);
+            setRefillStep((step) => (step ? null : 'menu'));
           }}
           aria-expanded={refillOpen}
           aria-label="Fler val för medicinen"
