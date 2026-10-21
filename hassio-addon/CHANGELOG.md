@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.23.0-adam.75
+
+- Asks for confirmation before "Ny inhalator köpt" resets the dose counter, and shows the menu as buttons only so nothing overflows the card on a phone.
+
 ## 1.23.0-adam.74
 
 - Turns the shared bulb icon on lamp-only quick controls (such as the bedside lamps) into a button: a crossed-out bulb when all are off, a lit bulb when any is on, and a tap turns them all on or off.
