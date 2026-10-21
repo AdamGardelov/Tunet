@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.23.0-adam.73
+
+- Moves the medication card's menu to its own ⋮ button at the right end of the card; the cat icon is a plain icon again.
+
 ## 1.23.0-adam.72
 
 - Adds "Ny inhalator köpt" to the medication card behind the cat icon: tap the icon, then confirm, to reset the dose counter (and clear the low-supply reminder).
