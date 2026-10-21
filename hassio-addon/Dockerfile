@@ -5,7 +5,7 @@ ARG BUILD_VERSION
 FROM node:26-alpine AS builder
 RUN apk add --no-cache git python3 make g++ \
  && set -eux \
- && SOURCE_COMMIT="5e44c46ac79931ef86189ede13facb0b8ccab212" \
+ && SOURCE_COMMIT="015c4f6bd6a549647c4b35f80bb5d60d4b9f6e32" \
  && git init /src \
  && git -C /src remote add origin https://github.com/AdamGardelov/Tunet.git \
  && git -C /src fetch --depth=1 origin "${SOURCE_COMMIT}" \
