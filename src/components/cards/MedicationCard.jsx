@@ -161,29 +161,9 @@ const MedicationCard = ({
       aria-label={settings.title || 'Sparvens inhalator'}
     >
       {controls}
-      {canRefill && !editMode ? (
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            setRefillOpen((open) => !open);
-          }}
-          aria-expanded={refillOpen}
-          aria-label="Fler val för medicinen"
-          data-testid="medication-menu-button"
-          className={`${compactIconTile} relative active:scale-95`}
-        >
-          <Cat className="h-6 w-6 stroke-[1.7px]" aria-hidden="true" />
-          <EllipsisVertical
-            aria-hidden="true"
-            className="absolute top-1/2 -right-1 h-3.5 w-3.5 -translate-y-1/2 text-[var(--text-secondary)]"
-          />
-        </button>
-      ) : (
-        <span className={compactIconTile}>
-          <Cat className="h-6 w-6 stroke-[1.7px]" />
-        </span>
-      )}
+      <span className={compactIconTile}>
+        <Cat className="h-6 w-6 stroke-[1.7px]" />
+      </span>
       {refillOpen && !editMode ? (
         <>
           <div className="min-w-0 flex-1">
@@ -247,6 +227,21 @@ const MedicationCard = ({
             <DoseButton entityId={mapping.eveningId} label="Kväll" />
           </div>
         </>
+      )}
+      {canRefill && !editMode && (
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            setRefillOpen((open) => !open);
+          }}
+          aria-expanded={refillOpen}
+          aria-label="Fler val för medicinen"
+          data-testid="medication-menu-button"
+          className="-mr-2 flex h-11 w-8 shrink-0 items-center justify-center rounded-xl text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-95"
+        >
+          <EllipsisVertical className="h-5 w-5" aria-hidden="true" />
+        </button>
       )}
     </section>
   );
