@@ -1,5 +1,5 @@
-import { memo, useCallback } from 'react';
-import { AirVent, Lightbulb, Power } from '../../icons';
+import { memo, useCallback, useMemo } from 'react';
+import { AirVent, Lightbulb, LightbulbOff, Power } from '../../icons';
 import useActionFeedback from '../../hooks/useActionFeedback';
 import ActionFeedbackIndicator from '../ui/ActionFeedbackIndicator';
 import { compactControlTone, compactIconTile } from '../ui/compactControlStyles';
@@ -26,7 +26,10 @@ const QuickControlsCard = ({
   editMode,
   t,
 }) => {
-  const entityIds = Array.isArray(settings.entityIds) ? settings.entityIds : [];
+  const entityIds = useMemo(
+    () => (Array.isArray(settings.entityIds) ? settings.entityIds : []),
+    [settings.entityIds]
+  );
   const singleControl = entityIds.length === 1;
   const sharedLightIcon =
     entityIds.length > 1 && entityIds.every((entityId) => entityId.startsWith('light.'));
@@ -34,6 +37,35 @@ const QuickControlsCard = ({
   const title =
     configuredTitle.toLocaleLowerCase('sv-SE') === 'snabbkontroller' ? '' : configuredTitle;
   const { getStatus, runAction } = useActionFeedback();
+
+  // With only lamps, the shared bulb icon works like the camera's privacy
+  // button: crossed out when every lamp is off, lit when any is on, and a tap
+  // turns them all on or off together.
+  const groupLights = useMemo(
+    () =>
+      sharedLightIcon
+        ? entityIds.filter((id) => {
+            const state = entities[id]?.state;
+            return state && !['unavailable', 'unknown'].includes(state);
+          })
+        : [],
+    [entities, entityIds, sharedLightIcon]
+  );
+  const anyLightOn = groupLights.some((id) => entities[id]?.state === 'on');
+  const groupStatus = getStatus('all-lights');
+  const groupLabel = anyLightOn
+    ? t('quickControls.allLightsOff') || 'Släck alla'
+    : t('quickControls.allLightsOn') || 'Tänd alla';
+
+  const handleGroupToggle = useCallback(
+    (event) => {
+      event.stopPropagation();
+      if (editMode || groupLights.length === 0 || groupStatus === 'pending') return;
+      const service = anyLightOn ? 'turn_off' : 'turn_on';
+      runAction('all-lights', () => callService('light', service, { entity_id: groupLights }));
+    },
+    [anyLightOn, callService, editMode, groupLights, groupStatus, runAction]
+  );
 
   const handleToggle = useCallback(
     (event, entityId) => {
@@ -186,9 +218,38 @@ const QuickControlsCard = ({
       )}
       <div className={`flex min-h-0 flex-1 items-center ${sharedLightIcon ? 'gap-3' : ''}`}>
         {sharedLightIcon && (
-          <span className={compactIconTile} data-testid="quick-controls-shared-light-icon">
-            <Lightbulb className="h-[22px] w-[22px] stroke-[1.7px]" />
-          </span>
+          <button
+            type="button"
+            onClick={handleGroupToggle}
+            disabled={editMode || groupLights.length === 0 || groupStatus === 'pending'}
+            aria-pressed={anyLightOn}
+            aria-label={groupLabel}
+            title={groupLabel}
+            data-testid="quick-controls-shared-light-icon"
+            className={`touch-feedback flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border transition-all duration-200 active:scale-[0.94] disabled:opacity-45 ${
+              groupStatus === 'success'
+                ? compactControlTone.success
+                : groupStatus === 'error'
+                  ? compactControlTone.error
+                  : anyLightOn
+                    ? 'border-[color-mix(in_srgb,var(--card-accent,var(--accent-color))_45%,transparent)] bg-[color-mix(in_srgb,var(--card-accent,var(--accent-color))_22%,transparent)] text-[var(--card-accent,var(--accent-color))]'
+                    : compactControlTone.idle
+            }`}
+          >
+            {groupStatus !== 'idle' ? (
+              <ActionFeedbackIndicator status={groupStatus} />
+            ) : anyLightOn ? (
+              <Lightbulb
+                className="h-[22px] w-[22px] stroke-[1.7px]"
+                data-testid="quick-controls-lights-on-icon"
+              />
+            ) : (
+              <LightbulbOff
+                className="h-[22px] w-[22px] stroke-[1.7px]"
+                data-testid="quick-controls-lights-off-icon"
+              />
+            )}
+          </button>
         )}
         <div className="grid min-w-0 flex-1 grid-cols-2 gap-2">
           {entityIds.map((entityId) =>

@@ -1613,5 +1613,7 @@
   "light.warmthPreset.warm": "Varm",
   "light.warmthPreset.neutral": "Nøytral",
   "light.warmthPreset.daylight": "Dagslys",
-  "light.warmthPreset.cool": "Kald"
+  "light.warmthPreset.cool": "Kald",
+  "quickControls.allLightsOn": "Slå på alle",
+  "quickControls.allLightsOff": "Slå av alle"
 }

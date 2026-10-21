@@ -1514,5 +1514,7 @@
   "light.warmthPreset.warm": "暖光",
   "light.warmthPreset.neutral": "中性",
   "light.warmthPreset.daylight": "日光",
-  "light.warmthPreset.cool": "冷光"
+  "light.warmthPreset.cool": "冷光",
+  "quickControls.allLightsOn": "全部打开",
+  "quickControls.allLightsOff": "全部关闭"
 }
