@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.23.0-adam.72
+
+- Adds "Ny inhalator köpt" to the medication card behind the cat icon: tap the icon, then confirm, to reset the dose counter (and clear the low-supply reminder).
+
 ## 1.23.0-adam.71
 
 - Shows the living-room window as one light, the Hue zone "Fönster", instead of its two lamps, and adds the renamed lamp LP.
