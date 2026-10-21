@@ -160,4 +160,5 @@ export {
   Plane,
   ShieldCheck,
   SlidersHorizontal,
+  EllipsisVertical,
 } from 'lucide-react';
