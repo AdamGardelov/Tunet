@@ -31,16 +31,23 @@ describe('MedicationCard refill menu', () => {
     expect(screen.getByText(/dagar kvar/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Fler val för medicinen' }));
-    expect(screen.getByText('Ny inhalator köpt?')).toBeInTheDocument();
-    expect(screen.getByText('Räknaren sätts till 120 doser.')).toBeInTheDocument();
+    // The menu only offers the action; nothing is reset yet.
+    expect(screen.queryByTestId('medication-refill-confirm')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Ny inhalator köpt' }));
+    expect(
+      screen.getByRole('button', { name: 'Ja, sätt räknaren till 120 doser' })
+    ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Avbryt' }));
     expect(screen.queryByTestId('medication-refill-confirm')).toBeNull();
+    expect(screen.getByText(/dagar kvar/)).toBeInTheDocument();
   });
 
   it('resets the counter after confirming', async () => {
     const callService = renderCard();
     fireEvent.click(screen.getByRole('button', { name: 'Fler val för medicinen' }));
+    fireEvent.click(screen.getByTestId('medication-refill-start'));
+    expect(callService).not.toHaveBeenCalled();
     fireEvent.click(screen.getByTestId('medication-refill-confirm'));
     expect(callService).toHaveBeenCalledWith('input_number', 'set_value', {
       entity_id: 'input_number.inhalator_doser_kvar',
@@ -52,6 +59,8 @@ describe('MedicationCard refill menu', () => {
   it('runs the configured refill script instead when there is one', () => {
     const callService = renderCard({ refillScriptId: 'script.sparven_ny_inhalator' });
     fireEvent.click(screen.getByRole('button', { name: 'Fler val för medicinen' }));
+    fireEvent.click(screen.getByTestId('medication-refill-start'));
+    expect(callService).not.toHaveBeenCalled();
     fireEvent.click(screen.getByTestId('medication-refill-confirm'));
     expect(callService).toHaveBeenCalledWith('script', 'turn_on', {
       entity_id: 'script.sparven_ny_inhalator',
