@@ -161,4 +161,5 @@ export {
   ShieldCheck,
   SlidersHorizontal,
   EllipsisVertical,
+  LightbulbOff,
 } from 'lucide-react';

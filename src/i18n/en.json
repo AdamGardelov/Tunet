@@ -1613,5 +1613,7 @@
   "light.warmthPreset.warm": "Warm",
   "light.warmthPreset.neutral": "Neutral",
   "light.warmthPreset.daylight": "Daylight",
-  "light.warmthPreset.cool": "Cool"
+  "light.warmthPreset.cool": "Cool",
+  "quickControls.allLightsOn": "Turn all on",
+  "quickControls.allLightsOff": "Turn all off"
 }

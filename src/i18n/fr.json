@@ -1613,5 +1613,7 @@
   "light.warmthPreset.warm": "Chaud",
   "light.warmthPreset.neutral": "Neutre",
   "light.warmthPreset.daylight": "Lumière du jour",
-  "light.warmthPreset.cool": "Froid"
+  "light.warmthPreset.cool": "Froid",
+  "quickControls.allLightsOn": "Tout allumer",
+  "quickControls.allLightsOff": "Tout éteindre"
 }

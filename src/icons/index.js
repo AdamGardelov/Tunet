@@ -162,6 +162,7 @@ export {
   ShieldCheck,
   SlidersHorizontal,
   EllipsisVertical,
+  LightbulbOff,
 } from './lucide';
 
 export { ICON_MAP, getAllIconKeys, getIconComponent, preloadMdiIcons } from './iconMap';

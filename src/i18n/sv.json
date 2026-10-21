@@ -1613,5 +1613,7 @@
   "light.warmthPreset.warm": "Varm",
   "light.warmthPreset.neutral": "Neutral",
   "light.warmthPreset.daylight": "Dagsljus",
-  "light.warmthPreset.cool": "Kall"
+  "light.warmthPreset.cool": "Kall",
+  "quickControls.allLightsOn": "Tänd alla",
+  "quickControls.allLightsOff": "Släck alla"
 }
