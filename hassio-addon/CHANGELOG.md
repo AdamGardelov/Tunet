@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.23.0-adam.79
+
+- Fixes buttons looking shifted on phones after a tap (e.g. "+1 dos" after "Extra dos"): hover effects now only apply with a mouse or trackpad.
+
 ## 1.23.0-adam.78
 
 - Shows the inhaler's days left on the medication card only from 14 days down (the same limit as the reminder to buy a new one); before that the card just shows its title.
