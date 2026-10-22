@@ -273,13 +273,17 @@
     border-color 0.25s;
   -webkit-tap-highlight-color: transparent;
 }
-.touch-feedback:hover {
-  transform: translateY(-2px) scale(1.005);
-  box-shadow:
-    0 10px 30px -5px rgba(0, 0, 0, 0.25),
-    0 0 0 1px rgba(255, 255, 255, 0.05);
-  border-color: var(--glass-border) !important;
-  z-index: 10;
+/* Hover lift only with a real pointer: on touch screens a tapped element keeps
+   :hover, so a button that appears under the finger looked shifted. */
+@media (hover: hover) and (pointer: fine) {
+  .touch-feedback:hover {
+    transform: translateY(-2px) scale(1.005);
+    box-shadow:
+      0 10px 30px -5px rgba(0, 0, 0, 0.25),
+      0 0 0 1px rgba(255, 255, 255, 0.05);
+    border-color: var(--glass-border) !important;
+    z-index: 10;
+  }
 }
 .touch-feedback:not(.weather-card-swipe-shell):active {
   transform: scale(0.97);
@@ -450,10 +454,12 @@ html[data-card-material='neumorphic'] [style*='--card-bg'] {
     -4px -4px 10px rgba(255, 255, 255, 0.04) !important;
   border-color: transparent !important;
 }
-html[data-card-material='neumorphic'] .touch-feedback:hover {
-  box-shadow:
-    8px 8px 18px rgba(0, 0, 0, 0.3),
-    -5px -5px 12px rgba(255, 255, 255, 0.06) !important;
+@media (hover: hover) and (pointer: fine) {
+  html[data-card-material='neumorphic'] .touch-feedback:hover {
+    box-shadow:
+      8px 8px 18px rgba(0, 0, 0, 0.3),
+      -5px -5px 12px rgba(255, 255, 255, 0.06) !important;
+  }
 }
 html[data-theme='light'][data-card-material='neumorphic'] .touch-feedback,
 html[data-theme='light'][data-card-material='neumorphic'] [style*='--card-bg'] {
@@ -462,10 +468,12 @@ html[data-theme='light'][data-card-material='neumorphic'] [style*='--card-bg'] {
     6px 6px 14px rgba(0, 0, 0, 0.08),
     -4px -4px 10px rgba(255, 255, 255, 0.6) !important;
 }
-html[data-theme='light'][data-card-material='neumorphic'] .touch-feedback:hover {
-  box-shadow:
-    8px 8px 18px rgba(0, 0, 0, 0.12),
-    -5px -5px 12px rgba(255, 255, 255, 0.8) !important;
+@media (hover: hover) and (pointer: fine) {
+  html[data-theme='light'][data-card-material='neumorphic'] .touch-feedback:hover {
+    box-shadow:
+      8px 8px 18px rgba(0, 0, 0, 0.12),
+      -5px -5px 12px rgba(255, 255, 255, 0.8) !important;
+  }
 }
 
 /* Flat: no shadows, solid borders, no blur */
@@ -477,9 +485,11 @@ html[data-card-material='flat'] [style*='--card-bg'] {
   border-color: var(--glass-border) !important;
   border-width: 1px !important;
 }
-html[data-card-material='flat'] .touch-feedback:hover {
-  transform: translateY(-1px) !important;
-  box-shadow: none !important;
+@media (hover: hover) and (pointer: fine) {
+  html[data-card-material='flat'] .touch-feedback:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: none !important;
+  }
 }
 
 /* Elevated: strong drop shadow, floating look — opaque bg + no blur to avoid corner artifacts */
@@ -493,11 +503,13 @@ html[data-card-material='elevated'] [style*='--card-bg'] {
     0 2px 6px rgba(0, 0, 0, 0.1) !important;
   border-color: transparent !important;
 }
-html[data-card-material='elevated'] .touch-feedback:hover {
-  transform: translateY(-4px) scale(1.01) !important;
-  box-shadow:
-    0 16px 40px rgba(0, 0, 0, 0.28),
-    0 4px 10px rgba(0, 0, 0, 0.12) !important;
+@media (hover: hover) and (pointer: fine) {
+  html[data-card-material='elevated'] .touch-feedback:hover {
+    transform: translateY(-4px) scale(1.01) !important;
+    box-shadow:
+      0 16px 40px rgba(0, 0, 0, 0.28),
+      0 4px 10px rgba(0, 0, 0, 0.12) !important;
+  }
 }
 html[data-theme='light'][data-card-material='elevated'] .touch-feedback,
 html[data-theme='light'][data-card-material='elevated'] [style*='--card-bg'] {
@@ -506,10 +518,12 @@ html[data-theme='light'][data-card-material='elevated'] [style*='--card-bg'] {
     0 8px 30px rgba(0, 0, 0, 0.08),
     0 2px 6px rgba(0, 0, 0, 0.04) !important;
 }
-html[data-theme='light'][data-card-material='elevated'] .touch-feedback:hover {
-  box-shadow:
-    0 16px 40px rgba(0, 0, 0, 0.12),
-    0 4px 10px rgba(0, 0, 0, 0.06) !important;
+@media (hover: hover) and (pointer: fine) {
+  html[data-theme='light'][data-card-material='elevated'] .touch-feedback:hover {
+    box-shadow:
+      0 16px 40px rgba(0, 0, 0, 0.12),
+      0 4px 10px rgba(0, 0, 0, 0.06) !important;
+  }
 }
 
 .weather-card-swipe-content {
