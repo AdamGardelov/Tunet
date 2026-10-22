@@ -12,6 +12,8 @@ import DashboardGrid from '../rendering/DashboardGrid';
 import PinLockModal from '../components/ui/PinLockModal';
 import { AwayModeChip } from '../components/ui/AwayModeControl';
 import { resolveAwayModeEntityId } from '../utils/awayMode';
+import { useConfig } from '../contexts';
+import { getLocaleForLanguage } from '../i18n';
 
 const MemoStatusBar = memo(StatusBar);
 const MemoDashboardGrid = memo(DashboardGrid);
@@ -179,12 +181,36 @@ export default function DashboardLayout(props) {
   const awayEntity = awayEntityId ? entities[awayEntityId] : null;
   const awayProps = { entityId: awayEntityId, entity: awayEntity, callService, t };
 
+  // Phone header, as in the design: date and page title, then people and away mode.
+  const { language } = useConfig();
+  const mobileDate = (() => {
+    const text = now.toLocaleDateString(getLocaleForLanguage(language), {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    });
+    return text.charAt(0).toLocaleUpperCase() + text.slice(1);
+  })();
+  const activePageLabel = String(
+    pageSettings[activePage]?.label ||
+      (pages || []).find((page) => page.id === activePage)?.label ||
+      ''
+  );
+  const mobilePageTitle =
+    activePageLabel.length > 1 && activePageLabel === activePageLabel.toLocaleUpperCase()
+      ? activePageLabel.charAt(0) + activePageLabel.slice(1).toLocaleLowerCase()
+      : activePageLabel;
+
   const personHeader = (
     <div
       className={`flex min-w-0 flex-wrap items-center gap-2.5 ${isMobile ? 'w-full justify-start gap-2 empty:hidden' : ''}`}
     >
       {(pagesConfig.header || []).map((id) => personStatus(id))}
-      {awayEntityId && <AwayModeChip {...awayProps} />}
+      {awayEntityId && (
+        <div className={isMobile ? 'ml-auto' : ''}>
+          <AwayModeChip {...awayProps} compact={isMobile} />
+        </div>
+      )}
       {editMode && (
         <button
           onClick={() => {
@@ -279,25 +305,35 @@ export default function DashboardLayout(props) {
               }}
             >
               {isMobile ? (
-                <div className="flex w-full min-w-0 items-start gap-2">
-                  <div className="min-w-0 flex-1">{personHeader}</div>
-                  {!editMode && (
-                    <div className="flex h-12 shrink-0 items-center">
-                      <SettingsMenuControl
-                        setShowConfigModal={guardedSetShowConfigModal}
-                        setConfigTab={setConfigTab}
-                        setShowThemeSidebar={guardedSetShowThemeSidebar}
-                        setShowLayoutSidebar={guardedSetShowLayoutSidebar}
-                        setShowHeaderEditModal={guardedSetShowHeaderEditModal}
-                        onAddCard={handleAddCard}
-                        onToggleEdit={handleToggleEdit}
-                        editMode={editMode}
-                        updateCount={updateCount}
-                        isMobile
-                        t={t}
-                      />
+                <div className="flex w-full min-w-0 flex-col gap-4">
+                  <div className="flex w-full min-w-0 items-end justify-between gap-3">
+                    <div className="flex min-w-0 flex-col gap-0.5" data-testid="mobile-page-header">
+                      <span className="text-[13px] text-[var(--text-secondary)]">{mobileDate}</span>
+                      {mobilePageTitle && (
+                        <h1 className="truncate text-[28px] leading-tight font-semibold tracking-[-0.02em] text-[var(--text-primary)]">
+                          {mobilePageTitle}
+                        </h1>
+                      )}
                     </div>
-                  )}
+                    {!editMode && (
+                      <div className="flex h-11 shrink-0 items-center">
+                        <SettingsMenuControl
+                          setShowConfigModal={guardedSetShowConfigModal}
+                          setConfigTab={setConfigTab}
+                          setShowThemeSidebar={guardedSetShowThemeSidebar}
+                          setShowLayoutSidebar={guardedSetShowLayoutSidebar}
+                          setShowHeaderEditModal={guardedSetShowHeaderEditModal}
+                          onAddCard={handleAddCard}
+                          onToggleEdit={handleToggleEdit}
+                          editMode={editMode}
+                          updateCount={updateCount}
+                          isMobile
+                          t={t}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  {personHeader}
                 </div>
               ) : (
                 personHeader

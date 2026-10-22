@@ -1615,5 +1615,6 @@
   "light.warmthPreset.daylight": "Tageslicht",
   "light.warmthPreset.cool": "Kühl",
   "quickControls.allLightsOn": "Alle einschalten",
-  "quickControls.allLightsOff": "Alle ausschalten"
+  "quickControls.allLightsOff": "Alle ausschalten",
+  "away.shortLabel": "Weg"
 }

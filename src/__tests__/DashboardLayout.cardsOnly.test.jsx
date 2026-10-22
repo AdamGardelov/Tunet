@@ -2,6 +2,10 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import DashboardLayout from '../layouts/DashboardLayout';
 
+vi.mock('../contexts', () => ({
+  useConfig: () => ({ language: 'sv' }),
+}));
+
 vi.mock('../layouts/Header', () => ({
   default: ({ children }) => <header data-testid="dashboard-header">{children}</header>,
 }));
@@ -140,6 +144,18 @@ describe('DashboardLayout cards-only mode', () => {
     expect(screen.getByTestId('bottom-page-navigation')).toBeInTheDocument();
     expect(screen.queryByTestId('page-navigation')).not.toBeInTheDocument();
     expect(screen.queryByTestId('edit-toolbar')).not.toBeInTheDocument();
+  });
+
+  it('shows the date and the page title at the top on mobile', () => {
+    renderLayout({
+      isMobile: true,
+      now: new Date('2026-10-16T08:00:00'),
+      pageSettings: { home: { label: 'HEM' } },
+    });
+
+    const header = screen.getByTestId('mobile-page-header');
+    expect(header).toHaveTextContent('Fredag 16 oktober');
+    expect(screen.getByRole('heading', { name: 'Hem' })).toBeInTheDocument();
   });
 
   it('uses a floating Done control and top page pills while editing on mobile', () => {

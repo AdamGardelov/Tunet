@@ -71,9 +71,8 @@ const PersonStatus = ({
           onOpenPerson(id);
         }
       }}
-      className={`group relative flex items-center rounded-full transition-all duration-500 hover:bg-[var(--glass-bg)] ${avatarOnly ? 'gap-1 py-1 pr-1.5 pl-1' : 'gap-2.5 py-1.5 pr-4 pl-1.5 sm:gap-3 sm:pr-5'}`}
+      className={`group relative flex items-center rounded-full border border-[var(--glass-border)] bg-[var(--card-bg)] transition-all duration-500 hover:bg-[var(--glass-bg)] sm:border-transparent sm:bg-white/[0.02] ${avatarOnly ? 'gap-1 py-1 pr-1.5 pl-1' : 'gap-2.5 py-1.5 pr-3.5 pl-1.5 sm:gap-3 sm:pr-5'}`}
       style={{
-        backgroundColor: 'rgba(255, 255, 255, 0.02)',
         boxShadow: isHome ? '0 0 20px rgba(34, 197, 94, 0.05)' : 'none',
         cursor: editMode ? 'default' : 'pointer',
       }}
@@ -103,7 +102,7 @@ const PersonStatus = ({
 
       <div className="relative">
         <div
-          className="h-9 w-9 overflow-hidden rounded-full bg-gray-800 transition-all duration-500 sm:h-10 sm:w-10"
+          className="h-8 w-8 overflow-hidden rounded-full bg-gray-800 transition-all duration-500 sm:h-10 sm:w-10"
           style={{ filter: isAway ? 'saturate(0.35) opacity(0.85)' : 'none' }}
         >
           {useIcon ? (
@@ -121,7 +120,7 @@ const PersonStatus = ({
 
         {showZoneBadgeIcon && ZoneIcon && (
           <div
-            className="absolute -top-2 -right-2 z-10 flex h-6 w-6 items-center justify-center rounded-full border-2 border-[var(--card-bg)] text-[var(--text-primary)] shadow-[0_6px_14px_rgba(0,0,0,0.35)]"
+            className="absolute -top-2 -right-2 z-10 hidden h-6 w-6 items-center justify-center rounded-full border-2 border-[var(--card-bg)] text-[var(--text-primary)] shadow-[0_6px_14px_rgba(0,0,0,0.35)] sm:flex"
             style={{ background: 'color-mix(in srgb, var(--card-bg) 88%, var(--glass-bg) 12%)' }}
             title={String(statusText)}
           >

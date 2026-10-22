@@ -1516,5 +1516,6 @@
   "light.warmthPreset.daylight": "日光",
   "light.warmthPreset.cool": "冷光",
   "quickControls.allLightsOn": "全部打开",
-  "quickControls.allLightsOff": "全部关闭"
+  "quickControls.allLightsOff": "全部关闭",
+  "away.shortLabel": "外出"
 }
