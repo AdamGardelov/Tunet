@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.23.0-adam.83
+
+- Puts the camera tiles back in a card with a "Kamera" header and a status ("Privat läge på" or the active position), as in the updated design.
+
 ## 1.23.0-adam.82
 
 - Shows the camera tiles straight on the page without a card behind them, as in the design (the card frame still shows in edit mode).
