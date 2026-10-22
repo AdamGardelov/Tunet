@@ -111,7 +111,7 @@ const getPresetLabel = (option) => {
 };
 
 const tileClass =
-  'touch-feedback relative flex h-[68px] min-w-0 flex-col items-center justify-center gap-1.5 rounded-2xl border px-1 text-[11px] font-semibold transition-all duration-200 active:scale-[0.96] disabled:opacity-45';
+  'touch-feedback relative flex h-16 min-w-0 flex-col items-center justify-center gap-1.5 rounded-[14px] border px-1 text-[11px] font-semibold transition-all duration-200 active:scale-[0.96] disabled:opacity-45';
 
 const getPresetIcon = (option, index) => {
   const name = String(option).toLowerCase();
@@ -204,30 +204,41 @@ const CameraPresetCard = ({
   );
 
   const tileCount = options.length + (showLiveButton ? 1 : 0) + 1;
-  // As in the design, the tiles sit straight on the page; the card frame only
-  // shows while editing, so the card can still be found and moved.
-  const sectionStyle = editMode
-    ? cardStyle
-    : {
-        ...cardStyle,
-        backgroundColor: 'transparent',
-        borderColor: 'transparent',
-        backdropFilter: 'none',
-        boxShadow: 'none',
-      };
+  const activeOption = options.find((option) => (stateEntity?.state || entity?.state) === option);
+  const statusText = privacyEnabled
+    ? 'Privat läge på'
+    : activeOption
+      ? `Visar ${getPresetLabel(activeOption)}`
+      : '';
 
   return (
     <section
       key={cardId}
       {...dragProps}
-      className={`group relative flex h-full items-center overflow-hidden rounded-3xl border py-3 font-sans ${editMode ? 'cursor-move px-3' : 'px-0'}`}
-      style={sectionStyle}
-      aria-label={settings.title || 'Kamerapositioner'}
-      data-bare={editMode ? undefined : 'true'}
+      className={`group relative flex flex-col gap-2.5 overflow-hidden rounded-3xl border p-3 font-sans ${editMode ? 'cursor-move' : ''}`}
+      style={cardStyle}
+      aria-label={settings.title || 'Kamera'}
     >
       {controls}
+      <div className="flex items-center gap-2 px-1">
+        <Video
+          className="h-4 w-4 shrink-0 stroke-[1.8px] text-[var(--card-accent,var(--accent-color))]"
+          aria-hidden="true"
+        />
+        <h2 className="m-0 truncate text-[13px] font-semibold text-[var(--text-secondary)]">
+          {settings.title || 'Kamera'}
+        </h2>
+        {statusText && (
+          <span
+            className="ml-auto shrink-0 text-xs text-[var(--text-muted)]"
+            data-testid="camera-status-text"
+          >
+            {statusText}
+          </span>
+        )}
+      </div>
       <div
-        className="grid min-w-0 flex-1 gap-2"
+        className="grid min-w-0 gap-1.5"
         style={{ gridTemplateColumns: `repeat(${tileCount}, minmax(0, 1fr))` }}
       >
         {privacyEntity ? (
