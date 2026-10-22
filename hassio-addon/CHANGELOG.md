@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.23.0-adam.78
+
+- Shows the inhaler's days left on the medication card only from 14 days down (the same limit as the reminder to buy a new one); before that the card just shows its title.
+
 ## 1.23.0-adam.77
 
 - Fixes the add-on build after an Alpine package update: the base image's pinned musl is upgraded before the build tools are installed. Includes everything from 1.23.0-adam.76, which could not be built.
