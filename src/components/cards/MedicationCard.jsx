@@ -6,6 +6,12 @@ import { compactControlTone, compactIconTile } from '../ui/compactControlStyles'
 
 const DEFAULT_REFILL_DOSES = 120;
 
+const scriptSetting = (value) =>
+  typeof value === 'string' && value.startsWith('script.') ? value : null;
+
+const menuButtonClass =
+  'touch-feedback flex h-11 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-2xl border px-2 text-[12px] font-bold active:scale-[0.97] disabled:opacity-50';
+
 const findEntity = (entityIds, pattern, fallbackDomains, entities, used = new Set()) =>
   entityIds.find((id) => !used.has(id) && pattern.test(id)) ||
   entityIds.find(
@@ -53,8 +59,11 @@ const MedicationCard = ({
   // "Ny inhalator köpt" sits behind the cat icon so it can't be hit by mistake:
   // tap the icon, then confirm. Resets via a script when one is configured
   // (it can also clear reminders), otherwise sets the dose counter directly.
-  // null = normal row, 'menu' = shows "Ny inhalator köpt", 'confirm' = asks before resetting.
-  const [refillStep, setRefillStep] = useState(/** @type {null | 'menu' | 'confirm'} */ (null));
+  // null = normal row, 'menu' = the choices, 'extra' = how many extra doses,
+  // 'confirm' = asks before resetting the counter.
+  const [refillStep, setRefillStep] = useState(
+    /** @type {null | 'menu' | 'extra' | 'confirm'} */ (null)
+  );
   const refillOpen = refillStep !== null;
   const refillDoses =
     Number(settings.refillDoses) > 0 ? Number(settings.refillDoses) : DEFAULT_REFILL_DOSES;
@@ -64,6 +73,32 @@ const MedicationCard = ({
       : null;
   const canRefill = Boolean(refillScriptId) || Boolean(mapping.doseId?.startsWith('input_number.'));
   const refillStatus = getStatus('refill');
+
+  // Extra doses (the cat pulled away or wouldn't breathe in): recorded by a
+  // Home Assistant script that lowers the dose counter, counts them for the
+  // morning or evening and logs them; shown as "+N" on that dose button.
+  const extraDoseScriptId = scriptSetting(settings.extraDoseScriptId);
+  const undoExtraDoseScriptId = scriptSetting(settings.undoExtraDoseScriptId);
+  const extraMorning = Number.parseInt(entities[settings.extraMorningEntityId]?.state, 10) || 0;
+  const extraEvening = Number.parseInt(entities[settings.extraEveningEntityId]?.state, 10) || 0;
+  const canExtra = Boolean(extraDoseScriptId);
+  const canUndoExtra = Boolean(undoExtraDoseScriptId) && extraMorning + extraEvening > 0;
+  const hasMenu = canRefill || canExtra;
+
+  const runMenuScript = useCallback(
+    async (event, key, scriptId, variables = undefined) => {
+      event.stopPropagation();
+      if (editMode || !scriptId) return;
+      const ok = await runAction(key, () =>
+        callService('script', 'turn_on', {
+          entity_id: scriptId,
+          ...(variables ? { variables } : {}),
+        })
+      );
+      if (ok) setRefillStep(null);
+    },
+    [callService, editMode, runAction]
+  );
 
   const confirmRefill = useCallback(
     async (event) => {
@@ -112,7 +147,7 @@ const MedicationCard = ({
     [callService, doses, editMode, entities, hasDoseValue, mapping.doseId, runAction]
   );
 
-  const DoseButton = ({ entityId, label }) => {
+  const DoseButton = ({ entityId, label, extra = 0 }) => {
     const done = entities[entityId]?.state === 'on';
     const actionStatus = getStatus(entityId);
     const pending = actionStatus === 'pending';
@@ -131,12 +166,17 @@ const MedicationCard = ({
         disabled={editMode || unavailable || pending}
         onClick={(event) => toggleDose(event, entityId)}
         aria-checked={unavailable ? undefined : done}
-        aria-label={`${label} ${done ? 'tagen' : 'inte tagen'}`}
+        aria-label={`${label} ${done ? 'tagen' : 'inte tagen'}${extra > 0 ? `, ${extra} extra` : ''}`}
         data-testid={`medication-dose-control-${entityId}`}
         className={`touch-feedback relative flex h-11 min-w-0 items-center justify-center rounded-2xl border px-2 text-[11px] font-bold transition-all duration-200 active:scale-[0.97] ${tone} ${unavailable ? 'opacity-45' : ''}`}
       >
         <span className="flex min-w-0 items-center justify-center gap-1.5">
           <span className="truncate">{label}</span>
+          {extra > 0 && (
+            <span className="shrink-0 tabular-nums" data-testid={`medication-extra-${entityId}`}>
+              +{extra}
+            </span>
+          )}
           {(done || actionStatus !== 'idle') && (
             <span
               className="flex h-4 w-4 shrink-0 items-center justify-center"
@@ -168,19 +208,55 @@ const MedicationCard = ({
       </span>
       {refillOpen && !editMode ? (
         <div className="flex min-w-0 flex-1 gap-2" data-testid="medication-refill-actions">
-          {refillStep === 'menu' ? (
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                setRefillStep('confirm');
-              }}
-              data-testid="medication-refill-start"
-              className={`touch-feedback flex h-11 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-2xl border px-3 text-[12px] font-bold active:scale-[0.97] ${compactControlTone.idle}`}
-            >
-              Ny inhalator köpt
-            </button>
-          ) : (
+          {refillStep === 'menu' && (
+            <>
+              {canExtra && (
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setRefillStep('extra');
+                  }}
+                  data-testid="medication-extra-start"
+                  className={`${menuButtonClass} ${compactControlTone.idle}`}
+                >
+                  Extra dos
+                </button>
+              )}
+              {canUndoExtra && (
+                <button
+                  type="button"
+                  onClick={(event) => runMenuScript(event, 'undo', undoExtraDoseScriptId)}
+                  disabled={getStatus('undo') === 'pending'}
+                  aria-label="Ångra extra dos"
+                  data-testid="medication-extra-undo"
+                  className={`${menuButtonClass} ${getStatus('undo') === 'error' ? compactControlTone.error : compactControlTone.idle}`}
+                >
+                  {getStatus('undo') !== 'idle' && (
+                    <ActionFeedbackIndicator status={getStatus('undo')} className="h-4 w-4" />
+                  )}
+                  Ångra
+                </button>
+              )}
+              {canRefill && (
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setRefillStep('confirm');
+                  }}
+                  aria-label="Ny inhalator köpt"
+                  data-testid="medication-refill-start"
+                  className={`${menuButtonClass} ${compactControlTone.idle}`}
+                >
+                  <span className="truncate">
+                    {canExtra || canUndoExtra ? 'Ny inhalator' : 'Ny inhalator köpt'}
+                  </span>
+                </button>
+              )}
+            </>
+          )}
+          {refillStep === 'extra' && (
             <>
               <button
                 type="button"
@@ -188,7 +264,46 @@ const MedicationCard = ({
                   event.stopPropagation();
                   setRefillStep(null);
                 }}
-                className={`touch-feedback flex h-11 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-2xl border px-3 text-[12px] font-bold active:scale-[0.97] ${compactControlTone.idle}`}
+                className={`${menuButtonClass} ${compactControlTone.idle}`}
+              >
+                Avbryt
+              </button>
+              {[1, 2].map((count) => (
+                <button
+                  key={count}
+                  type="button"
+                  onClick={(event) =>
+                    runMenuScript(event, `extra-${count}`, extraDoseScriptId, { antal: count })
+                  }
+                  disabled={getStatus(`extra-${count}`) === 'pending'}
+                  aria-label={count === 1 ? 'Registrera 1 extra dos' : 'Registrera 2 extra doser'}
+                  data-testid={`medication-extra-${count}`}
+                  className={`${menuButtonClass} ${
+                    getStatus(`extra-${count}`) === 'error'
+                      ? compactControlTone.error
+                      : compactControlTone.success
+                  }`}
+                >
+                  {getStatus(`extra-${count}`) !== 'idle' && (
+                    <ActionFeedbackIndicator
+                      status={getStatus(`extra-${count}`)}
+                      className="h-4 w-4"
+                    />
+                  )}
+                  +{count} {count === 1 ? 'dos' : 'doser'}
+                </button>
+              ))}
+            </>
+          )}
+          {refillStep === 'confirm' && (
+            <>
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setRefillStep(null);
+                }}
+                className={`${menuButtonClass} ${compactControlTone.idle}`}
               >
                 Avbryt
               </button>
@@ -199,7 +314,7 @@ const MedicationCard = ({
                 aria-busy={refillStatus === 'pending'}
                 aria-label={`Ja, sätt räknaren till ${refillDoses} doser`}
                 data-testid="medication-refill-confirm"
-                className={`touch-feedback flex h-11 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-2xl border px-3 text-[12px] font-bold active:scale-[0.97] ${
+                className={`${menuButtonClass} ${
                   refillStatus === 'error' ? compactControlTone.error : compactControlTone.success
                 }`}
               >
@@ -229,12 +344,12 @@ const MedicationCard = ({
             className="grid min-w-[164px] grid-cols-2 gap-2"
             data-testid="medication-dose-actions"
           >
-            <DoseButton entityId={mapping.morningId} label="Morgon" />
-            <DoseButton entityId={mapping.eveningId} label="Kväll" />
+            <DoseButton entityId={mapping.morningId} label="Morgon" extra={extraMorning} />
+            <DoseButton entityId={mapping.eveningId} label="Kväll" extra={extraEvening} />
           </div>
         </>
       )}
-      {canRefill && !editMode && (
+      {hasMenu && !editMode && (
         <button
           type="button"
           onClick={(event) => {
