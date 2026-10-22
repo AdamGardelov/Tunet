@@ -294,6 +294,10 @@ describe('custom routine cards', () => {
     );
     expect(screen.getByText('Walter')).toBeInTheDocument();
     expect(screen.getByText('Vår säng')).toBeInTheDocument();
+    // No card behind the tiles outside edit mode.
+    const section = screen.getByRole('region', { name: 'Kamerapositioner' });
+    expect(section).toHaveAttribute('data-bare', 'true');
+    expect(section.style.backgroundColor).toBe('transparent');
     expect(screen.getByRole('button', { name: /Walters säng/i })).toBeEnabled();
     fireEvent.click(screen.getByRole('button', { name: /Walters säng/i }));
     expect(callService).toHaveBeenCalledWith('select', 'select_option', {

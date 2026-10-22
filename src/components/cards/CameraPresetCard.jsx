@@ -204,14 +204,26 @@ const CameraPresetCard = ({
   );
 
   const tileCount = options.length + (showLiveButton ? 1 : 0) + 1;
+  // As in the design, the tiles sit straight on the page; the card frame only
+  // shows while editing, so the card can still be found and moved.
+  const sectionStyle = editMode
+    ? cardStyle
+    : {
+        ...cardStyle,
+        backgroundColor: 'transparent',
+        borderColor: 'transparent',
+        backdropFilter: 'none',
+        boxShadow: 'none',
+      };
 
   return (
     <section
       key={cardId}
       {...dragProps}
-      className={`group relative flex h-full items-center overflow-hidden rounded-3xl border px-3 py-3 font-sans ${editMode ? 'cursor-move' : ''}`}
-      style={cardStyle}
+      className={`group relative flex h-full items-center overflow-hidden rounded-3xl border py-3 font-sans ${editMode ? 'cursor-move px-3' : 'px-0'}`}
+      style={sectionStyle}
       aria-label={settings.title || 'Kamerapositioner'}
+      data-bare={editMode ? undefined : 'true'}
     >
       {controls}
       <div
