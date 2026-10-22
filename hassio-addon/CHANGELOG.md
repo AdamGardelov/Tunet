@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.23.0-adam.82
+
+- Shows the camera tiles straight on the page without a card behind them, as in the design (the card frame still shows in edit mode).
+
 ## 1.23.0-adam.81
 
 - Matches the phone header to the design: date and page title with a ⋮ menu, compact person chips, and a short "Borta" away chip on the same row.
