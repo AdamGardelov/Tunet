@@ -1615,5 +1615,6 @@
   "light.warmthPreset.daylight": "Dagsljus",
   "light.warmthPreset.cool": "Kall",
   "quickControls.allLightsOn": "Tänd alla",
-  "quickControls.allLightsOff": "Släck alla"
+  "quickControls.allLightsOff": "Släck alla",
+  "away.shortLabel": "Borta"
 }

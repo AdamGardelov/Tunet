@@ -1,6 +1,16 @@
 // Dropdown Menu Component that looks nice
 import React, { memo, useState, useRef, useEffect } from 'react';
-import { Settings, Palette, LayoutGrid, Server, Type, Edit2, Plus, Check } from '../../icons';
+import {
+  Settings,
+  Palette,
+  LayoutGrid,
+  Server,
+  Type,
+  Edit2,
+  Plus,
+  Check,
+  EllipsisVertical,
+} from '../../icons';
 
 function SettingsDropdown({
   onOpenSettings,
@@ -76,7 +86,7 @@ function SettingsDropdown({
                     : 'border-[var(--accent-color)]/25 bg-[var(--accent-color)]/15 text-[var(--accent-color)] hover:-translate-y-0.5 hover:bg-[var(--accent-color)]/20'
                 }`
               : isMobile
-                ? 'h-11 w-11 rounded-full border-[var(--glass-border)] bg-[var(--glass-bg)]'
+                ? 'h-11 w-11 rounded-[14px] border-[var(--glass-border)] bg-[var(--glass-bg)]'
                 : 'rounded-full border-transparent p-2'
           } ${!floating ? (isOpen ? 'scale-105 border-[var(--accent-color)] bg-[var(--accent-color)] text-white shadow-lg' : 'text-[var(--text-secondary)] hover:border-[var(--glass-border)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]') : ''} ${floating && isOpen ? 'scale-105' : ''}`}
           aria-label={
@@ -90,6 +100,8 @@ function SettingsDropdown({
             <Check className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
           ) : floating ? (
             <Edit2 className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+          ) : isMobile ? (
+            <EllipsisVertical className="h-5 w-5" />
           ) : (
             <Settings
               className={`h-5 w-5 transition-transform duration-500 ${isOpen ? 'rotate-90' : 'group-hover:rotate-45'}`}

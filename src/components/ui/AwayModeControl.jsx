@@ -11,6 +11,7 @@ const CONFIRM_TIMEOUT_MS = 5000;
  * @property {any} [entity]
  * @property {(domain: string, service: string, data?: object) => any} [callService]
  * @property {(key: string) => string} t
+ * @property {boolean} [compact] short "Borta" label, for the phone header
  */
 const useAwayToggle = (entityId, entity, callService) => {
   const { getStatus, runAction } = useActionFeedback();
@@ -31,7 +32,7 @@ const useAwayToggle = (entityId, entity, callService) => {
  * since it pauses automations across the house; turning it off is one tap.
  */
 /** @param {AwayModeProps} props */
-function AwayModeChipView({ entityId, entity, callService, t }) {
+function AwayModeChipView({ entityId, entity, callService, t, compact = false }) {
   const { isOn, unavailable, status, setAway } = useAwayToggle(entityId, entity, callService);
   const [confirming, setConfirming] = useState(false);
 
@@ -100,7 +101,7 @@ function AwayModeChipView({ entityId, entity, callService, t }) {
       ) : (
         <ActionFeedbackIndicator status={status} className="h-4 w-4" />
       )}
-      <span>{isOn ? t('away.onLabel') : t('away.label')}</span>
+      <span>{compact ? t('away.shortLabel') : isOn ? t('away.onLabel') : t('away.label')}</span>
     </button>
   );
 }

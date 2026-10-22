@@ -1615,5 +1615,6 @@
   "light.warmthPreset.daylight": "Lumière du jour",
   "light.warmthPreset.cool": "Froid",
   "quickControls.allLightsOn": "Tout allumer",
-  "quickControls.allLightsOff": "Tout éteindre"
+  "quickControls.allLightsOff": "Tout éteindre",
+  "away.shortLabel": "Absent"
 }
