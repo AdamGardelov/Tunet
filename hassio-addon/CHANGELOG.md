@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0-adam.80
+
+- Collapses the medication card to a quiet "Klart idag" once both doses are given, dimming the card; tap it to show the dose buttons again.
+- Shows the camera presets as labelled tiles (Privat, Live, Walter, Vår säng, Vagn) with a filled active state, as in the design.
+
 ## 1.23.0-adam.79
 
 - Fixes buttons looking shifted on phones after a tap (e.g. "+1 dos" after "Extra dos"): hover effects now only apply with a mouse or trackpad.
