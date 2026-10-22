@@ -300,6 +300,9 @@ export default function DashboardGrid({ page, media, grid, cards, actions, t }) 
           cardHeight = forcedSpan * rowPx + Math.max(0, forcedSpan - 1) * gapPx;
         }
 
+        // The camera card (header + one row of tiles) sizes itself to its content.
+        const autoHeight = id.startsWith('camera_presets_');
+
         return (
           <div
             key={id}
@@ -310,7 +313,7 @@ export default function DashboardGrid({ page, media, grid, cards, actions, t }) 
               gridColumnStart: isMobile ? undefined : placement.col,
               gridRowEnd: `span ${forcedSpan}`,
               gridColumnEnd: colSpan > 1 ? `span ${colSpan}` : undefined,
-              height: `${cardHeight}px`,
+              height: autoHeight ? undefined : `${cardHeight}px`,
             }}
           >
             {heading && !isSpacerCard && (

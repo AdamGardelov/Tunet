@@ -294,10 +294,9 @@ describe('custom routine cards', () => {
     );
     expect(screen.getByText('Walter')).toBeInTheDocument();
     expect(screen.getByText('Vår säng')).toBeInTheDocument();
-    // No card behind the tiles outside edit mode.
-    const section = screen.getByRole('region', { name: 'Kamerapositioner' });
-    expect(section).toHaveAttribute('data-bare', 'true');
-    expect(section.style.backgroundColor).toBe('transparent');
+    // A card like the others, with a "Kamera" header.
+    expect(screen.getByRole('region', { name: 'Kamera' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Kamera' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Walters säng/i })).toBeEnabled();
     fireEvent.click(screen.getByRole('button', { name: /Walters säng/i }));
     expect(callService).toHaveBeenCalledWith('select', 'select_option', {
@@ -379,12 +378,12 @@ describe('custom routine cards', () => {
       'false'
     );
     expect(screen.getByRole('button', { name: 'Våran säng' })).toHaveClass(
-      'rounded-2xl',
+      'rounded-[14px]',
       'bg-[var(--accent-bg)]',
       'text-[var(--accent-color)]'
     );
     expect(screen.getByRole('button', { name: 'Walters säng' })).toHaveClass(
-      'rounded-2xl',
+      'rounded-[14px]',
       'bg-[var(--glass-bg)]'
     );
 
@@ -607,5 +606,37 @@ describe('custom routine cards', () => {
     expect(callService).toHaveBeenCalledWith('switch', 'turn_on', {
       entity_id: 'switch.walles_kamera_privacy',
     });
+  });
+});
+
+describe('camera card header', () => {
+  const renderCamera = (privacyState, presetState) =>
+    render(
+      <CameraPresetCard
+        cardId="camera_presets_2"
+        settings={{ entityId: 'select.walles_kamera_move_to_preset' }}
+        entities={{
+          'select.walles_kamera_move_to_preset': {
+            state: presetState,
+            attributes: { options: ['Walters säng', 'Våran säng'] },
+          },
+          'switch.walles_kamera_privacy': { state: privacyState, attributes: {} },
+        }}
+        callService={vi.fn()}
+        dragProps={{}}
+        controls={null}
+        cardStyle={{}}
+        editMode={false}
+      />
+    );
+
+  it('says when privacy mode is on', () => {
+    renderCamera('on', 'Walters säng');
+    expect(screen.getByTestId('camera-status-text')).toHaveTextContent('Privat läge på');
+  });
+
+  it('names the active position when privacy mode is off', () => {
+    renderCamera('off', 'Walters säng');
+    expect(screen.getByTestId('camera-status-text')).toHaveTextContent('Visar Walter');
   });
 });
