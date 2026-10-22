@@ -79,3 +79,42 @@ describe('MedicationCard extra doses', () => {
     expect(screen.getByRole('button', { name: 'Ny inhalator köpt' })).toBeInTheDocument();
   });
 });
+
+describe('MedicationCard when both doses are given', () => {
+  it('collapses to one "done today" line and can show the dose buttons again', () => {
+    renderCard({
+      'input_boolean.sparven_medicin_kvall': { state: 'on', attributes: {} },
+      'input_number.sparven_extra_doser_kvall': { state: '1', attributes: {} },
+    });
+
+    expect(screen.queryByTestId('medication-dose-actions')).toBeNull();
+    const done = screen.getByTestId('medication-day-done');
+    expect(done).toHaveTextContent('Klart idag');
+    expect(done).toHaveTextContent('+1');
+
+    fireEvent.click(done);
+    expect(screen.getByTestId('medication-dose-actions')).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'Kväll tagen, 1 extra' })).toBeInTheDocument();
+  });
+
+  it('dims the card but keeps the menu and the low-supply warning', () => {
+    renderCard({
+      'input_boolean.sparven_medicin_kvall': { state: 'on', attributes: {} },
+      'input_number.inhalator_doser_kvar': { state: '19', attributes: { min: 0, max: 125 } },
+    });
+    const card = screen.getByRole('region', { name: 'Sparvens inhalator' });
+    expect(card).toHaveAttribute('data-day-done', 'true');
+    expect(card.style.getPropertyValue('--card-accent')).toBe('var(--text-muted)');
+    expect(screen.getByText('ca 10 dagar kvar')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Fler val för medicinen' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Dagens doser givna. Visa doserna' })
+    ).toBeInTheDocument();
+  });
+
+  it('keeps both buttons while a dose is still due', () => {
+    renderCard();
+    expect(screen.getByTestId('medication-dose-actions')).toBeInTheDocument();
+    expect(screen.queryByTestId('medication-day-done')).toBeNull();
+  });
+});

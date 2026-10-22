@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Cat, Check, EllipsisVertical } from '../../icons';
 import useActionFeedback from '../../hooks/useActionFeedback';
 import ActionFeedbackIndicator from '../ui/ActionFeedbackIndicator';
@@ -91,6 +91,18 @@ const MedicationCard = ({
   const canExtra = Boolean(extraDoseScriptId);
   const canUndoExtra = Boolean(undoExtraDoseScriptId) && extraMorning + extraEvening > 0;
   const hasMenu = canRefill || canExtra;
+
+  // Both doses given: the card steps back to one quiet "done for today" line.
+  // Tapping it brings the two dose buttons back (to undo a mistaken tap).
+  const morningDone = entities[mapping.morningId]?.state === 'on';
+  const eveningDone = entities[mapping.eveningId]?.state === 'on';
+  const dayDone = Boolean(mapping.morningId && mapping.eveningId) && morningDone && eveningDone;
+  const [showDoseButtons, setShowDoseButtons] = useState(false);
+  useEffect(() => {
+    if (!dayDone) setShowDoseButtons(false);
+  }, [dayDone]);
+  const collapsed = dayDone && !showDoseButtons && !editMode;
+  const extraToday = extraMorning + extraEvening;
 
   const runMenuScript = useCallback(
     async (event, key, scriptId, variables = undefined) => {
@@ -205,9 +217,19 @@ const MedicationCard = ({
     <section
       key={cardId}
       {...dragProps}
-      className={`group relative flex h-full items-center gap-3 overflow-hidden rounded-3xl border px-5 py-3 font-sans ${editMode ? 'cursor-move' : ''}`}
-      style={cardStyle}
+      className={`group relative flex h-full items-center gap-3 overflow-hidden rounded-3xl border px-5 py-3 font-sans transition-colors duration-500 ${editMode ? 'cursor-move' : ''}`}
+      style={
+        collapsed
+          ? /** @type {any} */ ({
+              ...cardStyle,
+              '--card-accent': 'var(--text-muted)',
+              backgroundColor: 'var(--card-bg)',
+              borderColor: 'var(--card-border)',
+            })
+          : cardStyle
+      }
       aria-label={settings.title || 'Sparvens inhalator'}
+      data-day-done={collapsed ? 'true' : undefined}
     >
       {controls}
       <span className={compactIconTile}>
@@ -355,18 +377,43 @@ const MedicationCard = ({
                 )}
               </>
             ) : (
-              <p className="line-clamp-2 text-[13px] leading-tight font-bold text-[var(--text-primary)]">
+              <p
+                className={`line-clamp-2 text-[13px] leading-tight font-bold ${
+                  collapsed ? 'text-[var(--text-secondary)]' : 'text-[var(--text-primary)]'
+                }`}
+              >
                 {settings.title || 'Sparvens inhalator'}
               </p>
             )}
           </div>
-          <div
-            className="grid min-w-[164px] grid-cols-2 gap-2"
-            data-testid="medication-dose-actions"
-          >
-            <DoseButton entityId={mapping.morningId} label="Morgon" extra={extraMorning} />
-            <DoseButton entityId={mapping.eveningId} label="Kväll" extra={extraEvening} />
-          </div>
+          {collapsed ? (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                setShowDoseButtons(true);
+              }}
+              aria-label={`Dagens doser givna${extraToday > 0 ? `, ${extraToday} extra` : ''}. Visa doserna`}
+              data-testid="medication-day-done"
+              className="flex h-11 shrink-0 items-center gap-1.5 rounded-2xl px-2 text-[12px] font-semibold text-[var(--status-success-fg)] transition-colors hover:bg-[var(--glass-bg-hover)] active:scale-[0.97]"
+            >
+              <Check className="h-4 w-4" aria-hidden="true" />
+              <span>Klart idag</span>
+              {extraToday > 0 && (
+                <span className="font-medium text-[var(--text-secondary)] tabular-nums">
+                  +{extraToday}
+                </span>
+              )}
+            </button>
+          ) : (
+            <div
+              className="grid min-w-[164px] grid-cols-2 gap-2"
+              data-testid="medication-dose-actions"
+            >
+              <DoseButton entityId={mapping.morningId} label="Morgon" extra={extraMorning} />
+              <DoseButton entityId={mapping.eveningId} label="Kväll" extra={extraEvening} />
+            </div>
+          )}
         </>
       )}
       {hasMenu && !editMode && (
