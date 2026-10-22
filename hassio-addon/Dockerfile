@@ -30,7 +30,10 @@ LABEL \
 	io.hass.type="app" \
 	io.hass.arch="${BUILD_ARCH}"
 
-RUN apk add --no-cache nodejs npm python3 make g++
+# The base image pins musl; upgrade it first so newer Alpine packages
+# (musl-dev, pulled in by g++) can be installed alongside it.
+RUN apk add --no-cache --upgrade musl \
+ && apk add --no-cache nodejs npm python3 make g++
 
 WORKDIR /app
 

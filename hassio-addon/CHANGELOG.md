@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.23.0-adam.77
+
+- Fixes the add-on build after an Alpine package update: the base image's pinned musl is upgraded before the build tools are installed. Includes everything from 1.23.0-adam.76, which could not be built.
+
 ## 1.23.0-adam.76
 
 - Adds "Extra dos" (+1 or +2) and "Ångra" to the medication card's ⋮ menu, and shows today's extra doses as "+N" on the morning and evening buttons.
