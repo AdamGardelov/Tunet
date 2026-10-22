@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.23.0-adam.81
+
+- Matches the phone header to the design: date and page title with a ⋮ menu, compact person chips, and a short "Borta" away chip on the same row.
+
 ## 1.23.0-adam.80
 
 - Collapses the medication card to a quiet "Klart idag" once both doses are given, dimming the card; tap it to show the dose buttons again.
