@@ -15,15 +15,9 @@ import {
 } from '../../icons';
 import useActionFeedback from '../../hooks/useActionFeedback';
 import ActionFeedbackIndicator from '../ui/ActionFeedbackIndicator';
-import { compactControlTone, compactIconTile } from '../ui/compactControlStyles';
+import { compactControlTone } from '../ui/compactControlStyles';
 
 const fallbackIcons = [MapPin, Navigation, Eye, Star];
-const gridColumns = {
-  1: 'grid-cols-1',
-  2: 'grid-cols-2',
-  3: 'grid-cols-3',
-  4: 'grid-cols-4',
-};
 
 const getHouseholdPresetRank = (option) => {
   const name = String(option).toLowerCase();
@@ -106,6 +100,18 @@ export const resolvePresetStateEntityId = (
     })?.[0] || null
   );
 };
+
+// Short tile labels, as in the design; the full preset name stays the accessible name.
+const getPresetLabel = (option) => {
+  const name = String(option);
+  if (/walter/i.test(name)) return 'Walter';
+  if (/våran säng|vår säng|our bed/i.test(name)) return 'Vår säng';
+  if (/vagn|stroller|pram/i.test(name)) return 'Vagn';
+  return name;
+};
+
+const tileClass =
+  'touch-feedback relative flex h-[68px] min-w-0 flex-col items-center justify-center gap-1.5 rounded-2xl border px-1 text-[11px] font-semibold transition-all duration-200 active:scale-[0.96] disabled:opacity-45';
 
 const getPresetIcon = (option, index) => {
   const name = String(option).toLowerCase();
@@ -197,51 +203,56 @@ const CameraPresetCard = ({
     [cameraEntity?.state, cameraId, editMode, onOpenCamera, privacyEnabled]
   );
 
-  const actionCount = options.length + (showLiveButton ? 1 : 0);
+  const tileCount = options.length + (showLiveButton ? 1 : 0) + 1;
 
   return (
     <section
       key={cardId}
       {...dragProps}
-      className={`group relative flex h-full items-center gap-3 overflow-hidden rounded-3xl border px-5 py-3 font-sans ${editMode ? 'cursor-move' : ''}`}
+      className={`group relative flex h-full items-center overflow-hidden rounded-3xl border px-3 py-3 font-sans ${editMode ? 'cursor-move' : ''}`}
       style={cardStyle}
       aria-label={settings.title || 'Kamerapositioner'}
     >
       {controls}
-      {privacyEntity ? (
-        <button
-          type="button"
-          disabled={editMode || privacyUnavailable || getStatus('privacy') === 'pending'}
-          onClick={togglePrivacy}
-          aria-label={privacyEnabled ? 'Stäng av integritetsläge' : 'Slå på integritetsläge'}
-          aria-pressed={privacyEnabled}
-          title={privacyEnabled ? 'Integritetsläge på' : 'Integritetsläge av'}
-          className={`touch-feedback relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border transition-all duration-200 active:scale-[0.94] disabled:opacity-45 ${
-            getStatus('privacy') === 'success'
-              ? compactControlTone.success
-              : getStatus('privacy') === 'error'
-                ? compactControlTone.error
-                : privacyEnabled
-                  ? compactControlTone.active
-                  : compactControlTone.idle
-          }`}
-        >
-          {getStatus('privacy') === 'idle' ? (
-            privacyEnabled ? (
-              <EyeOff className="h-5 w-5 stroke-[1.7px]" data-testid="camera-privacy-icon" />
+      <div
+        className="grid min-w-0 flex-1 gap-2"
+        style={{ gridTemplateColumns: `repeat(${tileCount}, minmax(0, 1fr))` }}
+      >
+        {privacyEntity ? (
+          <button
+            type="button"
+            disabled={editMode || privacyUnavailable || getStatus('privacy') === 'pending'}
+            onClick={togglePrivacy}
+            aria-label={privacyEnabled ? 'Stäng av integritetsläge' : 'Slå på integritetsläge'}
+            aria-pressed={privacyEnabled}
+            title={privacyEnabled ? 'Integritetsläge på' : 'Integritetsläge av'}
+            className={`${tileClass} ${
+              getStatus('privacy') === 'success'
+                ? compactControlTone.success
+                : getStatus('privacy') === 'error'
+                  ? compactControlTone.error
+                  : privacyEnabled
+                    ? compactControlTone.active
+                    : compactControlTone.idle
+            }`}
+          >
+            {getStatus('privacy') === 'idle' ? (
+              privacyEnabled ? (
+                <EyeOff className="h-5 w-5 stroke-[1.7px]" data-testid="camera-privacy-icon" />
+              ) : (
+                <MdCameraOutdoor className="h-5 w-5" data-testid="camera-surveillance-icon" />
+              )
             ) : (
-              <MdCameraOutdoor className="h-6 w-6" data-testid="camera-surveillance-icon" />
-            )
-          ) : (
-            <ActionFeedbackIndicator status={getStatus('privacy')} />
-          )}
-        </button>
-      ) : (
-        <span className={compactIconTile}>
-          <MdCameraOutdoor className="h-6 w-6" data-testid="camera-surveillance-icon" />
-        </span>
-      )}
-      <div className={`grid min-w-0 flex-1 gap-2 ${gridColumns[actionCount] || 'grid-cols-1'}`}>
+              <ActionFeedbackIndicator status={getStatus('privacy')} />
+            )}
+            <span aria-hidden="true">Privat</span>
+          </button>
+        ) : (
+          <span className={`${tileClass} ${compactControlTone.idle}`}>
+            <MdCameraOutdoor className="h-5 w-5" data-testid="camera-surveillance-icon" />
+            <span aria-hidden="true">Kamera</span>
+          </span>
+        )}
         {showLiveButton && (
           <button
             type="button"
@@ -249,10 +260,10 @@ const CameraPresetCard = ({
             onClick={openLiveStream}
             aria-label="Live"
             title="Live"
-            className={`touch-feedback relative flex h-11 min-w-0 items-center justify-center rounded-2xl border px-2 transition-all duration-200 active:scale-[0.94] disabled:opacity-45 ${compactControlTone.idle}`}
+            className={`${tileClass} ${compactControlTone.idle}`}
           >
             <Video className="h-5 w-5 stroke-[1.7px]" />
-            <span className="sr-only">Live</span>
+            <span aria-hidden="true">Live</span>
           </button>
         )}
         {options.map((option, index) => {
@@ -269,7 +280,7 @@ const CameraPresetCard = ({
               aria-label={option}
               aria-pressed={active}
               title={option}
-              className={`touch-feedback relative flex h-11 min-w-0 items-center justify-center rounded-2xl border px-2 transition-all duration-200 active:scale-[0.94] ${
+              className={`${tileClass} ${
                 actionStatus === 'success'
                   ? compactControlTone.success
                   : actionStatus === 'error'
@@ -284,7 +295,9 @@ const CameraPresetCard = ({
               ) : (
                 <ActionFeedbackIndicator status={actionStatus} />
               )}
-              <span className="sr-only">{option}</span>
+              <span aria-hidden="true" className="max-w-full truncate">
+                {getPresetLabel(option)}
+              </span>
             </button>
           );
         })}

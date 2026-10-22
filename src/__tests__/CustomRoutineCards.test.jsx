@@ -268,7 +268,7 @@ describe('custom routine cards', () => {
     await vi.waitFor(() => expect(callService).toHaveBeenCalledTimes(2));
   });
 
-  it('shows two camera presets on one row and selects the tapped position', () => {
+  it('shows two camera presets as labelled tiles on one row and selects the tapped position', () => {
     const callService = vi.fn();
     const { container } = render(
       <CameraPresetCard
@@ -288,7 +288,12 @@ describe('custom routine cards', () => {
       />
     );
 
-    expect(container.querySelector('.grid')).toHaveClass('grid-cols-2');
+    // Camera tile + two presets, each with a short visible label.
+    expect(container.querySelector('.grid').style.gridTemplateColumns).toBe(
+      'repeat(3, minmax(0, 1fr))'
+    );
+    expect(screen.getByText('Walter')).toBeInTheDocument();
+    expect(screen.getByText('Vår säng')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Walters säng/i })).toBeEnabled();
     fireEvent.click(screen.getByRole('button', { name: /Walters säng/i }));
     expect(callService).toHaveBeenCalledWith('select', 'select_option', {
@@ -417,7 +422,7 @@ describe('custom routine cards', () => {
     consoleError.mockRestore();
   });
 
-  it('adapts camera preset columns from one through four icon buttons', () => {
+  it('adapts camera preset columns from one through four labelled tiles', () => {
     const { rerender, container } = render(
       <CameraPresetCard
         cardId="camera_presets_1"
@@ -436,7 +441,9 @@ describe('custom routine cards', () => {
       />
     );
 
-    expect(container.querySelector('.grid')).toHaveClass('grid-cols-1');
+    expect(container.querySelector('.grid').style.gridTemplateColumns).toBe(
+      'repeat(2, minmax(0, 1fr))'
+    );
 
     rerender(
       <CameraPresetCard
@@ -456,9 +463,11 @@ describe('custom routine cards', () => {
       />
     );
 
-    expect(container.querySelector('.grid')).toHaveClass('grid-cols-4');
+    expect(container.querySelector('.grid').style.gridTemplateColumns).toBe(
+      'repeat(5, minmax(0, 1fr))'
+    );
     expect(screen.getAllByRole('button')).toHaveLength(4);
-    expect(screen.queryByText('Preset 1', { selector: ':not(.sr-only)' })).not.toBeInTheDocument();
+    expect(screen.getByText('Preset 1')).toBeInTheDocument();
   });
 
   it('places Walters bed before the shared bed in the default Tapo option order', () => {
