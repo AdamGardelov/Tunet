@@ -5,6 +5,8 @@ import ActionFeedbackIndicator from '../ui/ActionFeedbackIndicator';
 import { compactControlTone, compactIconTile } from '../ui/compactControlStyles';
 
 const DEFAULT_REFILL_DOSES = 120;
+// Matches the Home Assistant reminder to buy a new inhaler (14 days = 28 doses).
+const DEFAULT_LOW_SUPPLY_DAYS = 14;
 
 const scriptSetting = (value) =>
   typeof value === 'string' && value.startsWith('script.') ? value : null;
@@ -54,6 +56,11 @@ const MedicationCard = ({
   const doses = Number.parseFloat(entities[mapping.doseId]?.state);
   const hasDoseValue = Number.isFinite(doses);
   const days = hasDoseValue ? Math.ceil(doses / 2) : null;
+  // Days left only matter once it's time to buy a new inhaler; until then the
+  // card just shows its title.
+  const lowSupplyDays =
+    Number(settings.lowSupplyDays) > 0 ? Number(settings.lowSupplyDays) : DEFAULT_LOW_SUPPLY_DAYS;
+  const showSupply = !hasDoseValue || days <= lowSupplyDays;
   const { getStatus, runAction } = useActionFeedback();
 
   // "Ny inhalator köpt" sits behind the cat icon so it can't be hit by mistake:
@@ -329,14 +336,27 @@ const MedicationCard = ({
       ) : (
         <>
           <div className="min-w-0 flex-1">
-            <p className="line-clamp-2 text-[13px] leading-tight font-bold text-[var(--text-primary)]">
-              {hasDoseValue
-                ? `${doses % 2 === 0 ? days : `ca ${days}`} dagar kvar`
-                : 'Dosantal saknas'}
-            </p>
-            {hasDoseValue && (
-              <p className="mt-1 truncate text-[11px] font-medium text-[var(--text-secondary)]">
-                {doses} doser
+            {showSupply ? (
+              <>
+                <p
+                  className={`line-clamp-2 text-[13px] leading-tight font-bold ${
+                    hasDoseValue ? 'text-[var(--status-warning-fg)]' : 'text-[var(--text-primary)]'
+                  }`}
+                  data-testid="medication-supply"
+                >
+                  {hasDoseValue
+                    ? `${doses % 2 === 0 ? days : `ca ${days}`} dagar kvar`
+                    : 'Dosantal saknas'}
+                </p>
+                {hasDoseValue && (
+                  <p className="mt-1 truncate text-[11px] font-medium text-[var(--text-secondary)]">
+                    {doses} doser
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="line-clamp-2 text-[13px] leading-tight font-bold text-[var(--text-primary)]">
+                {settings.title || 'Sparvens inhalator'}
               </p>
             )}
           </div>
