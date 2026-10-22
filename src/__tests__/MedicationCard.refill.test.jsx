@@ -67,3 +67,43 @@ describe('MedicationCard refill menu', () => {
     });
   });
 });
+
+describe('MedicationCard supply text', () => {
+  const card = (doseState, settings = {}) =>
+    render(
+      <MedicationCard
+        cardId="medication_card_2"
+        settings={{ entityIds: Object.keys(entities), ...settings }}
+        entities={{
+          ...entities,
+          'input_number.inhalator_doser_kvar': {
+            state: doseState,
+            attributes: { min: 0, max: 125 },
+          },
+        }}
+        callService={vi.fn()}
+        dragProps={{}}
+        controls={null}
+        cardStyle={{}}
+        editMode={false}
+      />
+    );
+
+  it('shows only the title while there is plenty left', () => {
+    card('120');
+    expect(screen.getByText('Sparvens inhalator')).toBeInTheDocument();
+    expect(screen.queryByText(/dagar kvar/)).toBeNull();
+    expect(screen.queryByText(/doser$/)).toBeNull();
+  });
+
+  it('shows days left once at or below the reminder threshold', () => {
+    card('28');
+    expect(screen.getByTestId('medication-supply')).toHaveTextContent('14 dagar kvar');
+    expect(screen.getByText('28 doser')).toBeInTheDocument();
+  });
+
+  it('uses a configured threshold', () => {
+    card('40', { lowSupplyDays: 20 });
+    expect(screen.getByTestId('medication-supply')).toHaveTextContent('20 dagar kvar');
+  });
+});

@@ -174,7 +174,7 @@ describe('custom routine cards', () => {
           ],
         }}
         entities={{
-          'input_number.sparven_doser': { state: '38', attributes: { min: 0, max: 60 } },
+          'input_number.sparven_doser': { state: '28', attributes: { min: 0, max: 60 } },
           'input_boolean.sparven_morgon': { state: 'off', attributes: {} },
           'input_boolean.sparven_kvall': { state: 'on', attributes: {} },
         }}
@@ -186,8 +186,8 @@ describe('custom routine cards', () => {
       />
     );
 
-    expect(screen.getByText('19 dagar kvar')).toBeInTheDocument();
-    expect(screen.getByText('38 doser')).toBeInTheDocument();
+    expect(screen.getByText('14 dagar kvar')).toBeInTheDocument();
+    expect(screen.getByText('28 doser')).toBeInTheDocument();
     expect(screen.queryByText('Sparvens inhalator')).not.toBeInTheDocument();
     expect(screen.queryByText(/2\/dag/i)).not.toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Sparvens inhalator' })).toHaveClass(
@@ -217,16 +217,20 @@ describe('custom routine cards', () => {
       'bg-[var(--status-success-bg)]',
       'text-[var(--status-success-fg)]'
     );
-    expect(
-      screen.getByTestId('medication-dose-indicator-input_boolean.sparven_kvall')
-    ).toHaveClass('flex', 'h-4', 'w-4', 'items-center', 'justify-center');
+    expect(screen.getByTestId('medication-dose-indicator-input_boolean.sparven_kvall')).toHaveClass(
+      'flex',
+      'h-4',
+      'w-4',
+      'items-center',
+      'justify-center'
+    );
     expect(
       screen.getByTestId('medication-dose-indicator-input_boolean.sparven_kvall')
     ).not.toHaveClass('absolute');
     fireEvent.click(screen.getByRole('checkbox', { name: 'Morgon inte tagen' }));
     expect(callService).toHaveBeenNthCalledWith(1, 'input_number', 'set_value', {
       entity_id: 'input_number.sparven_doser',
-      value: 37,
+      value: 27,
     });
     await vi.waitFor(() => expect(callService).toHaveBeenCalledTimes(2));
     expect(callService).toHaveBeenNthCalledWith(2, 'input_boolean', 'toggle', {
@@ -243,7 +247,7 @@ describe('custom routine cards', () => {
           entityIds: ['input_number.sparven_doser', 'input_boolean.sparven_morgon'],
         }}
         entities={{
-          'input_number.sparven_doser': { state: '37', attributes: { min: 0, max: 60 } },
+          'input_number.sparven_doser': { state: '27', attributes: { min: 0, max: 60 } },
           'input_boolean.sparven_morgon': { state: 'on', attributes: {} },
         }}
         callService={callService}
@@ -254,12 +258,12 @@ describe('custom routine cards', () => {
       />
     );
 
-    expect(screen.getByText('ca 19 dagar kvar')).toBeInTheDocument();
-    expect(screen.getByText('37 doser')).toBeInTheDocument();
+    expect(screen.getByText('ca 14 dagar kvar')).toBeInTheDocument();
+    expect(screen.getByText('27 doser')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('checkbox', { name: 'Morgon tagen' }));
     expect(callService).toHaveBeenNthCalledWith(1, 'input_number', 'set_value', {
       entity_id: 'input_number.sparven_doser',
-      value: 38,
+      value: 28,
     });
     await vi.waitFor(() => expect(callService).toHaveBeenCalledTimes(2));
   });
