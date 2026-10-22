@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.23.0-adam.76
+
+- Adds "Extra dos" (+1 or +2) and "Ångra" to the medication card's ⋮ menu, and shows today's extra doses as "+N" on the morning and evening buttons.
+
 ## 1.23.0-adam.75
 
 - Asks for confirmation before "Ny inhalator köpt" resets the dose counter, and shows the menu as buttons only so nothing overflows the card on a phone.
