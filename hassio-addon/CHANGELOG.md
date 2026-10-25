@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.23.0-adam.84
+
+- Lets the morning and evening buttons use the medication card's full width (no squeezed title), and shows the doses left in the ⋮ menu.
+
 ## 1.23.0-adam.83
 
 - Puts the camera tiles back in a card with a "Kamera" header and a status ("Privat läge på" or the active position), as in the updated design.
