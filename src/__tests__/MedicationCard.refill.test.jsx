@@ -89,9 +89,10 @@ describe('MedicationCard supply text', () => {
       />
     );
 
-  it('shows only the title while there is plenty left', () => {
+  it('shows no text while there is plenty left, so the dose buttons get the row', () => {
     card('120');
-    expect(screen.getByText('Sparvens inhalator')).toBeInTheDocument();
+    expect(screen.queryByText('Sparvens inhalator')).toBeNull();
+    expect(screen.getByTestId('medication-dose-actions')).toHaveClass('flex-1');
     expect(screen.queryByText(/dagar kvar/)).toBeNull();
     expect(screen.queryByText(/doser$/)).toBeNull();
   });
@@ -105,5 +106,16 @@ describe('MedicationCard supply text', () => {
   it('uses a configured threshold', () => {
     card('40', { lowSupplyDays: 20 });
     expect(screen.getByTestId('medication-supply')).toHaveTextContent('20 dagar kvar');
+  });
+});
+
+describe('MedicationCard doses left in the menu', () => {
+  it('shows the dose count in place of the icon while the menu is open', () => {
+    renderCard();
+    expect(screen.queryByTestId('medication-doses-left')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Fler val för medicinen' }));
+    const tile = screen.getByRole('img', { name: '21 doser kvar, räcker ca 11 dagar' });
+    expect(tile).toHaveTextContent('21');
+    expect(tile).toHaveTextContent('doser');
   });
 });

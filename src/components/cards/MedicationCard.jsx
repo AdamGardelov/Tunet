@@ -232,9 +232,22 @@ const MedicationCard = ({
       data-day-done={collapsed ? 'true' : undefined}
     >
       {controls}
-      <span className={compactIconTile}>
-        <Cat className="h-6 w-6 stroke-[1.7px]" />
-      </span>
+      {refillOpen && hasDoseValue && !editMode ? (
+        // In the ⋮ menu the icon tile shows how many doses are left.
+        <span
+          className={`${compactIconTile} flex-col gap-0 leading-none`}
+          role="img"
+          aria-label={`${doses} doser kvar, räcker ca ${days} dagar`}
+          data-testid="medication-doses-left"
+        >
+          <span className="text-[15px] font-bold tabular-nums">{doses}</span>
+          <span className="text-[9px] font-semibold">doser</span>
+        </span>
+      ) : (
+        <span className={compactIconTile}>
+          <Cat className="h-6 w-6 stroke-[1.7px]" />
+        </span>
+      )}
       {refillOpen && !editMode ? (
         <div className="flex min-w-0 flex-1 gap-2" data-testid="medication-refill-actions">
           {refillStep === 'menu' && (
@@ -357,35 +370,40 @@ const MedicationCard = ({
         </div>
       ) : (
         <>
-          <div className="min-w-0 flex-1">
-            {showSupply ? (
-              <>
+          {/* Text only when it says something: low supply, or the quiet "done" state. */}
+          {(showSupply || collapsed) && (
+            <div className="min-w-0 flex-1">
+              {showSupply ? (
+                <>
+                  <p
+                    className={`line-clamp-2 text-[13px] leading-tight font-bold ${
+                      hasDoseValue
+                        ? 'text-[var(--status-warning-fg)]'
+                        : 'text-[var(--text-primary)]'
+                    }`}
+                    data-testid="medication-supply"
+                  >
+                    {hasDoseValue
+                      ? `${doses % 2 === 0 ? days : `ca ${days}`} dagar kvar`
+                      : 'Dosantal saknas'}
+                  </p>
+                  {hasDoseValue && (
+                    <p className="mt-1 truncate text-[11px] font-medium text-[var(--text-secondary)]">
+                      {doses} doser
+                    </p>
+                  )}
+                </>
+              ) : (
                 <p
                   className={`line-clamp-2 text-[13px] leading-tight font-bold ${
-                    hasDoseValue ? 'text-[var(--status-warning-fg)]' : 'text-[var(--text-primary)]'
+                    collapsed ? 'text-[var(--text-secondary)]' : 'text-[var(--text-primary)]'
                   }`}
-                  data-testid="medication-supply"
                 >
-                  {hasDoseValue
-                    ? `${doses % 2 === 0 ? days : `ca ${days}`} dagar kvar`
-                    : 'Dosantal saknas'}
+                  {settings.title || 'Sparvens inhalator'}
                 </p>
-                {hasDoseValue && (
-                  <p className="mt-1 truncate text-[11px] font-medium text-[var(--text-secondary)]">
-                    {doses} doser
-                  </p>
-                )}
-              </>
-            ) : (
-              <p
-                className={`line-clamp-2 text-[13px] leading-tight font-bold ${
-                  collapsed ? 'text-[var(--text-secondary)]' : 'text-[var(--text-primary)]'
-                }`}
-              >
-                {settings.title || 'Sparvens inhalator'}
-              </p>
-            )}
-          </div>
+              )}
+            </div>
+          )}
           {collapsed ? (
             <button
               type="button"
@@ -407,7 +425,7 @@ const MedicationCard = ({
             </button>
           ) : (
             <div
-              className="grid min-w-[164px] grid-cols-2 gap-2"
+              className={`grid grid-cols-2 gap-2 ${showSupply ? 'min-w-[164px]' : 'min-w-0 flex-1'}`}
               data-testid="medication-dose-actions"
             >
               <DoseButton entityId={mapping.morningId} label="Morgon" extra={extraMorning} />
