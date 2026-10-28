@@ -15,8 +15,8 @@ RUN apk add --no-cache git python3 make g++ \
  && cd /src \
  && npm ci --ignore-scripts \
  && case "$(uname -m)" in \
-      aarch64) npm install --no-save --package-lock=false @rolldown/binding-linux-arm64-musl@1.2.12 ;; \
-      x86_64) npm install --no-save --package-lock=false @rolldown/binding-linux-x64-musl@1.2.12 ;; \
+      aarch64) npm install --no-save --ignore-scripts --package-lock=false @rolldown/binding-linux-arm64-musl@1.2.12 ;; \
+      x86_64) npm install --no-save --ignore-scripts --package-lock=false @rolldown/binding-linux-x64-musl@1.2.12 ;; \
       *) echo "Unsupported build architecture: $(uname -m)" >&2; exit 1 ;; \
     esac \
  && SKIP_POSTBUILD=1 npm run build
