@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.23.0-adam.86
+
+- Fixes the add-on build (skips dependency install scripts while building the frontend), so the "Snabbknapp" card from .85 can be installed.
+
 ## 1.23.0-adam.85
 
 - Adds a one-tap "Snabbknapp" card (e.g. "Kaffe?" for the coffee maker) that can show only in the morning via a Home Assistant helper, first on the phone above the camera.
