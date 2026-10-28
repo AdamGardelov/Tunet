@@ -13,7 +13,7 @@ RUN apk add --no-cache git python3 make g++ \
  && test "$(git -C /src rev-parse HEAD)" = "${SOURCE_COMMIT}" \
  && rm -rf /src/.git \
  && cd /src \
- && npm ci \
+ && npm ci --ignore-scripts \
  && case "$(uname -m)" in \
       aarch64) npm install --no-save --package-lock=false @rolldown/binding-linux-arm64-musl@1.2.12 ;; \
       x86_64) npm install --no-save --package-lock=false @rolldown/binding-linux-x64-musl@1.2.12 ;; \
