@@ -27,6 +27,7 @@ const rendererMocks = vi.hoisted(() => ({
   renderQuickControlsCard: vi.fn(() => ({ renderer: 'quick-controls' })),
   renderMedicationCard: vi.fn(() => ({ renderer: 'medication' })),
   renderCameraPresetCard: vi.fn(() => ({ renderer: 'camera-presets' })),
+  renderActionButtonCard: vi.fn(() => ({ renderer: 'action-button' })),
 }));
 
 vi.mock('../rendering/cards', () => rendererMocks);
@@ -66,6 +67,7 @@ describe('rendering registry dispatch', () => {
     expect(CARD_REGISTRY.some((entry) => entry.prefix === 'quick_controls_')).toBe(true);
     expect(CARD_REGISTRY.some((entry) => entry.prefix === 'medication_card_')).toBe(true);
     expect(CARD_REGISTRY.some((entry) => entry.prefix === 'camera_presets_')).toBe(true);
+    expect(CARD_REGISTRY.some((entry) => entry.prefix === 'action_button_')).toBe(true);
   });
 
   it.each(['light.kitchen', 'climate.living_room'])(

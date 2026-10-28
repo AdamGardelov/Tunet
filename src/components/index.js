@@ -25,6 +25,7 @@ export { default as MowerCard } from './cards/MowerCard';
 export { default as MedicationCard } from './cards/MedicationCard';
 export { default as QuickControlsCard } from './cards/QuickControlsCard';
 export { default as CameraPresetCard } from './cards/CameraPresetCard';
+export { default as ActionButtonCard } from './cards/ActionButtonCard';
 export { default as WeatherTempCard } from './cards/WeatherTempCard';
 
 // ── Charts ───────────────────────────────────────────────────────────────
