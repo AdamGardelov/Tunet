@@ -340,6 +340,18 @@ export const handleAddSelected = (ctx) => {
       return;
     }
 
+    case 'action_button': {
+      if (selectedEntities.length === 0) return;
+      const cardId = `action_button_${Date.now()}`;
+      commitSingleCard(cardId, {
+        entityId: selectedEntities[0],
+        size: 'small',
+        colSpan: 'full',
+      });
+      setSelectedEntities([]);
+      return;
+    }
+
     case 'sensor': {
       if (selectedEntities.length === 0) return;
       const newSettings = { ...cardSettings };

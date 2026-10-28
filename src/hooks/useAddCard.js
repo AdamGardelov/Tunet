@@ -137,6 +137,7 @@ export function useAddCard({
     if (addCardType === 'toggle') return t('addCard.available.toggles');
     if (addCardType === 'sensor') return t('addCard.available.sensors');
     if (addCardType === 'camera_presets') return 'Tillgängliga kameraväljare';
+    if (addCardType === 'action_button') return 'Tillgängliga åtgärder';
     if (addCardType === 'entity') return t('addCard.available.entities');
     return t('addCard.available.lights');
   };
@@ -173,7 +174,8 @@ export function useAddCard({
                                   ? 'addCard.item.toggles'
                                   : addCardType === 'sensor'
                                     ? 'addCard.item.sensors'
-                                    : addCardType === 'camera_presets'
+                                    : addCardType === 'camera_presets' ||
+                                        addCardType === 'action_button'
                                       ? 'addCard.item.entities'
                                       : addCardType === 'entity'
                                         ? 'addCard.item.entities'

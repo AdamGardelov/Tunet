@@ -25,11 +25,12 @@ export const sortCardPlacements = (items, isMobile) =>
   [...items].sort((a, b) => {
     if (isMobile) {
       const mobilePriority = (id) => {
-        if (id.startsWith('camera_presets_')) return 0;
-        if (id.startsWith('quick_controls_')) return 1;
-        if (id.startsWith('medication_card_')) return 2;
-        if (id.startsWith('vacuum.')) return 4;
-        return 3;
+        if (id.startsWith('action_button_')) return 0;
+        if (id.startsWith('camera_presets_')) return 1;
+        if (id.startsWith('quick_controls_')) return 2;
+        if (id.startsWith('medication_card_')) return 3;
+        if (id.startsWith('vacuum.')) return 5;
+        return 4;
       };
       const priorityDifference = mobilePriority(a.id) - mobilePriority(b.id);
       if (priorityDifference !== 0) return priorityDifference;
@@ -300,8 +301,9 @@ export default function DashboardGrid({ page, media, grid, cards, actions, t }) 
           cardHeight = forcedSpan * rowPx + Math.max(0, forcedSpan - 1) * gapPx;
         }
 
-        // The camera card (header + one row of tiles) sizes itself to its content.
-        const autoHeight = id.startsWith('camera_presets_');
+        // The camera card (header + one row of tiles) and action rows size
+        // themselves to their content.
+        const autoHeight = id.startsWith('camera_presets_') || id.startsWith('action_button_');
 
         return (
           <div

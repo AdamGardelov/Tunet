@@ -24,3 +24,4 @@ export { renderSpacerCard } from './spacerRenderer';
 export { renderQuickControlsCard } from './quickControlsRenderer';
 export { renderMedicationCard } from './medicationRenderer';
 export { renderCameraPresetCard } from './cameraPresetRenderer';
+export { renderActionButtonCard } from './actionButtonRenderer';

@@ -3,6 +3,7 @@ import {
   Bot,
   Calendar,
   Camera,
+  Coffee,
   Car,
   Check,
   CloudSun,
@@ -386,6 +387,11 @@ function AddCardContent({
       }
       if (addCardType === 'camera_presets') {
         return id.startsWith('select.');
+      }
+      if (addCardType === 'action_button') {
+        return ['light.', 'switch.', 'input_boolean.', 'fan.', 'script.', 'scene.', 'button.'].some(
+          (prefix) => id.startsWith(prefix)
+        );
       }
       if (addCardType === 'sensor') {
         return (
@@ -959,6 +965,7 @@ function AddCardContent({
     'quick_controls',
     'medication',
     'camera_presets',
+    'action_button',
   ].includes(addCardType);
   const usesMultiSelectWithCalendar = usesEntityMultiSelect || addCardType === 'calendar';
 
@@ -1188,6 +1195,13 @@ function AddCardContent({
                     isActive={addCardType === 'camera_presets'}
                     onSelect={setAddCardType}
                   />
+                  <TypeButton
+                    type="action_button"
+                    icon={Coffee}
+                    label="Snabbknapp"
+                    isActive={addCardType === 'action_button'}
+                    onSelect={setAddCardType}
+                  />
                 </div>
                 {addCardType === 'sensor' && (
                   <p className="mt-2 ml-4 text-[11px] text-[var(--text-secondary)] opacity-75">
@@ -1204,6 +1218,12 @@ function AddCardContent({
                 {addCardType === 'medication' && (
                   <p className="mt-2 ml-4 text-[11px] text-[var(--text-secondary)] opacity-75">
                     Välj dosräknaren samt hjälparna för morgon och kväll.
+                  </p>
+                )}
+                {addCardType === 'action_button' && (
+                  <p className="mt-2 ml-4 text-[11px] text-[var(--text-secondary)] opacity-75">
+                    En knapp som startar något, t.ex. kaffebryggaren. Välj när den ska synas med ett
+                    villkor under kortets inställningar.
                   </p>
                 )}
                 {addCardType === 'camera_presets' && (
