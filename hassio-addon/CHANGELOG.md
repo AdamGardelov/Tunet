@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.23.0-adam.87
+
+- Fixes the add-on build for real: the rolldown binding install no longer runs a broken install script from home-assistant-js-websocket 9.8.0. Includes the "Snabbknapp" card from .85.
+
 ## 1.23.0-adam.86
 
 - Fixes the add-on build (skips dependency install scripts while building the frontend), so the "Snabbknapp" card from .85 can be installed.
