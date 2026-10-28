@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.23.0-adam.85
+
+- Adds a one-tap "Snabbknapp" card (e.g. "Kaffe?" for the coffee maker) that can show only in the morning via a Home Assistant helper, first on the phone above the camera.
+
 ## 1.23.0-adam.84
 
 - Lets the morning and evening buttons use the medication card's full width (no squeezed title), and shows the doses left in the ⋮ menu.
