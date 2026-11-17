@@ -22,11 +22,10 @@ import {
   inferUnitKind,
 } from '../utils';
 import M3Slider from '../components/ui/M3Slider';
+import BrightnessSlider from '../components/ui/BrightnessSlider';
 import ActionFeedbackIndicator from '../components/ui/ActionFeedbackIndicator';
 import useActionFeedback from '../hooks/useActionFeedback';
 import {
-  BRIGHTNESS_STEP_PCT,
-  MAX_BRIGHTNESS_PCT,
   MIN_BRIGHTNESS_PCT,
   brightnessToStepPct,
 } from '../utils/lightSteps';
@@ -876,12 +875,8 @@ export default function RoomModal({
                               </span>
                             </button>
                           </div>
-                          <M3Slider
+                          <BrightnessSlider
                             variant="thinLg"
-                            min={MIN_BRIGHTNESS_PCT}
-                            max={MAX_BRIGHTNESS_PCT}
-                            step={BRIGHTNESS_STEP_PCT}
-                            showSteps
                             value={brightnessPct}
                             onCommit={(value) => handleLightBrightness(id, Number(value))}
                             ariaLabel={`${entity.attributes?.friendly_name || id} ${t('light.brightness')}`}
