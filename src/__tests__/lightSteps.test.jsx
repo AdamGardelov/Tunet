@@ -1,23 +1,56 @@
 import { act, fireEvent, render, renderHook, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import BrightnessSlider from '../components/ui/BrightnessSlider';
 import M3Slider from '../components/ui/M3Slider';
 import useHeldValue from '../hooks/useHeldValue';
 import {
+  BRIGHTNESS_MAX_POSITION,
+  BRIGHTNESS_STEPS_PCT,
+  brightnessFillPct,
+  brightnessPctToPosition,
   brightnessToStepPct,
   getWarmthPresets,
   nearestWarmthIndex,
+  positionToBrightnessPct,
   snapBrightnessPct,
 } from '../utils/lightSteps';
 
 describe('light steps', () => {
-  it('snaps brightness to 10 % steps without ever reaching 0', () => {
-    expect(snapBrightnessPct(0)).toBe(10);
+  it('snaps brightness to its steps, down to 1 % but never 0', () => {
+    expect(snapBrightnessPct(0)).toBe(1);
+    expect(snapBrightnessPct(4)).toBe(5);
+    expect(snapBrightnessPct(8)).toBe(10);
     expect(snapBrightnessPct(44)).toBe(40);
     expect(snapBrightnessPct(46)).toBe(50);
     expect(snapBrightnessPct(120)).toBe(100);
+    expect(brightnessToStepPct(1)).toBe(1);
+    expect(brightnessToStepPct(13)).toBe(5);
     expect(brightnessToStepPct(64)).toBe(30);
     expect(brightnessToStepPct(255)).toBe(100);
-    expect(brightnessToStepPct(undefined)).toBe(10);
+    expect(brightnessToStepPct(undefined)).toBe(1);
+  });
+
+  it('maps brightness to evenly spaced slider positions and back', () => {
+    expect(BRIGHTNESS_STEPS_PCT.map(brightnessPctToPosition)).toEqual(
+      BRIGHTNESS_STEPS_PCT.map((_, index) => index)
+    );
+    expect(positionToBrightnessPct(0)).toBe(1);
+    expect(positionToBrightnessPct(1)).toBe(5);
+    expect(positionToBrightnessPct(BRIGHTNESS_MAX_POSITION)).toBe(100);
+    expect(positionToBrightnessPct('99')).toBe(100);
+    expect(brightnessFillPct(1)).toBe(0);
+    expect(brightnessFillPct(100)).toBe(100);
+  });
+
+  it('lets the brightness slider reach 5 % and sends it as a percentage', () => {
+    const onCommit = vi.fn();
+    render(<BrightnessSlider value={10} onCommit={onCommit} ariaLabel="Ljusstyrka" />);
+    const slider = screen.getByRole('slider', { name: 'Ljusstyrka' });
+    expect(slider).toHaveAttribute('aria-valuenow', '2');
+    fireEvent.pointerDown(slider);
+    fireEvent.change(slider, { target: { value: '1' } });
+    fireEvent.pointerUp(slider);
+    expect(onCommit).toHaveBeenCalledWith(5);
   });
 
   it('keeps only the warmth presets a light can show', () => {

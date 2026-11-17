@@ -11,16 +11,17 @@ import {
   Sun,
   Power,
 } from '../icons';
-import M3Slider from '../components/ui/M3Slider';
+import BrightnessSlider from '../components/ui/BrightnessSlider';
 import AccessibleModalShell from '../components/ui/AccessibleModalShell';
 import ActionFeedbackIndicator from '../components/ui/ActionFeedbackIndicator';
 import useActionFeedback from '../hooks/useActionFeedback';
 import useHeldValue from '../hooks/useHeldValue';
 import WarmthStepSlider from '../components/ui/WarmthStepSlider';
 import {
-  BRIGHTNESS_STEP_PCT,
-  MAX_BRIGHTNESS_PCT,
-  MIN_BRIGHTNESS_PCT,
+  BRIGHTNESS_MAX_POSITION,
+  brightnessFillPct,
+  brightnessPctToPosition,
+  positionToBrightnessPct,
   brightnessToStepPct,
   getEntityKelvin,
   getEntityKelvinRange,
@@ -28,11 +29,10 @@ import {
   nearestWarmthIndex,
 } from '../utils/lightSteps';
 
-// Interior marks for the 10 % brightness steps (10 → 100 % is nine steps).
+// Interior marks between the brightness steps, evenly spaced like the slider.
 const BRIGHTNESS_STEP_MARKS = Array.from(
-  { length: (MAX_BRIGHTNESS_PCT - MIN_BRIGHTNESS_PCT) / BRIGHTNESS_STEP_PCT - 1 },
-  (_, index) =>
-    ((index + 1) * BRIGHTNESS_STEP_PCT * 100) / (MAX_BRIGHTNESS_PCT - MIN_BRIGHTNESS_PCT)
+  { length: BRIGHTNESS_MAX_POSITION - 1 },
+  (_, index) => ((index + 1) * 100) / BRIGHTNESS_MAX_POSITION
 );
 import { getIconComponent } from '../icons';
 
@@ -135,8 +135,8 @@ export default function LightModal({
   // Group members: one command per release, deduplicated across the
   // pointer/mouse/touch events a single gesture fires.
   const lastSubCommitRef = useRef({});
-  const commitSubBrightness = (entityId, rawValue) => {
-    const pct = parseInt(rawValue, 10);
+  const commitSubBrightness = (entityId, rawPosition) => {
+    const pct = positionToBrightnessPct(rawPosition);
     if (!Number.isFinite(pct) || lastSubCommitRef.current[entityId] === pct) return;
     const member = entities[entityId];
     if (member?.state === 'on' && brightnessToStepPct(member.attributes?.brightness) === pct)
@@ -343,11 +343,7 @@ export default function LightModal({
                           </span>
                         </div>
                         <div className="h-10">
-                          <M3Slider
-                            min={MIN_BRIGHTNESS_PCT}
-                            max={MAX_BRIGHTNESS_PCT}
-                            step={BRIGHTNESS_STEP_PCT}
-                            showSteps
+                          <BrightnessSlider
                             value={brightnessPct}
                             disabled={isUnavailable}
                             onChange={(e) => setDragBrightnessPct(parseInt(e.target.value, 10))}
@@ -457,10 +453,7 @@ export default function LightModal({
                                   style={{
                                     width: `${
                                       subIsOn
-                                        ? ((brightnessToStepPct(subBrightness) -
-                                            MIN_BRIGHTNESS_PCT) /
-                                            (MAX_BRIGHTNESS_PCT - MIN_BRIGHTNESS_PCT)) *
-                                          100
+                                        ? brightnessFillPct(brightnessToStepPct(subBrightness))
                                         : 0
                                     }%`,
                                   }}
@@ -476,15 +469,17 @@ export default function LightModal({
                                 {/* Invisible stepped slider; sends once on release */}
                                 <input
                                   type="range"
-                                  min={MIN_BRIGHTNESS_PCT}
-                                  max={MAX_BRIGHTNESS_PCT}
-                                  step={BRIGHTNESS_STEP_PCT}
-                                  value={brightnessToStepPct(subBrightness)}
+                                  min={0}
+                                  max={BRIGHTNESS_MAX_POSITION}
+                                  step={1}
+                                  value={brightnessPctToPosition(
+                                    brightnessToStepPct(subBrightness)
+                                  )}
                                   aria-label={`${subName} ${t('light.brightness')}`}
                                   aria-valuetext={`${brightnessToStepPct(subBrightness)}%`}
                                   disabled={subUnavail}
                                   onChange={(e) => {
-                                    const pct = parseInt(e.target.value, 10);
+                                    const pct = positionToBrightnessPct(e.target.value);
                                     setOptimisticLightBrightness((prev) => ({
                                       ...prev,
                                       [cid]: Math.round((pct / 100) * 255),

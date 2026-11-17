@@ -1,14 +1,11 @@
 import { useState, useCallback, memo } from 'react';
 import { getIconComponent } from '../../icons';
 import { Lightbulb } from '../../icons';
-import M3Slider from '../ui/M3Slider';
+import BrightnessSlider from '../ui/BrightnessSlider';
 import ActionFeedbackIndicator from '../ui/ActionFeedbackIndicator';
 import useActionFeedback from '../../hooks/useActionFeedback';
 import useHeldValue from '../../hooks/useHeldValue';
 import {
-  BRIGHTNESS_STEP_PCT,
-  MAX_BRIGHTNESS_PCT,
-  MIN_BRIGHTNESS_PCT,
   brightnessToStepPct,
 } from '../../utils/lightSteps';
 
@@ -55,8 +52,9 @@ const LightCard = ({
   const isSmall = sizeSetting === 'small';
   const isDenseMobile = isMobile && !isSmall;
 
-  // Brightness in 10 % steps, sent once on release and held until the light
-  // reports it back, so slow (cloud) lights don't make the slider jump.
+  // Brightness in steps (1, 5, 10, 20 … 100 %), sent once on release and held
+  // until the light reports it back, so slow (cloud) lights don't make the
+  // slider jump.
   const [brightnessPct, holdBrightnessPct] = useHeldValue(
     brightnessToStepPct(br)
   );
@@ -147,12 +145,8 @@ const LightCard = ({
           </div>
           <div className={`flex w-full items-center ${isDimmable ? 'h-6' : 'h-6'}`}>
             {isDimmable && (
-              <M3Slider
+              <BrightnessSlider
                 variant="thinLg"
-                min={MIN_BRIGHTNESS_PCT}
-                max={MAX_BRIGHTNESS_PCT}
-                step={BRIGHTNESS_STEP_PCT}
-                showSteps
                 value={brightnessPct}
                 disabled={isUnavailable}
                 onChange={handleBrightnessChange}
@@ -265,12 +259,8 @@ const LightCard = ({
         {/* Helper to keep layout consistent. For non-dimmable, we keep the empty space where slider would be. */}
         <div className={`flex w-full items-center ${isDenseMobile ? 'mt-2' : 'mt-3'} ${isDimmable ? '' : isDenseMobile ? 'h-8' : 'h-12'}`}>
           {isDimmable && (
-            <M3Slider
+            <BrightnessSlider
               variant={isDenseMobile ? 'thinLg' : 'default'}
-              min={MIN_BRIGHTNESS_PCT}
-              max={MAX_BRIGHTNESS_PCT}
-              step={BRIGHTNESS_STEP_PCT}
-              showSteps
               value={brightnessPct}
               disabled={isUnavailable}
               onChange={handleBrightnessChange}

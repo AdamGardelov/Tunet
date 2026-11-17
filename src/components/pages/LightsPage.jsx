@@ -13,15 +13,12 @@ import {
   Thermometer,
 } from '../../icons';
 import { getIconComponent } from '../../icons';
-import M3Slider from '../ui/M3Slider';
+import BrightnessSlider from '../ui/BrightnessSlider';
 import ActionFeedbackIndicator from '../ui/ActionFeedbackIndicator';
 import useActionFeedback from '../../hooks/useActionFeedback';
 import useHeldValue from '../../hooks/useHeldValue';
 import WarmthStepSlider from '../ui/WarmthStepSlider';
 import {
-  BRIGHTNESS_STEP_PCT,
-  MAX_BRIGHTNESS_PCT,
-  MIN_BRIGHTNESS_PCT,
   brightnessToStepPct,
   getEntityKelvin,
   getEntityKelvinRange,
@@ -71,7 +68,7 @@ const LightTile = memo(
     const isOn = state === 'on';
     const isUnavailable = state === 'unavailable' || state === 'unknown';
     const name = attributes?.friendly_name || entity_id.split('.')[1];
-    // Brightness in 10 % steps, warmth in named presets; each sent once on
+    // Brightness in steps (1, 5, 10, 20 … 100 %), warmth in named presets; each sent once on
     // release and held until the light reports it back.
     const [brightnessPct, holdBrightnessPct] = useHeldValue(
       brightnessToStepPct(attributes?.brightness)
@@ -219,12 +216,8 @@ const LightTile = memo(
         {/* Brightness slider */}
         {isDimmable && isOn && (
           <div className="mt-4">
-            <M3Slider
+            <BrightnessSlider
               variant="thinLg"
-              min={MIN_BRIGHTNESS_PCT}
-              max={MAX_BRIGHTNESS_PCT}
-              step={BRIGHTNESS_STEP_PCT}
-              showSteps
               value={brightnessPct}
               disabled={isUnavailable}
               onChange={(e) => setDragBrightnessPct(parseInt(e.target.value, 10))}
