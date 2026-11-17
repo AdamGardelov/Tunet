@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.23.0-adam.88
+
+- Brightness sliders now go down to 1 %: the steps are 1, 5, 10, 20 … 100 %, so a night light can be set to 5 % from Tunet.
+
 ## 1.23.0-adam.87
 
 - Fixes the add-on build for real: the rolldown binding install no longer runs a broken install script from home-assistant-js-websocket 9.8.0. Includes the "Snabbknapp" card from .85.
