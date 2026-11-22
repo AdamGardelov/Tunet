@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.23.0-adam.89
+
+- The media page shows a TV remote (arrow keys, OK and Back) when the selected TV has a remote entity. Works with Samsung TVs.
+
 ## 1.23.0-adam.88
 
 - Brightness sliders now go down to 1 %: the steps are 1, 5, 10, 20 … 100 %, so a night light can be set to 5 % from Tunet.
