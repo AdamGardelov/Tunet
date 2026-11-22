@@ -1616,5 +1616,10 @@
   "light.warmthPreset.cool": "Kühl",
   "quickControls.allLightsOn": "Alle einschalten",
   "quickControls.allLightsOff": "Alle ausschalten",
-  "away.shortLabel": "Weg"
+  "away.shortLabel": "Weg",
+  "media.remote.up": "Up",
+  "media.remote.down": "Down",
+  "media.remote.left": "Left",
+  "media.remote.right": "Right",
+  "media.remote.ok": "OK"
 }

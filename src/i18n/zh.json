@@ -1517,5 +1517,10 @@
   "light.warmthPreset.cool": "冷光",
   "quickControls.allLightsOn": "全部打开",
   "quickControls.allLightsOff": "全部关闭",
-  "away.shortLabel": "外出"
+  "away.shortLabel": "外出",
+  "media.remote.up": "Up",
+  "media.remote.down": "Down",
+  "media.remote.left": "Left",
+  "media.remote.right": "Right",
+  "media.remote.ok": "OK"
 }

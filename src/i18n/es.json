@@ -1616,5 +1616,10 @@
   "light.warmthPreset.cool": "Frío",
   "quickControls.allLightsOn": "Encender todas",
   "quickControls.allLightsOff": "Apagar todas",
-  "away.shortLabel": "Fuera"
+  "away.shortLabel": "Fuera",
+  "media.remote.up": "Up",
+  "media.remote.down": "Down",
+  "media.remote.left": "Left",
+  "media.remote.right": "Right",
+  "media.remote.ok": "OK"
 }
