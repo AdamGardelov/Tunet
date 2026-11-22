@@ -1616,5 +1616,10 @@
   "light.warmthPreset.cool": "Froid",
   "quickControls.allLightsOn": "Tout allumer",
   "quickControls.allLightsOff": "Tout éteindre",
-  "away.shortLabel": "Absent"
+  "away.shortLabel": "Absent",
+  "media.remote.up": "Up",
+  "media.remote.down": "Down",
+  "media.remote.left": "Left",
+  "media.remote.right": "Right",
+  "media.remote.ok": "OK"
 }

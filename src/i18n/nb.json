@@ -1616,5 +1616,10 @@
   "light.warmthPreset.cool": "Kald",
   "quickControls.allLightsOn": "Slå på alle",
   "quickControls.allLightsOff": "Slå av alle",
-  "away.shortLabel": "Borte"
+  "away.shortLabel": "Borte",
+  "media.remote.up": "Up",
+  "media.remote.down": "Down",
+  "media.remote.left": "Left",
+  "media.remote.right": "Right",
+  "media.remote.ok": "OK"
 }

@@ -24,6 +24,8 @@ import {
 } from '../../icons';
 import { isSonosMediaEntity } from '../../utils';
 import { getMediaPlayerPowerAction } from '../../utils/mediaPlayerFeatures';
+import { getTvRemote } from '../../utils/tvRemote';
+import TvRemotePad from '../ui/TvRemotePad';
 
 const BLOCKED_MEDIA_TYPES = new Set([
   'camera',
@@ -173,6 +175,7 @@ function MediaPage({
   const isTV = mpId
     ? getA(mpId, 'media_content_type') === 'channel' || getA(mpId, 'device_class') === 'tv'
     : false;
+  const tvRemote = isTV ? getTvRemote(mpId, entities) : null;
 
   const resolveMediaImageUrl = useCallback(
     (rawUrl) => {
@@ -1067,6 +1070,15 @@ function MediaPage({
                       <Plus className="h-4 w-4" />
                     </button>
                   </div>
+                )}
+
+                {!isIdlePlayer && tvRemote && (
+                  <TvRemotePad
+                    remoteId={tvRemote.remoteId}
+                    keys={tvRemote.keys}
+                    callService={callService}
+                    t={t}
+                  />
                 )}
               </div>
             </div>

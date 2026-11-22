@@ -1616,5 +1616,10 @@
   "light.warmthPreset.cool": "Kall",
   "quickControls.allLightsOn": "Tänd alla",
   "quickControls.allLightsOff": "Släck alla",
-  "away.shortLabel": "Borta"
+  "away.shortLabel": "Borta",
+  "media.remote.up": "Upp",
+  "media.remote.down": "Ner",
+  "media.remote.left": "Vänster",
+  "media.remote.right": "Höger",
+  "media.remote.ok": "OK"
 }
