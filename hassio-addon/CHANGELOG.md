@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.23.0-adam.90
+
+- Quick controls cards can hold script and scene buttons (a tap runs them) and short names per card, so the bed lamp card can read "Adam", "Emma" and "Kväll".
+
 ## 1.23.0-adam.89
 
 - The media page shows a TV remote (arrow keys, OK and Back) when the selected TV has a remote entity. Works with Samsung TVs.
