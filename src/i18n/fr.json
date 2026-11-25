@@ -1621,5 +1621,6 @@
   "media.remote.down": "Down",
   "media.remote.left": "Left",
   "media.remote.right": "Right",
-  "media.remote.ok": "OK"
+  "media.remote.ok": "OK",
+  "quickControls.run": "Lancer"
 }
