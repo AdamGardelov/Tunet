@@ -1,13 +1,18 @@
 import { memo, useCallback, useMemo } from 'react';
-import { AirVent, Lightbulb, LightbulbOff, Power } from '../../icons';
+import { AirVent, Lightbulb, LightbulbOff, Power, Sparkles } from '../../icons';
 import useActionFeedback from '../../hooks/useActionFeedback';
 import ActionFeedbackIndicator from '../ui/ActionFeedbackIndicator';
 import { compactControlTone, compactIconTile } from '../ui/compactControlStyles';
 import { getLightColor } from '../../utils/lightColor';
 
 const toggleDomains = new Set(['light', 'switch', 'input_boolean', 'fan']);
+// Scripts and scenes are one-shot actions: a tap runs them instead of toggling.
+const runDomains = new Set(['script', 'scene']);
+const isRunEntity = (entityId) => runDomains.has(entityId.split('.')[0]);
 
-const getCompactName = (entityId, entity) => {
+const getCompactName = (entityId, entity, names) => {
+  const custom = typeof names?.[entityId] === 'string' ? names[entityId].trim() : '';
+  if (custom) return custom;
   const name = entity?.attributes?.friendly_name || entityId;
   if (entityId.startsWith('climate.') && /electrolux|air conditioner|klimat/i.test(name)) {
     return 'AC';
@@ -30,9 +35,16 @@ const QuickControlsCard = ({
     () => (Array.isArray(settings.entityIds) ? settings.entityIds : []),
     [settings.entityIds]
   );
+  const names = settings.names;
   const singleControl = entityIds.length === 1;
+  // Lamps plus optional scene/script buttons (e.g. "Kväll") share the bulb icon.
+  const lightIds = useMemo(
+    () => entityIds.filter((entityId) => entityId.startsWith('light.')),
+    [entityIds]
+  );
   const sharedLightIcon =
-    entityIds.length > 1 && entityIds.every((entityId) => entityId.startsWith('light.'));
+    lightIds.length > 1 &&
+    entityIds.every((entityId) => entityId.startsWith('light.') || isRunEntity(entityId));
   const configuredTitle = typeof settings.title === 'string' ? settings.title.trim() : '';
   const title =
     configuredTitle.toLocaleLowerCase('sv-SE') === 'snabbkontroller' ? '' : configuredTitle;
@@ -44,12 +56,12 @@ const QuickControlsCard = ({
   const groupLights = useMemo(
     () =>
       sharedLightIcon
-        ? entityIds.filter((id) => {
+        ? lightIds.filter((id) => {
             const state = entities[id]?.state;
             return state && !['unavailable', 'unknown'].includes(state);
           })
         : [],
-    [entities, entityIds, sharedLightIcon]
+    [entities, lightIds, sharedLightIcon]
   );
   const anyLightOn = groupLights.some((id) => entities[id]?.state === 'on');
   const groupStatus = getStatus('all-lights');
@@ -72,9 +84,12 @@ const QuickControlsCard = ({
       event.stopPropagation();
       if (editMode) return;
       const entity = entities[entityId];
-      if (!entity || ['unavailable', 'unknown'].includes(entity.state)) return;
       const domain = entityId.split('.')[0];
-      if (domain === 'climate') {
+      if (!entity || entity.state === 'unavailable') return;
+      if (entity.state === 'unknown' && !runDomains.has(domain)) return;
+      if (runDomains.has(domain)) {
+        runAction(entityId, () => callService(domain, 'turn_on', { entity_id: entityId }));
+      } else if (domain === 'climate') {
         runAction(entityId, () =>
           callService('climate', entity.state === 'off' ? 'turn_on' : 'turn_off', {
             entity_id: entityId,
@@ -95,20 +110,26 @@ const QuickControlsCard = ({
   ) => {
     const entity = entities[entityId];
     const domain = entityId.split('.')[0];
-    const unavailable = !entity || ['unavailable', 'unknown'].includes(entity.state);
-    const active = !unavailable && entity.state !== 'off';
+    const isRun = runDomains.has(domain);
+    // A scene's state is its last activation time, so "unknown" only means never run.
+    const unavailable =
+      !entity || entity.state === 'unavailable' || (!isRun && entity.state === 'unknown');
+    const active = !unavailable && (isRun ? entity.state === 'on' : entity.state !== 'off');
     const actionStatus = getStatus(entityId);
     const pending = actionStatus === 'pending';
     const lightColor = domain === 'light' ? getLightColor(entity) : null;
-    const Icon = domain === 'climate' ? AirVent : domain === 'light' ? Lightbulb : Power;
+    const Icon =
+      domain === 'climate' ? AirVent : domain === 'light' ? Lightbulb : isRun ? Sparkles : Power;
     const temperature = entity?.attributes?.current_temperature;
     const stateLabel = unavailable
       ? t('status.unavailable')
-      : domain === 'climate' && active && temperature !== undefined
-        ? `${t('common.on')} · ${temperature}°`
-        : active
-          ? t('common.on')
-          : t('common.off');
+      : isRun
+        ? t('quickControls.run') || 'Kör'
+        : domain === 'climate' && active && temperature !== undefined
+          ? `${t('common.on')} · ${temperature}°`
+          : active
+            ? t('common.on')
+            : t('common.off');
     const tileFeedbackTone =
       actionStatus === 'success'
         ? compactControlTone.success
@@ -150,7 +171,7 @@ const QuickControlsCard = ({
           <span
             className={`block leading-tight font-bold text-[var(--text-primary)] ${useFullTile ? 'text-[13px] whitespace-normal' : `text-[15px] ${standalone ? 'whitespace-normal' : 'truncate'}`}`}
           >
-            {getCompactName(entityId, entity)}
+            {getCompactName(entityId, entity, names)}
           </span>
           <span className="mt-0.5 flex min-h-4 items-center justify-center gap-1 text-xs font-medium text-[var(--text-secondary)]">
             <span className="truncate">{stateLabel}</span>
@@ -163,7 +184,7 @@ const QuickControlsCard = ({
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--glass-bg-hover)]">
             <ActionFeedbackIndicator status={actionStatus} className="h-4 w-4" />
           </span>
-        ) : !useFullTile && !unavailable ? (
+        ) : !useFullTile && !unavailable && !isRun ? (
           <span
             data-testid={`quick-control-power-${entityId}`}
             className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-all duration-300 ${active ? (lightColor ? 'shadow-sm' : compactControlTone.active) : compactControlTone.idle}`}
@@ -194,7 +215,7 @@ const QuickControlsCard = ({
         {...dragProps}
         className={`group relative flex h-full items-center overflow-hidden rounded-3xl border px-5 py-3 font-sans ${editMode ? 'cursor-move' : ''}`}
         style={cardStyle}
-        aria-label={getCompactName(entityId, entity)}
+        aria-label={getCompactName(entityId, entity, names)}
       >
         {controls}
         {renderControl(entityId, true)}
@@ -251,7 +272,9 @@ const QuickControlsCard = ({
             )}
           </button>
         )}
-        <div className="grid min-w-0 flex-1 grid-cols-2 gap-2">
+        <div
+          className={`grid min-w-0 flex-1 gap-2 ${entityIds.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}
+        >
           {entityIds.map((entityId) =>
             renderControl(entityId, false, !sharedLightIcon, sharedLightIcon)
           )}

@@ -49,3 +49,50 @@ describe('QuickControlsCard lamp group button', () => {
     expect(screen.getByTestId('quick-controls-shared-light-icon')).toBeDisabled();
   });
 });
+
+describe('QuickControlsCard run buttons and short names', () => {
+  const renderWithScript = (callService = vi.fn().mockResolvedValue(undefined)) => {
+    render(
+      <QuickControlsCard
+        cardId="quick_controls_2"
+        settings={{
+          entityIds: ['light.adam', 'light.emma', 'script.kvall'],
+          names: { 'light.adam': 'Adam', 'light.emma': 'Emma' },
+        }}
+        entities={{
+          'light.adam': { state: 'on', attributes: { friendly_name: 'Adam sänglampa' } },
+          'light.emma': { state: 'off', attributes: { friendly_name: 'Emma sänglampa' } },
+          'script.kvall': { state: 'off', attributes: { friendly_name: 'Kväll' } },
+        }}
+        callService={callService}
+        dragProps={{}}
+        controls={null}
+        cardStyle={{}}
+        editMode={false}
+        t={(key) => key}
+      />
+    );
+    return callService;
+  };
+
+  it('shows the short names from the card settings', () => {
+    renderWithScript();
+    expect(screen.getByText('Adam')).toBeInTheDocument();
+    expect(screen.getByText('Emma')).toBeInTheDocument();
+    expect(screen.queryByText('Adam sänglampa')).toBeNull();
+  });
+
+  it('runs the script on tap instead of toggling it', () => {
+    const callService = renderWithScript();
+    fireEvent.click(screen.getByTestId('quick-control-tile-script.kvall'));
+    expect(callService).toHaveBeenCalledWith('script', 'turn_on', { entity_id: 'script.kvall' });
+  });
+
+  it('keeps the shared lamp button for the lamps only', () => {
+    const callService = renderWithScript();
+    fireEvent.click(screen.getByRole('button', { name: 'quickControls.allLightsOff' }));
+    expect(callService).toHaveBeenCalledWith('light', 'turn_off', {
+      entity_id: ['light.adam', 'light.emma'],
+    });
+  });
+});

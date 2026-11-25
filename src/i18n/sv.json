@@ -1621,5 +1621,6 @@
   "media.remote.down": "Ner",
   "media.remote.left": "Vänster",
   "media.remote.right": "Höger",
-  "media.remote.ok": "OK"
+  "media.remote.ok": "OK",
+  "quickControls.run": "Kör"
 }
